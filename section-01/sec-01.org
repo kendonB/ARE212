@@ -11,31 +11,34 @@
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
-#+LATEX: \newcommand{\ep}{{\bf e}^\prime}
-#+LATEX: \renewcommand{\e}{{\bf e}}
-#+LATEX: \renewcommand{\I}{{\bf I}}
-#+LATEX: \renewcommand{\X}{{\bf X}}
-#+LATEX: \renewcommand{\x}{{\bf x}}
-#+LATEX: \renewcommand{\M}{{\bf M}}
-#+LATEX: \renewcommand{\A}{{\bf A}}
 #+LATEX: \renewcommand{\P}{{\bf P}}
-#+LATEX: \renewcommand{\Xp}{{\bf X}^{\prime}}
-#+LATEX: \renewcommand{\Mp}{{\bf M}^{\prime}}
-#+LATEX: \renewcommand{\y}{{\bf y}}
-#+LATEX: \renewcommand{\yp}{{\bf y}^{\prime}}
-#+LATEX: \renewcommand{\yh}{\hat{{\bf y}}}
-#+LATEX: \renewcommand{\yhp}{\hat{{\bf y}}^{\prime}}
-#+LATEX: \renewcommand{\In}{{\bf I}_n}
-#+LATEX: \renewcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
-#+LATEX: \renewcommand{\id}[1]{{\bf I}_{#1}}
+#+LATEX: \newcommand{\ep}{{\bf e}^\prime}
+#+LATEX: \newcommand{\e}{{\bf e}}
+#+LATEX: \newcommand{\I}{{\bf I}}
+#+LATEX: \newcommand{\X}{{\bf X}}
+#+LATEX: \newcommand{\x}{{\bf x}}
+#+LATEX: \newcommand{\M}{{\bf M}}
+#+LATEX: \newcommand{\A}{{\bf A}}
+#+LATEX: \newcommand{\B}{{\bf B}}
+#+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
+#+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
+#+LATEX: \newcommand{\y}{{\bf y}}
+#+LATEX: \newcommand{\yp}{{\bf y}^{\prime}}
+#+LATEX: \newcommand{\yh}{\hat{{\bf y}}}
+#+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
+#+LATEX: \newcommand{\In}{{\bf I}_n}
+#+LATEX: \newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+#+LATEX: \newcommand{\id}[1]{{\bf I}_{#1}}
 #+LATEX: \newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline
 
 *Introduction to =R=* \hfill
-*ARE212*: Section 01 \\
+*ARE212*: Section 01 \\ \hline \bigskip
 
-The objective of this section is to review the syllabus and to introduce the =R= environment. If there is remaining time, I'll work through some basic code puzzles that will require you to work in =R=, but will more likely leave them for you to play with on your own. Today may be a little slow for those of you with substantial experience in =R=, but I promise we'll speed up soon. \\
+The objective of this section is to review the syllabus and to introduce the =R= environment. If there is remaining time, I'll work through some basic code puzzles that will require you to work in =R=, but will more likely leave them for you to play with on your own. The first two or three sections may be a little slow for those of you with substantial experience in =R=, but I promise we'll speed up soon.
+
+* Installing =R=
 
 *Download =R=*: The download of =R= will vary by operating system, but it will begin here in any event:\\
 
@@ -43,67 +46,105 @@ The objective of this section is to review the syllabus and to introduce the =R=
 
 The online documentation and installer routines are comprehensive. If you are new to =R=, then it might make sense to use the Mac or Windows distribution, along with the built-in editor to write and evaluate code. [[www.rstudio.com][Rstudio]] is a popular IDE that provides a somewhat more user-friendly interface than the base =R= installation. For the tech-oriented, the Linux distribution is very flexible; and I'd use [[http://www.gnu.org/software/emacs/][Emacs]] with the [[http://ess.r-project.org/][ESS]] package for editing.  If you are interested in using the Linux distribution and are having trouble with the setup, please see me. \\
 
-I have included links to a few of the many resources on the web that provide gentle introductions to the =R= language. Those of you who have no experience with =R= or with programming in general will find it well worth your time to spend a few hours browsing those in your free time. In section, however, I will focus on presenting examples of code piece-by-piece in order to illustrate certain concepts. As always, please interrupt me with questions at any time. \\
+* Learning =R=
 
-*Working in =R=*
+I have included links to a few of the many resources on the web that provide gentle introductions to the =R= language. Those of you who have no experience with =R= or with programming in general will find it well worth your time to spend a few hours browsing those in your free time. Once you feel sufficiently comfortable with the language you will likely find that the optimal strategy for learning how to put together a particular piece of code is to search "R *" where * is a description of what you want to do. [[http://www.rseek.org][RSeek]] is also an immensely useful resource.
 
-In order to download specific packages that are not bundled with the base distribution of =R=, such as the =foreign= package, you'll enter the following commands to install and load the package:
 
-#+begin_src r :results none :exports code :tangle yes
-  install.packages("foreign")
-  library(foreign)
-#+end_src
+In section, however, I will focus on presenting examples of code piece-by-piece in order to illustrate certain concepts. As always, please interrupt me with questions at any time.
+* A gentle introduction to matrix algebra
 
-Once =foreign= is loaded, you'll have access to all of its constituent functions, including =read.csv= which will convert a comma-separated value worksheet (.csv) into a data frame[fn:: Note that it is also possible to read in =xls=, =dta=, tab-delimited, and many other types of data using similar functions.]. We will do that now, loading into memory the =auto.csv= into a data frame called =data=.
+The lingua franca of this course is matrix algebra, so we will start by introducing some of the more common commands for working in matrix-world[fn:: Unfortunately not quite as cool as The Matrix, but probably cooler than The Matrix: Reloaded and undoubtedly cooler than The Matrix: Revisited]. \\
 
-#+begin_src r :results output graphics :exports both :tangle yes :session
-  data <- read.csv("auto.csv", header=TRUE)
-#+end_src
+There are a variety of data objects in =R=, including numbers, vectors, matrices, strings, and dataframes.  We will mainly be working with vectors and matrices, which are quick to create and manipulate in =R=. The =matrix= function will create a matrix, according to the supplied arguments.
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+matrix(1:6, ncol=3)
+#+END_SRC
+
+#+results:
+:      [,1] [,2] [,3]
+: [1,]    1    3    5
+: [2,]    2    4    6
+
+The =ncol= option specifies the number of columns for the output matrix; and the default behavior of =matrix= is to cycle through by column.  To cycle through by rows, you'll have to set the optional argument =byrow=TRUE=.
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+matrix(1:6, ncol=3, byrow=TRUE)
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2] [,3]
+: [1,]    1    2    3
+: [2,]    4    5    6
+
+Suppose we wanted to check to see if the first matrix was equal to the transpose of the second.  This is clearly the case --- we can see that it is.  But in code, it would be cumbersome to check this condition using the previous two commands.  Instead, we can assign the matrices to variables for use in subsequent manipulations.  The =<-= operator assigns the arbitrary object to the supplied variable:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+(A <- matrix(1:6, ncol=2))
+(B <- matrix(1:6, ncol=3, byrow=TRUE))
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    1    4
+: [2,]    2    5
+: [3,]    3    6
+:      [,1] [,2] [,3]
+: [1,]    1    2    3
+: [2,]    4    5    6
+
+The === operator also assigns values, with a slightly different
+behavior; and it is common practice to use the === assignment
+for function arguments.[fn:: See the [[http://goo.gl/hgOJ][Google style sheet]] for a
+description of other standard practices in =R=.]  The ====
+comparison operator will yield =TRUE= or =FALSE=:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+A == t(B)
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,] TRUE TRUE
+: [2,] TRUE TRUE
+: [3,] TRUE TRUE
+
+Note that =t()= will return the tranpose of the supplied matrix.  Each
+element is checked individually, and each is identical in matrix $\A$
+and $\B '$.  To check the truthiness of the statement that all elements
+are identical, we need only to employ the =all= function:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+all(A == t(B))
+#+END_SRC
+
+#+RESULTS:
+: [1] TRUE
+
+We can get a list of all the object currently available in memory with the =ls()= function, which is useful as the assignments begin to accumulate:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+ls()
+#+END_SRC
+
+#+results:
+: [1] "A" "B"
+
+Note that without assignment, the transpose of $\B$, or =t(B)=, is created on the fly and not stored in memory. \\
+
+When paired with the =rm()= function, we can use =ls()= to delete all of the objects in memory.
+
+#+BEGIN_SRC R :results output :exports both :tangle yes
+rm(list == ls())
+#+END_SRC
 
 #+RESULTS:
 
-We can read the names from the data set; but they aren't much help.
-#+begin_src r :results output graphics :exports both :tangle yes :session
-  names(data)
-#+end_src
+Next week we will continue with more matrix operations.
+* Linear algebra puzzles
 
-#+RESULTS:
-: [1] "V1" "V2" "V3"
-
-We can replace the column headers with more descriptive variable names.
-
-#+begin_src r :results output graphics :exports both :tangle yes :session
-  names(data) <- c("price", "mpg", "weight")
-#+end_src
-
-#+RESULTS:
-
-To get a sense of the data, list the first six observations:
-#+begin_src r :results output graphics :exports both :tangle yes :session
-  head(data)
-#+end_src
-
-#+RESULTS:
-:   price mpg weight
-: 1  4099  22   2930
-: 2  4749  17   3350
-: 3  3799  22   2640
-: 4  4816  20   3250
-: 5  7827  15   4080
-: 6  5788  18   3670
-
-With the columns appropriately named, we can refer to particular variables within the data set using the unique indexing in =R=, where data objects tend to be variants of lists and nested lists.
-
-#+begin_src r :results output graphics :exports both :tangle yes :session
-  head(data$mpg)
-#+end_src
-
-#+RESULTS:
-: [1] 22 17 22 20 15 18
-
-Next week, we'll do more in-depth analysis of this data. \\
-
-*Linear algebra puzzles*: These notes will provide a code illustration  of the Linear Algebra review in Chapter 1 of the lecture notes.  Don't worry if you can't solve these puzzles.  Come back to them  later, once we have gone over =R= code in more detail.  There are  many correct ways to solve these puzzles.  We will go over a few  solutions in section.
+These notes will provide a code illustration  of the Linear Algebra review in Chapter 1 of the lecture notes.  Don't worry if you can't solve these puzzles, many of them require commands that we have not covered in section.  Come back to them later, once we have gone over =R= code in more detail.  There are many correct ways to solve these puzzles. If time remains, I will go over a couple of these next week.
 
  1. Let $\id{5}$ be a $5 \times 5$ identity matrix.  Demonstrate that $\id{5}$ is symmetric and idempotent using simple functions in =R=.
 
@@ -113,8 +154,7 @@ Next week, we'll do more in-depth analysis of this data. \\
 
  4. Show that if $\lambda_1, \lambda_2, \ldots, \lambda_5$ are the eigenvectors of a $5 \times 5$ matrix $\A$, then $\mbox{tr}(\A) = \sum_{i=1}^5 \lambda_i$.
 
-#+begin_src r :results graphics output :exports none :tangle yes
-install.packages("foreign")
+#+begin_src R :results graphics output :exports none :tangle yes
 
 # Puzzle 1
 
@@ -151,4 +191,32 @@ print( sum(lambda) )
 #+end_src
 
 #+results:
+#+begin_example
+.Rprofile: Setting UK repositoryn     [,1] [,2] [,3] [,4] [,5]
+[1,]    1    0    0    0    0
+[2,]    0    1    0    0    0
+[3,]    0    0    1    0    0
+[4,]    0    0    0    1    0
+[5,]    0    0    0    0    1
+     [,1] [,2] [,3] [,4] [,5]
+[1,]    1    0    0    0    0
+[2,]    0    1    0    0    0
+[3,]    0    0    1    0    0
+[4,]    0    0    0    1    0
+[5,]    0    0    0    0    1
+[1] TRUE
+[1] TRUE
+[1] TRUE
+[1] TRUE
+
+Call:
+lm(formula = y ~ x)
+
+Coefficients:
+(Intercept)            x
+    0.04272      0.92525
+
+[1] 2.010851
+[1] 2.010851+0i
+#+end_example
 

@@ -38,63 +38,55 @@
 \hline \\
 \vspace{10pt}
 \begin{tabular}{ l l l l }
- {\bf Professor}     & Max Auffhammer & {\bf Office hours} & Wednesdays, 5:00PM-6:00PM                  \\
- {\bf GSI}           & Patrick Baylis & {\bf OH location} & 234 Giannini                      \\
- {\bf Section time}  & Friday, 9:00AM - 10:00AM & {\bf e-mail}        &  \email{pbaylis@berkeley.edu}  \\
- {\bf Section location}  & 2032 Valley LSB & &  \\        
+ {\bf Professor}     & Max Auffhammer & {\bf Office hours} & Wednesdays, 5:00PM-6:00PM                   \\
+ {\bf GSI}           & Patrick Baylis &  & or by appointment              \\
+ {\bf Section time}  & Friday, 9:00AM-10:00AM & {\bf OH location}        & 234 Giannini          \\
+ {\bf Section location}  & 2032 Valley LSB & {\bf e-mail}   &   \email{pbaylis@berkeley.edu} \\
 \end{tabular}
 \vspace{10pt}
 \hline
-\bigskip 
-
+\bigskip
 
 The objective of section is to introduce you to =R= as a tool for econometric analysis. Each section, we will work through a coded example that uses actual econometric data in order to illustrate the use of =R= and some of the concepts that Max will cover in lecture. These are intended to be interactive so I strongly encourage you to bring your laptops to section and to interrupt me with questions and comments. \\
 
 Before we get into any of the details, I (and you) owe a great deal of thanks to *Dan Hammer*, a third-year colleague of ours in ARE who originally wrote these notes for last year's class[fn:: Dan's original notes are available at www.github.com/danhammer/ARE212. You will find them to be both excellent and somewhat more technically advanced than what I present in section. I highly recommend them, in particular for students who find the pace of my sections to be slow.]. Dan and I are collaborating to produce a comprehensive set of =R=-based section notes that span ARE212 and ARE213 (which many of you will take in the fall) and it would be helpful if you would let me know about any mistakes that you find in the notes. \\
 
-The following outline of section topics follows the lecture notes as they have been presented in the past. This outline may change, but the section notes will be posted in advance on bSpace. The work in progress on the notes will also be posted to my GitHub repository[fn:: www.github.com/pbaylis/ARE212].
+The following outline of section topics follows the lecture notes as they have been presented in the past. This outline will very likely change, but the section notes will be posted in advance on bSpace. The work in progress on the notes will also be posted to my GitHub repository[fn:: www.github.com/pbaylis/ARE212].
 
 \vspace{10pt}
 \begin{tabular}{ll}
      \bf{January 31}   &  Introduction to R                   \\
-     \bf{February 7}  &  Elementary operations in R          \\
-     \bf{February 14} &  Matrix algebra in R                 \\
+     \bf{February 7}  &  Matrix operations in R          \\
+     \bf{February 14} &  Ordinary least squares                 \\
      \bf{February 21} &  Goodness of fit                     \\
      \bf{February 28} &  Hypothesis testing                  \\
-     \bf{March 7}     &  Returns to eduction (example)       \\
-     \bf{March 14}    &  Efficiency of GLS                   \\
-     \bf{March 21}    &  Large sample properties of OLS      \\
-     \bf{April 4}     &  Testing for heteroskedasticity      \\
-     \bf{April 11}    &  Feasible generalized least squares  \\
-     \bf{April 18}    &  Serial correlation                  \\
+     \bf{March 7}     &  Data problems       \\
+     \bf{March 14}    &  Coding check-in                   \\
+     \bf{March 21}    &  Generalized least squares and ggplot       \\
+     \bf{April 4}     &  Maximum likelihood      \\
+     \bf{April 11}    &  Large sample properties  \\
+     \bf{April 18}    &  Heteroskedasticity and serial correlation                  \\
      \bf{April 25}    &  Instrumental variables              \\
-     \bf{May 2}       &  TBD                                 \\
-     \bf{May 9}       &  TBD                                 \\
+     \bf{May 2}       &  Returns to education (example)                                 \\
+     \bf{May 9}       &  Spatial analysis OR web scraping                                 \\
 \end{tabular}
-\vspace{10pt}
-
-*Office hours*: I've scheduled office hours on Wednesdays from 5:00PM to 6:00PM in 234 Giannini. This is not ideal, but it turns out that free time and space for office hours is a scarce resource. I'm also available to meet outside of office hours. \\
+\newpage
 
 *E-mail policy*: You are welcome to e-mail me questions about the course, section, or problem sets. However, if I can't answer your question in less than a paragraph, I will ask you to come to office hours or to make an appointment with me so that we can discuss it in person. If that isn't possible, you will have to come up with a shorter question. Brevity is the soul of econometrics. \\
 
-*Feedback*: As a first-year GSI, I will find your feedback on the content, pace, and presentation of style immensely valuable. You are more than welcome to contact me via e-mail or in person with feedback. If you prefer, you may also submit anonymous feedback here: https://www.get3sixty.com/:kcvz34. \\
+*Feedback*: As a first-year GSI, I will find your candid feedback on the content, pace, and presentation of section immensely valuable. You can let me know in person, via e-mail, or anonymously if you prefer. I have set up a form for anonymous feedback here: https://www.get3sixty.com/:kcvz34 or you may simply leave a note in my mailbox in Giannini.  \\
 
 *Laptops*: As I mentioned above, I would be delighted if you brought your laptops to section in order to follow along with the examples I present. I do understand that having a computer open breeds certain temptations. I can't promise that I will be more interesting than Facebook, but I do think you'll learn more about econometrics from me. Unless you have a bunch of econometricians on your Feed. \\
 
-*Homework*: Problem sets will be due at the end of class on the given date. Much of what you turn in will be code. I highly recommend you comment this code, both for your own sake and for mine. If you turn something in late, it will be up to Max to determine your deduction.\\
-
-*Grading*: Problem sets will be graded on a 100 point scale. Complete whiffs or no-shows will recieve a 0; decent-but-not-quite-there answers will recieve a 70; good work will receive a 100. \\
+*Homework*: See Max's notes for details on problem sets and their grading. I will only add a gentle plea for you to carefully comment your code. In the short term, commenting is a useful way to force you to think about what your code is doing as you write it. In the medium term, it will allow you to look over your code one or two months later (E.G. when you are working on your midterm) and understand what you did quickly. In the long term, clear and well-commented code is a valuable habit that will serve you throughout your career. And finally, though it hardly bears mentioning, it will make my grading life easier and improve my general disposition towards your problem sets. \\
 
 *Attendance*: Attendance at section is _not_ required. I hope the sections are helpful, but I don't expect that they will be useful for everyone. Only come if they are helpful to you, or if my jokes are just that good. \\
 
 *Additional resources*: There are many resources available to learn =R= and basic econometrics available on the web. There are even some that do both together. I've included a few of my favorites below:
 1. =R= reference card: http://cran.r-project.org/doc/contrib/refcard.pdf
 2. Various starter resources for =R=: http://www.ats.ucla.edu/stat/r/
-3. =R= if you already know =C++= or =Java= or =Perl= : http://www.johndcook.com/R_language_for_programmers.html
+3. Search engine for =R=: http://www.rseek.org
 4. Econometrics in =R=: http://cran.r-project.org/doc/contrib/Farnsworth-EconometricsInR.pdf
-
-*Academic integrity*: I don't want to belabor this. Most of what you will learn from this course will be a direct result of your struggles on the problem sets and exams. If you cheat on the problem sets, you will only be hurting your future grasp of the material. Similarly, while I am not against collaboration, I strongly suggest you attempt the entire problem set on your own before talking to others. \\
+5. =R= if you already know =C++= or =Java= or =Perl= : http://www.johndcook.com/R_language_for_programmers.html
 
 *Special accomodations*: If you should require any disability-related accommodations during our sections, lecture, or exams, please see me privately. You will ultimately need to procure an accommodations letter from the Disabled Students Program (dsp.berkeley.edu), which will be sent directly to Max.
-
-
