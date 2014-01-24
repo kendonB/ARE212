@@ -1,15 +1,18 @@
 
-library(foreign)
+matrix(1:6, ncol=3)
 
-data <- read.csv("auto.csv", header=TRUE)
+matrix(1:6, ncol=3, byrow=TRUE)
 
-names(data)
+A <- matrix(1:6, ncol=2)
+B <- matrix(1:6, ncol=3, byrow=TRUE)
 
-names(data) <- c("price", "mpg", "weight")
+A == t(B)
 
-head(data)
+all(A == t(B))
 
-head(data$mpg)
+ls()
+
+rm(list = ls())
 
 # Puzzle 1
 
@@ -38,7 +41,7 @@ lm(y ~ x)
 
 # Puzzle 4
 
-A <- matrix(runif(25), 5) # generate 25 uniformly random
+A <- matrix(runif(25), 5) # generate 25 uniformly random, put in a 5x5 mtx
 lambda <- eigen(A)$values # store the eigenvalues
 print( sum(diag(A)) )
 print( sum(lambda) )

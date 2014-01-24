@@ -36,7 +36,7 @@
 *Introduction to =R=* \hfill
 *ARE212*: Section 01 \\ \hline \bigskip
 
-The objective of this section is to review the syllabus and to introduce the =R= environment. If there is remaining time, I'll work through some basic code puzzles that will require you to work in =R=, but will more likely leave them for you to play with on your own. The first two or three sections will feel slow for those of you substantial experience in =R=\footnote{If you're bored, skip ahead to the puzzles}, but I promise we'll speed up soon.
+The objective of this section is to review the syllabus and to introduce the =R= environment. If there is remaining time, I'll work through some basic code puzzles that will require you to work in =R=. The first two or three sections will feel slow for those of you with substantial experience in =R=\footnote{If you're bored, skip ahead to the puzzles. I won't tell.}, but I promise we'll speed up soon.
 
 * Installing =R=
 
@@ -48,11 +48,11 @@ The online documentation and installer routines are comprehensive. If you are ne
 
 * Learning =R=
 
-I have included links to a few of the many resources on the web that provide gentle introductions to the =R= language. Those of you who have no experience with =R= or with programming in general will find it well worth your time to spend a few hours browsing those in your free time. In section I will focus on presenting examples of code piece-by-piece in order to illustrate certain concepts. My intention is to expose you to a small part of the =R= language in section so that you'll feel more comfortable exploring the rest.  \\
+I have included links to a few of the many resources on the web that provide gentle introductions to the =R= language. Those of you who have no experience with =R= or with programming in general will find it well worth your time to spend a few hours browsing the links, in particular the [[http://www.ats.ucla.edu/stat/r/][starter resources]] for =R= from the UCLA Statistics department. In section I will focus on presenting examples of code piece-by-piece in order to illustrate certain concepts. My intention is to expose you to a small part of the =R= language in section so that you'll feel more comfortable exploring the rest.  \\
 
 Once you feel sufficiently competent in the language you will find that the optimal strategy for learning how to put together a particular piece of code is usually to search the web for "R [whatever you want to do]". [[http://www.rseek.org][RSeek]] is also an immensely useful resource. If you want to learn about a specific function, simply type =?func= into your =R= console, where =func= is the name of the function you want to look up.
 
-* A gentle introduction to matrix algebra
+* A brief introduction to matrix algebra
 
 The lingua franca of this course is matrix algebra, so we will start by introducing some of the more common commands for working in matrix-world[fn:: Unfortunately not quite as cool as The Matrix, but probably cooler than The Matrix: Reloaded and undoubtedly cooler than The Matrix: Revisited.]. \\
 
@@ -127,7 +127,7 @@ When paired with the =rm()= function, we can use =ls()= to delete all of the obj
 #+END_SRC
 
 
-What's going on here? =list= is actually the name of an argument built in to the =rm()= command. The default behavior of =rm= is to accept character strings; we could have alternatively specified =rm("A","B")= and the outcome would have been the same. But by passing it a list of all of the objects in memory, we are telling =rm()= to clear everything, not just the variables we name. Next week we will continue with more matrix operations. On to the puzzles!
+What's going on here? =list= is actually the name of an argument built in to the =rm()= command. The default behavior of =rm= is to accept character strings; we could have alternatively specified =rm("A","B")= and the outcome would have been the same. But by passing it a list of all of the objects in memory, we are telling =rm()= to clear everything, not just the variables we name. Next week we will continue with more matrix operations.
 * Linear algebra puzzles
 
 These notes will provide a code illustration  of the Linear Algebra review in Chapter 1 of the lecture notes. Don't worry if you can't solve these puzzles, many of them require commands that we have not covered in section.  Come back to them later, once we have gone over =R= code in more detail.  There are many correct ways to solve these puzzles. If time remains, I will go over a couple of these next week.

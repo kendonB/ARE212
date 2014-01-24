@@ -3,142 +3,71 @@
 #+OPTIONS:     toc:nil num:nil
 #+LATEX_HEADER: \usepackage{mathrsfs}
 #+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage{hyperref}
 #+LATEX_HEADER: \usepackage{booktabs}
 #+LATEX_HEADER: \usepackage{dcolumn}
 #+LATEX_HEADER: \usepackage{subfigure}
 #+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+#+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+#+LATEX: \renewcommand{\P}{{\bf P}}
 #+LATEX: \newcommand{\ep}{{\bf e}^\prime}
-#+LATEX: \renewcommand{\e}{{\bf e}}
-#+LATEX: \renewcommand{\I}{{\bf I}}
-#+LATEX: \renewcommand{\In}{{\bf I}_n}
-#+LATEX: \renewcommand{\B}{{\bf B}}
-#+LATEX: \renewcommand{\A}{{\bf A}}
-#+LATEX: \renewcommand{\Bp}{{\bf B}^{\prime}}
-#+LATEX: \renewcommand{\Ap}{{\bf A}^{\prime}}
-
-#+LATEX: \renewcommand{\X}{{\bf X}}
-#+LATEX: \renewcommand{\Y}{{\bf Y}}
-#+LATEX: \renewcommand{\Z}{{\bf Z}}
-#+LATEX: \renewcommand{\Xp}{{\bf X}^{\prime}}
-#+LATEX: \renewcommand{\Yp}{{\bf Y}^{\prime}}
-#+LATEX: \renewcommand{\Zp}{{\bf Z}^{\prime}}
-
-#+LATEX: \renewcommand{\i}{\iota}
-#+LATEX: \renewcommand{\ip}{\iota^{\prime}}
-
-#+LATEX: \renewcommand{\W}{{\bf W}}
-#+LATEX: \renewcommand{\Wp}{{\bf W}^{\prime}}
-
+#+LATEX: \newcommand{\e}{{\bf e}}
+#+LATEX: \newcommand{\I}{{\bf I}}
+#+LATEX: \newcommand{\W}{{\bf W}}
+#+LATEX: \newcommand{\w}{{\bf w}}
+#+LATEX: \newcommand{\X}{{\bf X}}
+#+LATEX: \newcommand{\x}{{\bf x}}
+#+LATEX: \newcommand{\Y}{{\bf Y}}
+#+LATEX: \newcommand{\y}{{\bf y}}
+#+LATEX: \newcommand{\Z}{{\bf Z}}
+#+LATEX: \newcommand{\z}{{\bf z}}
+#+LATEX: \newcommand{\M}{{\bf M}}
+#+LATEX: \newcommand{\A}{{\bf A}}
+#+LATEX: \newcommand{\Ap}{{\bf A}^{\prime}}
+#+LATEX: \newcommand{\B}{{\bf B}}
+#+LATEX: \newcommand{\Bp}{{\bf B}^{\prime}}
+#+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
+#+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
+#+LATEX: \newcommand{\yp}{{\bf y}^{\prime}}
+#+LATEX: \newcommand{\yh}{\hat{{\bf y}}}
+#+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
+#+LATEX: \newcommand{\In}{{\bf I}_n}
+#+LATEX: \newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+#+LATEX: \newcommand{\id}[1]{{\bf I}_{#1}}
+#+LATEX: \newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline
 
-\textbf{Matrix operations in \texttt{R}} \hfill
+*Matrix operations in =R=* \hfill
 *ARE212*: Section 02 \\ \hline \bigskip
 
-This first section is meant to give a brief introduction to data
-manipulation in =R= that will support the work in future sections.  It
-may not be exciting, but it's incredibly exciting.
-
-* Creating matrices
-
-There are a variety of data objects in =R=, including numbers, vectors,
-matrices, strings, and dataframes.  We will mainly be working with
-vectors and matrices, which are quick to create and manipulate in =R=.
-The =matrix= function will create a matrix, according to the
-supplied arguments.
-
-#+BEGIN_SRC R :results output :exports both :session :tangle yes
-matrix(1:6, ncol=3)
-#+END_SRC
-
-#+results:
-:      [,1] [,2] [,3]
-: [1,]    1    3    5
-: [2,]    2    4    6
-
-The =ncol= option specifies the number of columns for the output
-matrix; and the default behavior of =matrix= is to cycle through by
-column.  To cycle through by rows, you'll have to set the optional
-argument =byrow=TRUE=.
-
-#+BEGIN_SRC r :results output :exports both :session :tangle yes
-matrix(1:6, ncol=3, byrow=TRUE)
-#+END_SRC
-
-#+RESULTS:
-:      [,1] [,2] [,3]
-: [1,]    1    2    3
-: [2,]    4    5    6
-
-Suppose we wanted to check to see if the first matrix was equal to the
-transpose of the second.  This is clearly the case --- we can see that
-it is.  But in code, it would be cumbersome to check this condition
-using the previous two commands.  Instead, we can assign the matrices
-to variables for use in subsequent manipulations.  The =<-= operator
-assigns the arbitrary object to the supplied variable:
-
-#+BEGIN_SRC R :results output :exports both :session :tangle yes
-(A <- matrix(1:6, ncol=2))
-(B <- matrix(1:6, ncol=3, byrow=TRUE))
-#+END_SRC
-
-#+RESULTS:
-:      [,1] [,2]
-: [1,]    1    4
-: [2,]    2    5
-: [3,]    3    6
-:      [,1] [,2] [,3]
-: [1,]    1    2    3
-: [2,]    4    5    6
-
-The \texttt{=} operator also assigns values, with a slightly different
-behavior; and it is common practice to use the \texttt{=} assignment
-for function arguments.[fn:: See the [[http://goo.gl/hgOJ][Google style sheet]] for a
-description of other standard practices in =R=.]  The \texttt{==}
-comparison operator will yield \texttt{TRUE} or \texttt{FALSE}:
-
-#+BEGIN_SRC R :results output :exports both :session :tangle yes
-A == t(B)
-#+END_SRC
-
-#+RESULTS:
-:      [,1] [,2]
-: [1,] TRUE TRUE
-: [2,] TRUE TRUE
-: [3,] TRUE TRUE
-
-Note that =t()= will return the tranpose of the supplied matrix.  Each
-element is checked individually, and each is identical in matrix $\A$
-and $\Bp$.  To check the truthiness of the statement that all elements
-are identical, we need only to employ the =all= function:
-
-#+BEGIN_SRC R :results output :exports both :session :tangle yes
-all(A == t(B))
-#+END_SRC
-
-#+RESULTS:
-: [1] TRUE
-
-We can get a list of all the object currently available in memory with
-the =ls()= function, which is useful as the assignments begin to
-accumulate:
-
-#+BEGIN_SRC R :results output :exports both :session :tangle yes
-ls()
-#+END_SRC
-
-#+results:
-: [1] "A" "B"
-
-Note that without assignment, the transpose of $\B$, or =t(B)=, is
-created on the fly, remaining anonymous.
+This section continues where we left off last week, introducing you to increasingly complex matrix manipulation in =R= and finishing with some puzzles in =R=. Soon we'll move on to real life data, I promise. But for now... matrices!
 
 * Matrix operations
 
-Matrix muliplication in =R= is bound to =%*%=, whereas scalar
-multiplication is bound to =*=.  Consider the product $\B\A$:
+We once again define =A= and =B= as before:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+A <- matrix(1:6, ncol=2)
+B <- matrix(1:6, ncol=3, byrow=TRUE)
+#+END_SRC
+
+#+RESULTS:
+
+As always, keeping track of your matrix dimensions is a Good Idea\texttrademark. That's where the =dim()= command comes in handy:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+dim(A)
+dim(B)
+#+END_SRC
+
+#+RESULTS:
+: [1] 3 2
+: [1] 2 3
+
+Matrix muliplication in =R= is bound to =%*%=, whereas scalar multiplication is bound to =*=.  Consider the product $\B\A$:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 B %*% A
@@ -149,9 +78,7 @@ B %*% A
 : [1,]   14   32
 : [2,]   32   77
 
-The dimensions have to line up properly for matrix multiplication to
-be appropriately applied, otherwise =R= returns an error, as is the
-case with the product $\B\Ap$:
+The dimensions have to line up properly for matrix multiplication to be appropriately applied, otherwise =R= returns an error, as is the case with the product $\B\Ap$:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 B %*% t(A)
@@ -160,10 +87,7 @@ B %*% t(A)
 #+RESULTS:
 : Error in B %*% t(A) : non-conformable arguments
 
-If scalar multiplication is applied to matrices of exactly the same
-dimensions, then the result is element-wise multiplication.  This type
-of operation is sometimes called the Hadamard product, denoted $\B
-\circ \Ap$:
+If scalar multiplication is applied to matrices of exactly the same dimensions, then the result is element-wise multiplication.  This type of operation is sometimes called the Hadamard product, denoted $\B \circ \Ap$:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 B * t(A)
@@ -174,10 +98,7 @@ B * t(A)
 : [1,]    1    4    9
 : [2,]   16   25   36
 
-More common, if we want to scale all elements by a factor of two, say,
-we just multiply a matrix by a scalar; but note that =class(2)= must
-be not be =matrix= but rather =numeric= so as to avoid a
-non-conformable error:
+More common, if we want to scale all elements by a factor of two, say, we just multiply a matrix by a scalar; but note that =class(2)= must be not be =matrix= but rather =numeric= so as to avoid a non-conformable error:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 A * 2
@@ -185,10 +106,9 @@ A * 2
 
 #+RESULTS:
 :      [,1] [,2]
-: [1,]    1    4
-: [2,]    2    5
-: [3,]    3    6
-: Error in A %*% 2 : non-conformable arguments
+: [1,]    2    8
+: [2,]    4   10
+: [3,]    6   12
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 A * matrix(2)
@@ -197,44 +117,30 @@ A * matrix(2)
 #+RESULTS:
 : Error in A * matrix(2) : non-conformable arrays
 
-Consider a more complicated operation, whereby each column of a matrix
-is multiplied element-wise by another, fixed column.  We encounter
-this situation frequently in time series analysis to test for
-parameter instability.  Here, each column of a particular matrix is
-multiplied in-place by a fixed column of residuals.  Let $\e$ be a
+Consider a more complicated operation, whereby each column of a matrix is multiplied element-wise by another, fixed column. Here, each column of a particular matrix is multiplied in-place by a fixed column of residuals.  Let $\e$ be a
 vector defined as an increasing sequence of length three:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
-(e <- matrix(1:3))
+e <- matrix(1:3)
 #+END_SRC
 
 #+results:
-:      [,1]
-: [1,]    1
-: [2,]    2
-: [3,]    3
 
-Note first that the default sequence in =R= is a column vector, and
-not a row vector.  We would like to =apply= a function to each
-column of $\A$, specifically a function that multiplies each column
-in-place by $\e$.  We must supply a 2 to ensure that the function is
-applied to the second dimension (columns) of $\A$:
+Note first that the default sequence in =R= is a column vector, and not a row vector.  We would like to =apply= a function to each column of $\A$, specifically a function that multiplies each column in-place by $\e$.  We must supply a 2 to ensure that the function is applied to the second dimension (columns) of $\A$:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 apply(A, 2, function(x) {x * e})
 #+END_SRC
 
 #+RESULTS:
-: Error in x * e : non-numeric argument to binary operator
 :      [,1] [,2]
 : [1,]    1    4
 : [2,]    4   10
 : [3,]    9   18
 
-The function that is applied is anonymous, but it could also be
-bound to a variable -- just as a matrix is bound to a variable:
+The function that is applied is anonymous, but it could also be bound to a variable -- just as a matrix is bound to a variable:
 
-#+BEGIN_SRC r :results output :exports both :session :tangle yes
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
 whoop <- function(x) {x * e}
 apply(A, 2, whoop)
 #+END_SRC
@@ -245,22 +151,17 @@ apply(A, 2, whoop)
 : [2,]    4   10
 : [3,]    9   18
 
-We will often need to define an identity matrix of dimension $n$, or
-$\In$.  This is quick using =diag=:
+We will often need to define an identity matrix of dimension $n$, or $\In$.  This is quick using =diag=:
 
-#+BEGIN_SRC r :results output :exports both :session :tangle yes
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
 I <- diag(5)
 #+END_SRC
 
-There are many ways to calculate the trace of $\I_5$.  One method has
-been bundled into a function, called =tr()=, that is included in a
-packaged called =psych= which is not included in the base distribution
-of =R=.  We will need to grab and call the library to have access to
-the function, installing it with the command
-=install.packages("psych")=.  For this, you'll need an internet
-connection.
+#+RESULTS:
 
-#+BEGIN_SRC r :results output :exports both :session :tangle yes
+There are many ways to calculate the trace of $\I_5$.  One method has been bundled into a function, called =tr()=, that is included in a package called =psych= which is not included in the base distribution of =R=.  We will need to grab and call the library to have access to the function, installing it with the command =install.packages("psych")=.  For this, you'll need an internet connection.
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
 library(psych)
 tr(I)
 #+END_SRC
@@ -270,41 +171,100 @@ tr(I)
 
 * Linear algebra puzzles
 
-1. Let $\X = [1 \hspace{6pt} 2 \hspace{6pt} 3]$, $\Y = [2 \hspace{6pt}
-   3 \hspace{6pt} 4]$, and $\Z = [3 \hspace{6pt} 4 \hspace{6pt} 7]$.
-   Define $\W = [\Xp \hspace{6pt} \Yp \hspace{6pt} \Zp]$.  Calculate
-   $\W^{-1}$.  If you cannot take the inverse, explain why not and
-   adjust $\W$ so that you /can/ take the inverse. /Hint/: the
-   =solve()= function will return the inverse of the supplied
-   matrices.
+1. Define vectors $\x = [1 \hspace{6pt} 2 \hspace{6pt} 3]'$, $\y = [2 \hspace{6pt} 3 \hspace{6pt} 4]'$, and $\z = [3 \hspace{6pt} 5 \hspace{6pt} 7]$. Define $\W = [\x \hspace{6pt} \y \hspace{6pt} \z]$.  Calculate $\W^{-1}$.  If you cannot take the inverse, explain why not and adjust $\W$ so that you /can/ take the inverse. /Hint/: the =solve()= function will return the inverse of the supplied matrices.
 
 2. Show, somehow, that $(\Xp)^{-1} = (\X^{-1})^{\prime}$.
 
-3. Generate a $3 \times 3$ matrix $\X$, where each element is drawn
-   from a standard normal distribution.  Let $\A = \I_3 -
-   \frac{1}{n}\i\ip$ be a demeaning matrix, with $\i$ a $3 \times 1$
-   vector of ones.  First show that $\A$ is idempotent and
-   symmetric. Next show that each row of the matrix $\X\A$ is the
-   deviation of each row and $\X$ from its mean.  Finally, show that
-   $(\X\A)(\X\A)^{\prime} = \X\A\Xp$, first through algebra and then
-   =R= code.
+3. Generate a $3 \times 3$ matrix $\X$, where each element is drawn from a standard normal distribution.  Let $\A = \I_3 - \frac{1}{3}\B$ be a demeaning matrix, with $\i$ a $3 \times 3$ matrix of ones.  First show that $\A$ is idempotent and symmetric. Next show that each row of the matrix $\X\A$ is the deviation of each row in $\X$ from its mean.  Finally, show that $(\X\A)(\X\A)^{\prime} = \X\A\Xp$, first through algebra and then =R= code.
 
-4. Demonstrate from random matrices that $(\X\Y\Z)^{-1} =
-   \Z^{-1}\Y^{-1}\X^{-1}$.
+4. Demonstrate from random matrices that $(\X\Y\Z)^{-1} = \Z^{-1}\Y^{-1}\X^{-1}$.
 
-5. Let $\X$ and $\Y$ be square $20 \times 20$ matrices.  Show that
-   $tr(\X + \Y) = tr(\X) + tr(\Y)$.
+5. Let $\X$ and $\Y$ be square $20 \times 20$ matrices.  Show that $tr(\X + \Y) = tr(\X) + tr(\Y)$.
 
-6. Generate a diagonal matrix $\X$, where each element on the
-   diagnonal is drawn from $U[10,20]$.  Show that the decomposition of
-   $\X = \sqrt{\X}\sqrt{\X}$.  That is, calculate the Cholesky
-   decomposition, for example, of $\X$ through the =chol()= function
-   and multiply it by itself to return $\X$.
+6. Generate a diagonal matrix $\X$, where each element on the diagnonal is drawn from $U[10,20]$. Now generate a matrix $\B$ s.t. $\X = \B\Bp$. /Hint/: There is a method in =R= that makes this easy. Does the fact that you can generate $\B$ tell you anything about $\X$?
 
-7. Demonstrate that for any scalar $c$ and any square matrix $\X$ of
-   dimension $n$ that $\det(c\X) = c^n \det(\X)$.
+7. Demonstrate that for any scalar $c$ and any square matrix $\X$ of dimension $n$ that $\det(c\X) = c^n \det(\X)$.
 
-8. Demonstrate that for an $m \times m$ matrix $\A$ and a $p \times p$
-   matrix $\B$ that $\det(\A \otimes \B) = \det(\A)^p
-   \det(\B)^m$. /Hint/: Note that $\otimes$ indicates the Kronecker
-   product.  Google the appropriate =R= function.
+8. Demonstrate that for an $m \times m$ matrix $\A$ and a $p \times p$ matrix $\B$ that $\det(\A \otimes \B) = \det(\A)^p \det(\B)^m$. /Hint/: Note that $\otimes$ indicates the Kronecker product\footnote{The Kronecker product is a useful mathemagical tool for econometricians, allowing us to more easily describe block-diagonal matricees for use in panel data settings. I wouldn't lose sleep over it, though.}.  Google the appropriate =R= function.
+
+#+BEGIN_SRC R :results graphics output :exports none :tangle yes
+
+## Dan Hammer
+## ARE212, Spring 2012
+## Linear Algebra Puzzles
+
+## Question 1
+
+X <- c(1,2,3)
+Y <- c(2,3,4)
+Z <- c(3,5,7)
+
+## The vector Z is a linear combination of X and Y, and R will throw
+## an error when taking the inverse
+W <- cbind(X, Y, Z)
+solve(W)
+
+## Replace an element to invert the matrix W
+W[1,1] <- 4
+solve(W)
+
+## Question 2
+
+X <- matrix(rnorm(9), nrow = 3)
+all.equal(solve(t(X)), t(solve(X)))
+
+## Question 3
+
+i <- matrix(c(1,1,1))
+A <- diag(3) - (1/3)* i %*% t(i)
+
+demeaned <- X %*% A
+all.equal(X[1, ] - mean(X[1,]), demeaned[1,])
+all.equal(X[2, ] - mean(X[2,]), demeaned[2,])
+all.equal(X[3, ] - mean(X[3,]), demeaned[3,])
+
+## Question 4
+
+X <- matrix(rnorm(9), 3)
+Y <- matrix(rnorm(9), 3)
+Z <- matrix(rnorm(9), 3)
+
+c <- solve(X %*% Y %*% Z)
+d <- solve(Z) %*% solve(Y) %*% solve(X)
+all.equal(c, d)
+
+## Question 5
+
+X <- matrix(rnorm(400), 20)
+Y <- matrix(rnorm(400), 20)
+
+f <- sum(diag(X + Y))
+g <- sum(diag(X)) + sum(diag(Y))
+all.equal(f, g)
+
+## Question 6
+
+X <- diag(runif(10, min = 10, max = 20))
+B <- chol(X)
+all.equal(B %*% t(B), X)
+# Per #20 on the linear algebra review, X must be positive semi-definite
+
+## Question 7
+
+c <- 5
+n <- 3
+X <- matrix(rnorm(9), nrow = n)
+all.equal(det(c * X), c^n * det(X))
+
+## Question 8
+
+X <- matrix(runif(9), 3)
+Y <- matrix(runif(16), 4)
+h <- det(kronecker(X, Y))
+j <- det(X)^4 * det(Y)^3
+all.equal(h, j)
+
+#+END_SRC
+
+#+RESULTS:
+
