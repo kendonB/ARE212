@@ -1,0 +1,11 @@
+- Hand out 30 copies of syllabus, R reference card (2 min)
+- My intro (1 min)
+- Their intro: Dept-year, R experience (7 min)
+- Go over syllabus (20 min)
+	- Question answering philosophy - I will often tell you that I don't know but that I'll find out.
+- Go over section 1 notes (20 min)
+- With remaining time, do puzzles
+
+General notes:
+- Talk slowly
+- Bring notebook.
