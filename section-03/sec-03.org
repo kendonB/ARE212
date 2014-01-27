@@ -11,17 +11,25 @@
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+#+LATEX: \renewcommand{\P}{{\bf P}}
 #+LATEX: \newcommand{\ep}{{\bf e}^\prime}
 #+LATEX: \newcommand{\e}{{\bf e}}
 #+LATEX: \newcommand{\I}{{\bf I}}
+#+LATEX: \newcommand{\W}{{\bf W}}
+#+LATEX: \newcommand{\w}{{\bf w}}
 #+LATEX: \newcommand{\X}{{\bf X}}
 #+LATEX: \newcommand{\x}{{\bf x}}
+#+LATEX: \newcommand{\Y}{{\bf Y}}
+#+LATEX: \newcommand{\y}{{\bf y}}
+#+LATEX: \newcommand{\Z}{{\bf Z}}
+#+LATEX: \newcommand{\z}{{\bf z}}
 #+LATEX: \newcommand{\M}{{\bf M}}
 #+LATEX: \newcommand{\A}{{\bf A}}
-#+LATEX: \newcommand{\P}{{\bf P}}
+#+LATEX: \newcommand{\Ap}{{\bf A}^{\prime}}
+#+LATEX: \newcommand{\B}{{\bf B}}
+#+LATEX: \newcommand{\Bp}{{\bf B}^{\prime}}
 #+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
 #+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
-#+LATEX: \newcommand{\y}{{\bf y}}
 #+LATEX: \newcommand{\yp}{{\bf y}^{\prime}}
 #+LATEX: \newcommand{\yh}{\hat{{\bf y}}}
 #+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
@@ -33,7 +41,7 @@
 #+STARTUP: fninline
 
 *Ordinary Least Squares* \hfill
-*ARE212*: Section 03 \\ \\
+*ARE212*: Section 03 \\ \hline \bigskip
 
 This section is intended to introduce linear regression in =R=.  The first step is to load the =foreign= package[fn:: If the foreign package isn't installed, we would install it first using =install.packages("foreign")= ] Once =foreign= is loaded, you'll have access to all of its constituent functions, including =read.csv= which will convert a comma-separated value worksheet (.csv) into a data frame[fn:: Note that it is also possible to read in =xls=, =dta=, tab-delimited, and many other types of data using similar functions.]. We will do that now, loading =auto.csv= into a data frame called =data= [fn:: =auto.csv= can be downloaded [[https://github.com/pbaylis/ARE212/blob/master/data/auto.csv][here]].].  We set the option =header= to =TRUE=, which treats the first line of the CSV file as variable names, rather than an observation.
 
@@ -52,12 +60,7 @@ We can read the names from the data set; but they aren't much help.
 #+RESULTS:
 : [1] "V1" "V2" "V3"
 
-We can replace the column headers with more descriptive variable
-names.  The next command is an example of destructuring, sort of, in a
-language where destructuring does not really exist.  There are three
-elements in both the original and new list; and each element in the
-original list is reassigned based on its position in the list, e.g.,
-the =V1= header is replaced by =price=.
+We can replace the column headers with more descriptive variable names.  The next command is an example of destructuring, sort of, in a language where destructuring does not really exist.  There are three elements in both the original and new list; and each element in the original list is reassigned based on its position in the list, e.g., the =V1= header is replaced by =price=.
 #+begin_src R :results output graphics :exports both :tangle yes :session
   names(data) <- c("price", "mpg", "weight")
 #+end_src
@@ -78,9 +81,7 @@ To get a sense of the data, list the first six observations:
 : 5  7827  15   4080
 : 6  5788  18   3670
 
-With the columns appropriately named, we can refer to particular
-variables within the data set using the unique indexing in =R=, where
-data objects tend to be variants of lists and nested lists.
+With the columns appropriately named, we can refer to particular variables within the data set using the unique indexing in =R=, where data objects tend to be variants of lists and nested lists.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
   head(data$mpg)
@@ -89,10 +90,7 @@ data objects tend to be variants of lists and nested lists.
 #+RESULTS:
 : [1] 22 17 22 20 15 18
 
-Now for the analysis, a linear model using =lm()=.  We specify
-the model by referring to the column headers within the specified data
-set --- along with a 1 to indicate a column of ones. =R= is unique for
-intelligently snapping the dimensions of comparable matrices.
+Now for the analysis, a linear model using =lm()=.  We specify the model by referring to the column headers within the specified data set --- along with a 1 to indicate a column of ones. =R= is unique for intelligently snapping the dimensions of comparable matrices.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
   lm(price ~ 1 + mpg + weight, data=data)
@@ -107,11 +105,8 @@ intelligently snapping the dimensions of comparable matrices.
 : (Intercept)          mpg       weight
 :    1946.069      -49.512        1.747
 
-Note that we do not need to refer to the data set in calling a
-vector, e.g., =data$price=.  Instead, we "attach" the data
-within the linear model.  We can do the same thing for the =R=
-session, which tends to simplify notation.  The columns can be
-referenced directly after the data set has been attached.
+Note that we do not need to refer to the data set in calling a vector, e.g., =data$price=.  Instead, we "attach" the data within the linear model.  We can do the same thing for the =R=
+session, which tends to simplify notation.  The columns can be referenced directly after the data set has been attached.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
   attach(data)
@@ -121,13 +116,7 @@ referenced directly after the data set has been attached.
 #+RESULTS:
 : [1] 22 17 22 20 15 18
 
-The use of canned routines is not permitted for most of this class;
-you'll have to write the econometric routines from first principles.
-First, create matrices of the data, since we will be working mainly
-with matrix operations.  Let $\y$ be the dependent variable, price,
-and let $\X$ be a matrix of the other car characteristics, along with
-a column of ones prepended.  The =cbind()= function binds the columns
-horizontally and coerces the =matrix= class.
+The use of canned routines is not permitted for most of this class; you'll have to write the econometric routines from first principles. First, create matrices of the data, since we will be working mainly with matrix operations.  Let $\y$ be the dependent variable, price, and let $\X$ be a matrix of the other car characteristics, along with a column of ones prepended.  The =cbind()= function binds the columns horizontally and coerces the =matrix= class.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
   y <- matrix(price)
@@ -136,8 +125,7 @@ horizontally and coerces the =matrix= class.
 
 #+RESULTS:
 
-Check that the number of observations are the same in both the
-dependent vector $\y$ and the cofactor matrix $\X$.
+Check that the number of observations are the same in both the dependent vector $\y$ and the cofactor matrix $\X$.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 dim(X)[1] == nrow(y)
@@ -146,11 +134,7 @@ dim(X)[1] == nrow(y)
 #+RESULTS:
 : [1] TRUE
 
-Before proceeding, we should =detach= the data frame, so that if we
-reload the =R= script, there won't be any naming conflicts.  The =X=
-and =y= objects will persist, as will =data$mpg=, but we will no
-longer be able to call the variables without referencing the data
-frame.
+Before proceeding, we should =detach= the data frame, so that if we reload the =R= script, there won't be any naming conflicts.  The =X= and =y= objects will persist, as will =data$mpg=, but we will no longer be able to call the variables without referencing the data frame.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
   detach(data)
@@ -158,8 +142,7 @@ frame.
 
 #+RESULTS:
 
-Using the matrix operations described in the previous section, we can
-quickly estimate the ordinary least squared parameter vector.
+Using the matrix operations described in the previous section, we can quickly estimate the ordinary least squared parameter vector.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 beta <- solve(t(X) %*% X) %*% t(X) %*% y
@@ -172,10 +155,7 @@ print(beta)
 : mpg     -49.512221
 : weight    1.746559
 
-This vector matches the coefficient vector from the canned routine,
-thankfully.  Digging deeper into the numbers, consider the projection
-matrix $\P = \X(\Xp\X)^{-1}\Xp$ and the residual maker matrix $\M =
-\In - \P$
+This vector matches the coefficient vector from the canned routine, thankfully.  Digging deeper into the numbers, consider the projection matrix $\P = \X(\Xp\X)^{-1}\Xp$ and the residual maker matrix $\M = \In - \P$
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 n <- nrow(y)
@@ -185,12 +165,7 @@ M <- diag(n) - P
 
 #+RESULTS:
 
-=R= is useful for checking the properties of these matrices, including
-whether $\M$ is symmetric, that is, whether $\M = \Mp$.  The function
-=all.equal()= does not test *exact* equality, but instead whether
-the supplied objects are "close enough" to be considered the same.
-The problem is the limits of machine precision, and rounding at the
-tail ends of floating point numbers.
+=R= is useful for checking the properties of these matrices, including whether $\M$ is symmetric, that is, whether $\M = \Mp$.  The function =all.equal()= does not test *exact* equality, but instead whether the supplied objects are "close enough" to be considered the same. The problem is the limits of machine precision, and rounding at the tail ends of floating point numbers.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 all.equal(M, t(M))
@@ -199,9 +174,7 @@ all.equal(M, t(M))
 #+RESULTS:
 : [1] TRUE
 
-If we want to test for exact equality, we set the tolerance to
-zero, and the function will return a message with the mean relative
-difference between elements --- which is clearly very close to zero.
+If we want to test for exact equality, we set the tolerance to zero, and the function will return a message with the mean relative difference between elements --- which is clearly very close to zero.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 all.equal(M, t(M), tol=0)
@@ -210,8 +183,7 @@ all.equal(M, t(M), tol=0)
 #+RESULTS:
 : [1] "Mean relative difference: 7.266263e-15"
 
-The residual maker matrix should also be idempotent, or $\M =
-\M\Mp$.
+The residual maker matrix should also be idempotent, or $\M = \M\Mp$.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 all.equal(M, M %*% t(M))
@@ -220,10 +192,7 @@ all.equal(M, M %*% t(M))
 #+RESULTS:
 : [1] TRUE
 
-Finally, we can examine the different components of the variation
-in the dependent variable, as they relate to the OLS estimate.
-Specifically, we can show that the total sum of square is equal to the
-sum of the residual and estimated sum of squares:
+Finally, we can examine the different components of the variation in the dependent variable, as they relate to the OLS estimate. Specifically, we can show that the total sum of square is equal to the sum of the residual and estimated sum of squares:
 \begin{equation}
 \label{eq:ss}
 \yp\y = \yhp\yh + \ep\e
@@ -251,22 +220,13 @@ all.equal(tss, ess + rss)
 
 * Additional puzzles
 
-1. Write a function =wt.coef()= that will return the OLS coefficient
-   on weight from the regression of car price on the covariate matrix
-   described above.
+1. Write a function =wt.coef()= that will return the OLS coefficient on weight from the regression of car price on the covariate matrix described above.
 
-2. Adjust the function to return a list of coefficients from the same
-   linear regression, appropriately named.
+2. Adjust the function to return a list of coefficients from the same linear regression, appropriately named.
 
-3. Find the estimate of the covariance matrix $\sigs (\Xp\X)^{-1}$ and
-   show that the residuals and covariate matrix are orthogonal.
+3. Find the estimate of the covariance matrix $\sigs (\Xp\X)^{-1}$ and show that the residuals and covariate matrix are orthogonal.
 
-4. *Partitioned regression*: Generate a $100 \times 5$ matrix $\X$
-   /including/ a column of ones for the intercept. Additionally,
-   generate a vector $\y$ according to the generating process: $$y_i =
-   1 + x_{1i} + 2x_{2i} + 3x_{3i} + 4x_{4i} + \epsilon_i, $$ where
-   $\epsilon_i \sim N(0,1)$.  Let $\Q$ be the first three columns of $\X$
-   and let $\N$ be the final two columns.  In addition, let
+4. *Partitioned regression*: Generate a $100 \times 5$ matrix $\X$ /including/ a column of ones for the intercept. Additionally, generate a vector $\y$ according to the generating process: $$y_i = 1 + x_{1i} + 2x_{2i} + 3x_{3i} + 4x_{4i} + \epsilon_i, $$ where $\epsilon_i \sim N(0,1)$.  Let $\Q$ be the first three columns of $\X$ and let $\N$ be the final two columns.  In addition, let
    \begin{eqnarray*}
       \gho  &=& (\Qp\Q)^{-1}\Qp\y \and \f = \y - \Q\gho   \\
       \ght  &=& (\Qp\Q)^{-1}\Qp\N \and \g = \N - \Q\ght   \\

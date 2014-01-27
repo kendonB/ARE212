@@ -1,14 +1,35 @@
 
-matrix(1:6, ncol=3)
-
-matrix(1:6, ncol=3, byrow=TRUE)
-
 A <- matrix(1:6, ncol=2)
 B <- matrix(1:6, ncol=3, byrow=TRUE)
 
 A == t(B)
 
 all(A == t(B))
+
+dim(A)
+dim(B)
+
+B %*% A
+
+B %*% t(A)
+
+B * t(A)
+
+A * 2
+
+A * matrix(2)
+
+e <- matrix(1:3)
+
+apply(A, 2, function(x) {x * e})
+
+whoop <- function(x) {x * e}
+apply(A, 2, whoop)
+
+I <- diag(5)
+
+library(psych)
+tr(I)
 
 ls()
 
@@ -41,7 +62,7 @@ lm(y ~ x)
 
 # Puzzle 4
 
-A <- matrix(runif(25), 5) # generate 25 uniformly random, put in a 5x5 mtx
+A <- matrix(runif(25), 5) # generate 25 uniformly random
 lambda <- eigen(A)$values # store the eigenvalues
 print( sum(diag(A)) )
 print( sum(lambda) )

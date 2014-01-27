@@ -43,7 +43,7 @@
 *Data manipulation in =R=* \hfill
 *ARE212*: Section XX \\ \hline \bigskip
 
-This section will go through some basic data manipulation commands in =R=, commands that will hopefully be immediately useful to you as you work through the first problem set. I will cover sorting, reshaping, collapsing, and merging data. As always, see the =R= help file or the list of =R= resources in the section syllabus for further exploration of these commands.
+This section will go through some some slighly more advanced data manipulation commands in =R=, commands that will hopefully be immediately useful to you as you work through the problem sets. I will cover sorting, reshaping, collapsing, and merging data. As always, see the =R= help file or the list of =R= resources in the section syllabus for further exploration of these commands.
 
 * =R= for Stata users
 
@@ -210,7 +210,7 @@ merge(X, Y, by.x=c("id", "t"), by.y=c("a", "b"))
 : 3  2 1 7 A  4
 : 4  2 2 2 B  3
 
-Merges in economic data, especially panel data, are often used to attribute static characteristics to the time series. The target data may be organized by time and unit, whereas the new data frame may be at just the unit level. The two data frames need not ber perfectly aligned, as in the previous examples. Consider a new, unit-level data frame =Z= that contains static characteristics (that do not depend on time).
+Merges in economic data, especially panel data, are often used to attribute static characteristics to the time series. The target data may be organized by time and unit, whereas the new data frame may be at just the unit level. The two data frames need not be perfectly aligned, as in the previous examples. Consider a new, unit-level data frame =Z= that contains static characteristics (that do not depend on time).
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 (Z <- data.frame(id=c(1,2), x4=c("yes", "no")))

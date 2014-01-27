@@ -3,12 +3,12 @@
 #+OPTIONS:     toc:nil num:nil
 #+LATEX_HEADER: \usepackage{mathrsfs}
 #+LATEX_HEADER: \usepackage{graphicx}
-#+LATEX_HEADER: \usepackage{hyperref}
 #+LATEX_HEADER: \usepackage{booktabs}
 #+LATEX_HEADER: \usepackage{dcolumn}
 #+LATEX_HEADER: \usepackage{subfigure}
 #+LATEX_HEADER: \usepackage[margin=1in]{geometry}
 #+LATEX_HEADER: \usepackage{color}
+#+LATEX_HEADER: \usepackage{hyperref}
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
 #+LATEX: \renewcommand{\P}{{\bf P}}
@@ -20,6 +20,8 @@
 #+LATEX: \newcommand{\M}{{\bf M}}
 #+LATEX: \newcommand{\A}{{\bf A}}
 #+LATEX: \newcommand{\B}{{\bf B}}
+#+LATEX: \newcommand{\Ap}{{\bf A}^{\prime}}
+#+LATEX: \newcommand{\Bp}{{\bf B}^{\prime}}
 #+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
 #+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
 #+LATEX: \newcommand{\y}{{\bf y}}
@@ -27,7 +29,7 @@
 #+LATEX: \newcommand{\yh}{\hat{{\bf y}}}
 #+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
 #+LATEX: \newcommand{\In}{{\bf I}_n}
-#+LATEX: \newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+#+LATEX: \newcommand{\blue}[1]{\textcolor{blue}{\texttt{#1}}}
 #+LATEX: \newcommand{\id}[1]{{\bf I}_{#1}}
 #+LATEX: \newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
 #+LATEX: \setlength{\parindent}{0in}
@@ -42,17 +44,17 @@ The objective of this section is to review the syllabus and to introduce the =R=
 
 *Download =R=*: The download of =R= will vary by operating system, but it will begin here in any event:\\
 
-[[http://cran.r-project.org/][\email{cran.r-project.org}]] \\
+[[http://cran.r-project.org/][\blue{cran.r-project.org}]] \\
 
 The online documentation and installer routines are comprehensive. If you are new to =R=, then it might make sense to use the Mac or Windows distribution, along with the built-in editor to write and evaluate code. [[www.rstudio.com][Rstudio]] is a popular IDE that provides a somewhat more user-friendly interface than the base =R= installation. For the tech-oriented, the Linux distribution is very flexible; I use [[http://www.gnu.org/software/emacs/][Emacs]] with the [[http://ess.r-project.org/][ESS]] package for editing.  If you are interested in using the Linux distribution and are having trouble with the setup, please see me.
 
 * Learning =R=
 
-I have included links to a few of the many resources on the web that provide gentle introductions to the =R= language. Those of you who have no experience with =R= or with programming in general will find it well worth your time to spend a few hours browsing the links, in particular the [[http://www.ats.ucla.edu/stat/r/][starter resources]] for =R= from the UCLA Statistics department. In section I will focus on presenting examples of code piece-by-piece in order to illustrate certain concepts. My intention is to expose you to a small part of the =R= language in section so that you'll feel more comfortable exploring the rest.  \\
+I have included links in the syllabus to a few of the many resources on the web that provide gentle introductions to the =R= language. Those of you who have no experience with =R= or with programming in general will find it well worth your time to spend a few hours browsing these, in particular the [[http://www.ats.ucla.edu/stat/r/][starter resources]] for =R= from the UCLA Statistics department. In section I will focus on presenting examples of code piece-by-piece in order to illustrate certain concepts. My intention is to expose you to a small part of the =R= language in section so that you'll feel more comfortable exploring the rest.  \\
 
 Once you feel sufficiently competent in the language you will find that the optimal strategy for learning how to put together a particular piece of code is usually to search the web for "R [whatever you want to do]". [[http://www.rseek.org][RSeek]] is also an immensely useful resource. If you want to learn about a specific function, simply type =?func= into your =R= console, where =func= is the name of the function you want to look up.
 
-* A brief introduction to matrix algebra
+* Creating and testing matricies
 
 The lingua franca of this course is matrix algebra, so we will start by introducing some of the more common commands for working in matrix-world[fn:: Unfortunately not quite as cool as The Matrix, but probably cooler than The Matrix: Reloaded and undoubtedly cooler than The Matrix: Revisited.]. \\
 
@@ -60,35 +62,13 @@ There are a variety of data objects in =R=, including numbers, vectors, matrices
 \newpage
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
-matrix(1:6, ncol=3)
-#+END_SRC
-
-#+results:
-:      [,1] [,2] [,3]
-: [1,]    1    3    5
-: [2,]    2    4    6
-
-The =ncol= option specifies the number of columns for the output matrix; and the default behavior of =matrix= is to cycle through by column.  To cycle through by rows, you'll have to set the optional argument =byrow=TRUE=.
-
-#+BEGIN_SRC R :results output :exports both :session :tangle yes
-matrix(1:6, ncol=3, byrow=TRUE)
-#+END_SRC
-
-#+RESULTS:
-:      [,1] [,2] [,3]
-: [1,]    1    2    3
-: [2,]    4    5    6
-
-Suppose we wanted to check to see if the first matrix was equal to the transpose of the second.  This is clearly the case --- we can see that it is.  But in code, it would be cumbersome to check this condition using the previous two commands.  Instead, we can assign the matrices to variables for use in subsequent manipulations.  The =<-= operator assigns the arbitrary object to the supplied variable:
-
-#+BEGIN_SRC R :results output :exports both :session :tangle yes
 A <- matrix(1:6, ncol=2)
 B <- matrix(1:6, ncol=3, byrow=TRUE)
 #+END_SRC
 
-#+RESULTS:
+For convenience, we use =->=\footnote{The === operator also assigns values, with a slightly different behavior. It is also  common practice to use the === assignment for function arguments. See the [[http://goo.gl/hgOJ][Google style sheet]] for a description of other standard practices in =R=.} to assign the matrices to the variables =A= and =B= for use in subsequent manipulations. The =ncol= option specifies the number of columns for the output matrix; and the default behavior of =matrix= is to cycle through by column.  To cycle through by rows we set the optional argument =byrow=TRUE=. \\
 
-The === operator also assigns values, with a slightly different behavior; and it is common practice to use the === assignment for function arguments.[fn:: See the [[http://goo.gl/hgOJ][Google style sheet]] for a description of other standard practices in =R=.]  The ==== comparison operator will yield =TRUE= or =FALSE=:
+Suppose we wanted to check to see if the first matrix was equal to the transpose of the second. This is clearly the case --- we can see that it is. But when we're working with larger matrices it will be convenient to have a way to do this programmatically. The ==== comparison operator will yield =TRUE= or =FALSE=:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 A == t(B)
@@ -100,7 +80,7 @@ A == t(B)
 : [2,] TRUE TRUE
 : [3,] TRUE TRUE
 
-Note that =t()= will return the tranpose of the supplied matrix.  Each element is checked individually, and each is identical in matrix $\A$ and $\B '$.  To check the truthiness of the statement that all elements are identical, we need only to employ the =all= function:
+Note that =t()= will return the transpose of the supplied matrix.  Each element is checked individually, and each is identical in matrix $\A$ and $\Bp$.  To check the truthiness of the statement that all elements are identical, we need only to employ the =all= function:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 all(A == t(B))
@@ -109,6 +89,123 @@ all(A == t(B))
 #+RESULTS:
 : [1] TRUE
 
+Keeping track of your matrix dimensions is a Good Idea\texttrademark. That's where the =dim()= command comes in handy:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+dim(A)
+dim(B)
+#+END_SRC
+
+#+RESULTS:
+: [1] 3 2
+: [1] 2 3
+
+With the dimensions of our matrices in mind, we'll move on to matrix operations.
+
+* Matrix operations
+
+Matrix muliplication in =R= is bound to =%*%=, whereas scalar multiplication is bound to =*=.  Consider the product $\B\A$:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+B %*% A
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]   14   32
+: [2,]   32   77
+
+The dimensions have to line up properly for matrix multiplication to be appropriately applied, otherwise =R= returns an error, as is the case with the product $\B\Ap$:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+B %*% t(A)
+#+END_SRC
+
+#+RESULTS:
+: Error in B %*% t(A) : non-conformable arguments
+
+If scalar multiplication is applied to matrices of exactly the same dimensions, then the result is element-wise multiplication.  This type of operation is sometimes called the Hadamard product, denoted $\B \circ \Ap$:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+B * t(A)
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2] [,3]
+: [1,]    1    4    9
+: [2,]   16   25   36
+
+This is rarely what we want to do. More common, if we want to scale all elements by a factor of two, say, we just multiply a matrix by a scalar; but note that =class(2)= must be not be =matrix= but rather =numeric= so as to avoid a non-conformable error:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+A * 2
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    2    8
+: [2,]    4   10
+: [3,]    6   12
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+A * matrix(2)
+#+END_SRC
+
+#+RESULTS:
+: Error in A * matrix(2) : non-conformable arrays
+
+Consider a more complicated operation, whereby each column of a matrix is multiplied element-wise by another, fixed column. Here, each column of a particular matrix is multiplied in-place by a fixed column of residuals.  Let $\e$ be a
+vector defined as an increasing sequence of length three:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+e <- matrix(1:3)
+#+END_SRC
+
+#+results:
+
+Note first that the default sequence in =R= is a column vector, and not a row vector.  We would like to =apply= a function to each column of $\A$, specifically a function that multiplies each column in-place by $\e$.  We must supply a 2 to ensure that the function is applied to the second dimension (columns) of $\A$:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+apply(A, 2, function(x) {x * e})
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    1    4
+: [2,]    4   10
+: [3,]    9   18
+
+The function that is applied is anonymous, but it could also be bound to a variable -- just as a matrix is bound to a variable:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+whoop <- function(x) {x * e}
+apply(A, 2, whoop)
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    1    4
+: [2,]    4   10
+: [3,]    9   18
+
+We will often need to define an identity matrix of dimension $n$, or $\In$.  This is quick using =diag=:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+I <- diag(5)
+#+END_SRC
+
+#+RESULTS:
+
+There are many ways to calculate the trace of $\I_5$.  One method has been bundled into a function, called =tr()=, that is included in a package called =psych= which is not included in the base distribution of =R=.  We will need to grab and call the library to have access to the function, installing it with the command =install.packages("psych")=.  For this, you'll need an internet connection.
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+library(psych)
+tr(I)
+#+END_SRC
+
+#+RESULTS:
+: [1] 5
+
 We can get a list of all the object currently available in memory with the =ls()= function, which is useful as the assignments begin to accumulate:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
@@ -116,9 +213,9 @@ ls()
 #+END_SRC
 
 #+results:
-: [1] "A" "B" "v"
+: [1] "A"     "B"     "e"     "I"     "whoop"
 
-Note that without assignment, the transpose of $\B$, or =t(B)=, is created on the fly and not stored in memory. \\
+Note that the objects we did not explicitly assign, such the transpose of $\B$, =t(B)=, or the trace of \I, =tr(I)=, are created on the fly and not stored in memory. \\
 
 When paired with the =rm()= function, we can use =ls()= to delete all of the objects in memory. This is similar to the command =clear= in Stata.
 
@@ -126,8 +223,13 @@ When paired with the =rm()= function, we can use =ls()= to delete all of the obj
   rm(list = ls())
 #+END_SRC
 
+#+RESULTS:
 
-What's going on here? =list= is actually the name of an argument built in to the =rm()= command. The default behavior of =rm= is to accept character strings; we could have alternatively specified =rm("A","B")= and the outcome would have been the same. But by passing it a list of all of the objects in memory, we are telling =rm()= to clear everything, not just the variables we name. Next week we will continue with more matrix operations.
+
+What's going on here? =list= is actually the name of an argument built in to the =rm()= command. The default behavior of =rm= is to accept character strings; we could have alternatively specified =rm("A","B","e","I","whoop")= and the outcome would have been the same. But by passing it a list of all of the objects in memory, we are telling =rm()= to clear everything, not just the variables we name.
+
+Next week we will begin using actual data (!) to do operations in =R=.
+
 * Linear algebra puzzles
 
 These notes will provide a code illustration  of the Linear Algebra review in Chapter 1 of the lecture notes. Don't worry if you can't solve these puzzles, many of them require commands that we have not covered in section.  Come back to them later, once we have gone over =R= code in more detail.  There are many correct ways to solve these puzzles. If time remains, I will go over a couple of these next week.
@@ -177,32 +279,4 @@ print( sum(lambda) )
 #+end_src
 
 #+results:
-#+begin_example
-.Rprofile: Setting UK repositoryn     [,1] [,2] [,3] [,4] [,5]
-[1,]    1    0    0    0    0
-[2,]    0    1    0    0    0
-[3,]    0    0    1    0    0
-[4,]    0    0    0    1    0
-[5,]    0    0    0    0    1
-     [,1] [,2] [,3] [,4] [,5]
-[1,]    1    0    0    0    0
-[2,]    0    1    0    0    0
-[3,]    0    0    1    0    0
-[4,]    0    0    0    1    0
-[5,]    0    0    0    0    1
-[1] TRUE
-[1] TRUE
-[1] TRUE
-[1] TRUE
-
-Call:
-lm(formula = y ~ x)
-
-Coefficients:
-(Intercept)            x
-    0.04272      0.92525
-
-[1] 2.010851
-[1] 2.010851+0i
-#+end_example
 
