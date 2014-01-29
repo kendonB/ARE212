@@ -1,6 +1,7 @@
 
-A <- matrix(1:6, ncol=2)
-B <- matrix(1:6, ncol=3, byrow=TRUE)
+(A <- matrix(1:6, ncol=2))
+
+(B <- matrix(1:6, ncol=3, byrow=TRUE))
 
 A == t(B)
 

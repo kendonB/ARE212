@@ -43,8 +43,186 @@
 *Matrix operations in =R=* \hfill
 *ARE212*: Section 02 \\ \hline \bigskip
 
-This section continues where we left off last week, introducing you to increasingly complex matrix manipulation in =R= and finishing with some puzzles in =R=. Soon we'll move on to real life data, I promise. But for now... matrices!
+This section continues where we left off last week, introducing you to increasingly complex matrix manipulation in =R= and finishing with some puzzles in =R=. Next week we will be working with real data again, so don't despair!
 
+* Creating and testing matricies
+
+The lingua franca of this course is matrix algebra, so we will start by introducing some of the more common commands for working with matrices in =R=. \\
+
+There are a variety of data objects in =R=, including numbers, vectors, matrices, strings, and dataframes.  We will mainly be working with vectors and matrices, which are quick to create and manipulate in =R=. The =matrix= function will create a matrix, according to the supplied arguments. \\
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+(A <- matrix(1:6, ncol=2))
+#+END_SRC
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+(B <- matrix(1:6, ncol=3, byrow=TRUE))
+#+END_SRC
+
+For convenience, we use =->= to assign the matrices to the variables =A= and =B= for use in subsequent manipulations. The $=$ operator also assigns values, with a slightly different behavior[fn:: It is also common practice to use the === operator for function arguments.] . The =ncol= option specifies the number of columns for the output matrix; and the default behavior of =matrix= is to cycle through by column.  To cycle through by rows we set the optional argument =byrow=TRUE=. \\
+
+Suppose we wanted to check to see if the first matrix was equal to the transpose of the second. This is clearly the case --- we can see that it is. But when we're working with larger matrices it will be convenient to have a way to do this programmatically. The ==== comparison operator will yield =TRUE= or =FALSE=:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+A == t(B)
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,] TRUE TRUE
+: [2,] TRUE TRUE
+: [3,] TRUE TRUE
+
+Note that =t()= will return the transpose of the supplied matrix.  Each element is checked individually, and each is identical in matrix $\A$ and $\Bp$.  To check the truthiness of the statement that all elements are identical, we need only to employ the =all= function:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+all(A == t(B))
+#+END_SRC
+
+#+RESULTS:
+: [1] TRUE
+
+Keeping track of your matrix dimensions is a Good Idea\texttrademark. That's where the =dim()= command comes in handy:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+dim(A)
+dim(B)
+#+END_SRC
+
+#+RESULTS:
+: [1] 3 2
+: [1] 2 3
+
+With the dimensions of our matrices in mind, we'll move on to matrix operations.
+\newpage
+
+* Matrix operations
+
+Matrix muliplication in =R= is bound to =%*%=, whereas scalar multiplication is bound to =*=.  Consider the product $\B\A$:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+B %*% A
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]   14   32
+: [2,]   32   77
+
+The dimensions have to line up properly for matrix multiplication to be appropriately applied, otherwise =R= returns an error, as is the case with the product $\B\Ap$:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+B %*% t(A)
+#+END_SRC
+
+#+RESULTS:
+: Error in B %*% t(A) : non-conformable arguments
+
+If scalar multiplication is applied to matrices of exactly the same dimensions, then the result is element-wise multiplication.  This type of operation is sometimes called the Hadamard product, denoted $\B \circ \Ap$:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+B * t(A)
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2] [,3]
+: [1,]    1    4    9
+: [2,]   16   25   36
+
+This is rarely what we want to do. More common, if we want to scale all elements by a factor of two, say, we just multiply a matrix by a scalar; but note that =class(2)= must be not be =matrix= but rather =numeric= so as to avoid a non-conformable error:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+A * 2
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    2    8
+: [2,]    4   10
+: [3,]    6   12
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+A * matrix(2)
+#+END_SRC
+
+#+RESULTS:
+: Error in A * matrix(2) : non-conformable arrays
+
+Consider a more complicated operation, whereby each column of a matrix is multiplied element-wise by another, fixed column. Here, each column of a particular matrix is multiplied in-place by a fixed column of residuals.  Let $\e$ be a
+vector defined as an increasing sequence of length three:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+e <- matrix(1:3)
+#+END_SRC
+
+#+results:
+
+Note first that the default sequence in =R= is a column vector, and not a row vector.  We would like to =apply= a function to each column of $\A$, specifically a function that multiplies each column in-place by $\e$.  We must supply a 2 to ensure that the function is applied to the second dimension (columns) of $\A$:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+apply(A, 2, function(x) {x * e})
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    1    4
+: [2,]    4   10
+: [3,]    9   18
+
+The function that is applied is anonymous, but it could also be bound to a variable -- just as a matrix is bound to a variable:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+whoop <- function(x) {x * e}
+apply(A, 2, whoop)
+#+END_SRC
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    1    4
+: [2,]    4   10
+: [3,]    9   18
+
+We will often need to define an identity matrix of dimension $n$, or $\In$.  This is quick using =diag=:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+I <- diag(5)
+#+END_SRC
+
+#+RESULTS:
+
+There are many ways to calculate the trace of $\I_5$.  One method has been bundled into a function, called =tr()=, that is included in a package called =psych= which is not included in the base distribution of =R=.  We will need to grab and call the library to have access to the function, installing it with the command =install.packages("psych")=.  For this, you'll need an internet connection.
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+library(psych)
+tr(I)
+#+END_SRC
+
+#+RESULTS:
+: [1] 5
+
+We can get a list of all the object currently available in memory with the =ls()= function, which is useful as the assignments begin to accumulate:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+ls()
+#+END_SRC
+
+#+results:
+: [1] "A"     "B"     "e"     "I"     "whoop"
+
+Note that the objects we did not explicitly assign, such the transpose of $\B$, =t(B)=, or the trace of \I, =tr(I)=, are created on the fly and not stored in memory. \\
+
+When paired with the =rm()= function, we can use =ls()= to delete all of the objects in memory. This is similar to the command =clear= in Stata.
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+  rm(list = ls())
+#+END_SRC
+
+#+RESULTS:
+
+
+What's going on here? =list= is actually the name of an argument built in to the =rm()= command. The default behavior of =rm= is to accept character strings; we could have alternatively specified =rm("A","B","e","I","whoop")= and the outcome would have been the same. But by passing it a list of all of the objects in memory, we are telling =rm()= to clear everything, not just the variables we name. \\
+
+Next week we will begin using actual data (!) to do operations in =R=.
 
 
 * Linear algebra puzzles

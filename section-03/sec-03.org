@@ -43,52 +43,7 @@
 *Ordinary Least Squares* \hfill
 *ARE212*: Section 03 \\ \hline \bigskip
 
-This section is intended to introduce linear regression in =R=.  The first step is to load the =foreign= package[fn:: If the foreign package isn't installed, we would install it first using =install.packages("foreign")= ] Once =foreign= is loaded, you'll have access to all of its constituent functions, including =read.csv= which will convert a comma-separated value worksheet (.csv) into a data frame[fn:: Note that it is also possible to read in =xls=, =dta=, tab-delimited, and many other types of data using similar functions.]. We will do that now, loading =auto.csv= into a data frame called =data= [fn:: =auto.csv= can be downloaded [[https://github.com/pbaylis/ARE212/blob/master/data/auto.csv][here]].].  We set the option =header= to =TRUE=, which treats the first line of the CSV file as variable names, rather than an observation.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  library(foreign)
-  data <- read.csv("auto.csv", header=TRUE)
-#+end_src
-
-#+RESULTS:
-
-We can read the names from the data set; but they aren't much help.
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  names(data)
-#+end_src
-
-#+RESULTS:
-: [1] "V1" "V2" "V3"
-
-We can replace the column headers with more descriptive variable names.  The next command is an example of destructuring, sort of, in a language where destructuring does not really exist.  There are three elements in both the original and new list; and each element in the original list is reassigned based on its position in the list, e.g., the =V1= header is replaced by =price=.
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  names(data) <- c("price", "mpg", "weight")
-#+end_src
-
-#+RESULTS:
-
-To get a sense of the data, list the first six observations:
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  head(data)
-#+end_src
-
-#+RESULTS:
-:   price mpg weight
-: 1  4099  22   2930
-: 2  4749  17   3350
-: 3  3799  22   2640
-: 4  4816  20   3250
-: 5  7827  15   4080
-: 6  5788  18   3670
-
-With the columns appropriately named, we can refer to particular variables within the data set using the unique indexing in =R=, where data objects tend to be variants of lists and nested lists.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  head(data$mpg)
-#+end_src
-
-#+RESULTS:
-: [1] 22 17 22 20 15 18
+This section continues our work with =auto.csv= from the first section, using the matrix operations we learned in the second second.
 
 Now for the analysis, a linear model using =lm()=.  We specify the model by referring to the column headers within the specified data set --- along with a 1 to indicate a column of ones. =R= is unique for intelligently snapping the dimensions of comparable matrices.
 
