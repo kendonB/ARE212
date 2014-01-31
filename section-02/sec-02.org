@@ -43,9 +43,76 @@
 *Matrix operations in =R=* \hfill
 *ARE212*: Section 02 \\ \hline \bigskip
 
-This section continues where we left off last week, introducing you to increasingly complex matrix manipulation in =R= and finishing with some puzzles in =R=. Next week we will be working with real data again, so don't despair!
+This section continues where we left off last week, introducing you to increasingly complex matrix manipulation in =R=. Next week we will be working with real data again, so don't despair! \\
 
-* Creating and testing matricies
+But first, as promised, some answers to questions from last week:
+* Questions from last week's section
+*Supplementary materials for each section*: Last week we had some trouble accessing the dataset I used in section. Sorry about that. In this and all future sections, supplementary materials will be posted before section in the section notes folder.
+
+*Row names*: Dataframe rows also have names in =R=. The preferred function to get and set those names is =row.names()=, which is the row analogue of =names()=. Since there are 74 rows, I only show the first five, but you get the point.
+
+#+BEGIN_SRC R :results output :exports none :session :tangle yes
+require(foreign)
+data <- read.csv("auto.csv", header=TRUE)
+names(data) <- c("price", "mpg", "weight")
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+row.names(data)[1:5]
+row.names(data) <- 3:76
+row.names(data)[1:5]
+row.names(data)[1:2]  <- c("myrow1","myrow2")
+row.names(data)[1:5]
+#+END_SRC
+
+#+RESULTS:
+: [1] "1" "2" "3" "4" "5"
+: [1] "3" "4" "5" "6" "7"
+: [1] "myrow1" "myrow2" "5"      "6"      "7"
+
+As you can see, you can set as many or as few of the row names as you like. Note that we have to be careful when rewriting an already existing vector in =R=. If the sizes don't match, it will throw an error. Try it! \\
+
+*Row means*: Here's how to calculate the mean of a row in R. This example isn't very meaningful, since we're averaging =price=, =mpg=, and =weight=, but it works as a proof of concept. 
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+data$price[2] = NA
+weirdmeans1 <- data.frame(Means=rowMeans(data))
+weirdmeans2 <- data.frame(Means=rowMeans(data, na.rm=TRUE))
+cbind(head(weirdmeans1),head(weirdmeans2))
+#+END_SRC
+
+#+RESULTS:
+:           Means    Means
+: myrow1 2350.333 2350.333
+: myrow2       NA 1683.500
+: 5      2153.667 2153.667
+: 6      2695.333 2695.333
+: 7      3974.000 3974.000
+: 8      3158.667 3158.667
+
+There are a couple wrinkles in here. First, to make it more interesting, I set one of prices equal to =NA=, which is =R=-speak for "not available". The first time we take =rowMeans=, =R= basically tells us that it can't take the mean of a set of numbers when one of them is not available[fn:: In high school, I had a friend named Jared who got his license a full year before the rest of us. Apparently he was told that if he had more than one person in the car he could get arrested, so if we ever wanted to get anywhere he had to shuttle us. =R= is kind of acting like Jared here.]. But by passing the optional argument =na.rm=TRUE= we can tell =R= to recklessly take the mean of the remaining numbers. The second wrinkle is less interesting but also useful --- I just used =cbind()= to bind the two means columns together in a data frame for easy of display.\\ 
+
+*Double Y Axes*: 
+
+Overlaying two variables on the same axis is a convenient way to display the two relationships at the same time. In this case, let's say we want to visually compare how price and weight change with miles per gallon. We can do this by telling =R= to draw a second scatterplot directly on top of the first one. 
+
+#+begin_src R :results output graphics :file inserts/graph1.png :width 500 :height 300 :session :tangle yes :exports both
+par(mar=c(5.1,4.1,4.1,5.1)) # just so we can fit the label for the second y axis
+plot(data$mpg,data$price,col="red",ylab="price",xlab="mpg")
+par(new=TRUE)
+plot(data$mpg,data$weight,col="blue",xaxt="n",yaxt="n",xlab="",ylab="")
+axis(4)
+mtext("weight",side=4,line=3)
+#+END_SRC
+
+#+RESULTS:
+[[file:inserts/graph1.png]]
+
+There are a lot of new commands here[fn:: Credit to Professor Rob J Hyndman for this code. Original available here: http://robjhyndman.com/hyndsight/r-graph-with-two-y-axes/.]. =par()= lets us pre-set parameters for what we're about to graph. First, we set =mar= to increase the size of the right-hand side margin in order to fit the label for the second axis. Second, we set =new=TRUE=, which allows us to draw our second scatterplot on the same plotting device[fn:: No, the boolean choice here doesn't make sense to me either.].
+\newpage
+
+* Creating and testing matrices
 
 The lingua franca of this course is matrix algebra, so we will start by introducing some of the more common commands for working with matrices in =R=. \\
 
@@ -55,9 +122,20 @@ There are a variety of data objects in =R=, including numbers, vectors, matrices
 (A <- matrix(1:6, ncol=2))
 #+END_SRC
 
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    1    4
+: [2,]    2    5
+: [3,]    3    6
+
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 (B <- matrix(1:6, ncol=3, byrow=TRUE))
 #+END_SRC
+
+#+RESULTS:
+:      [,1] [,2] [,3]
+: [1,]    1    2    3
+: [2,]    4    5    6
 
 For convenience, we use =->= to assign the matrices to the variables =A= and =B= for use in subsequent manipulations. The $=$ operator also assigns values, with a slightly different behavior[fn:: It is also common practice to use the === operator for function arguments.] . The =ncol= option specifies the number of columns for the output matrix; and the default behavior of =matrix= is to cycle through by column.  To cycle through by rows we set the optional argument =byrow=TRUE=. \\
 
@@ -94,7 +172,6 @@ dim(B)
 : [1] 2 3
 
 With the dimensions of our matrices in mind, we'll move on to matrix operations.
-\newpage
 
 * Matrix operations
 
@@ -129,7 +206,7 @@ B * t(A)
 : [1,]    1    4    9
 : [2,]   16   25   36
 
-This is rarely what we want to do. More common, if we want to scale all elements by a factor of two, say, we just multiply a matrix by a scalar; but note that =class(2)= must be not be =matrix= but rather =numeric= so as to avoid a non-conformable error:
+Suppose we want to scale all elements by a factor of two. This is similar, we just multiply the matrix by a scalar using the regular =*= operator.
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 A * 2
@@ -140,13 +217,6 @@ A * 2
 : [1,]    2    8
 : [2,]    4   10
 : [3,]    6   12
-
-#+BEGIN_SRC R :results output :exports both :session :tangle yes
-A * matrix(2)
-#+END_SRC
-
-#+RESULTS:
-: Error in A * matrix(2) : non-conformable arrays
 
 Consider a more complicated operation, whereby each column of a matrix is multiplied element-wise by another, fixed column. Here, each column of a particular matrix is multiplied in-place by a fixed column of residuals.  Let $\e$ be a
 vector defined as an increasing sequence of length three:
@@ -190,6 +260,16 @@ I <- diag(5)
 
 #+RESULTS:
 
+As you know, $\In = \In^{-1}$. We can verify this with the =solve()= command, which will return the inverse of a square matrix[fn:: Note that we can't use =solve()= on $\A$ or $\B$ since neither are square.].
+
+#+BEGIN_SRC R :results output :exports both :session :tangle yes
+all(solve(I) == I)
+#+END_SRC
+
+#+RESULTS:
+: Error in as.vector(x, mode) : 
+:   cannot coerce type 'closure' to vector of type 'any'
+
 There are many ways to calculate the trace of $\I_5$.  One method has been bundled into a function, called =tr()=, that is included in a package called =psych= which is not included in the base distribution of =R=.  We will need to grab and call the library to have access to the function, installing it with the command =install.packages("psych")=.  For this, you'll need an internet connection.
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
@@ -207,7 +287,8 @@ ls()
 #+END_SRC
 
 #+results:
-: [1] "A"     "B"     "e"     "I"     "whoop"
+: [1] "A"           "B"           "data"        "e"           "I"          
+: [6] "weirdmeans1" "weirdmeans2" "whoop"
 
 Note that the objects we did not explicitly assign, such the transpose of $\B$, =t(B)=, or the trace of \I, =tr(I)=, are created on the fly and not stored in memory. \\
 
@@ -219,11 +300,9 @@ When paired with the =rm()= function, we can use =ls()= to delete all of the obj
 
 #+RESULTS:
 
+What's going on here? =list= is actually the name of an argument built in to the =rm()= command. The default behavior of =rm= is to accept character strings; we could have alternatively specified =rm("A","B","data","e","I","weirdmeans1","weirdmeans2","whoop")= and the outcome would have been the same. But by passing it a list of all of the objects in memory, we are telling =rm()= to clear everything, not just the variables we name. \\
 
-What's going on here? =list= is actually the name of an argument built in to the =rm()= command. The default behavior of =rm= is to accept character strings; we could have alternatively specified =rm("A","B","e","I","whoop")= and the outcome would have been the same. But by passing it a list of all of the objects in memory, we are telling =rm()= to clear everything, not just the variables we name. \\
-
-Next week we will begin using actual data (!) to do operations in =R=.
-
+Next week we will leave the training wheels behind and dig into an example with real data. Now that we have all of the tools, our new best friend $(X'X)^{-1}X'y$ may even make an appearance. Hopefully you all have started work on the first problem set and are starting to feel at least somewhat comfortable in =R=. 
 
 * Linear algebra puzzles
 
@@ -242,85 +321,3 @@ Next week we will begin using actual data (!) to do operations in =R=.
 7. Demonstrate that for any scalar $c$ and any square matrix $\X$ of dimension $n$ that $\det(c\X) = c^n \det(\X)$.
 
 8. Demonstrate that for an $m \times m$ matrix $\A$ and a $p \times p$ matrix $\B$ that $\det(\A \otimes \B) = \det(\A)^p \det(\B)^m$. /Hint/: Note that $\otimes$ indicates the Kronecker product\footnote{The Kronecker product is a useful mathemagical tool for econometricians, allowing us to more easily describe block-diagonal matricees for use in panel data settings. I wouldn't lose sleep over it, though.}.  Google the appropriate =R= function.
-
-#+BEGIN_SRC R :results graphics output :exports none :tangle yes
-
-## Dan Hammer
-## ARE212, Spring 2012
-## Linear Algebra Puzzles
-
-## Question 1
-
-X <- c(1,2,3)
-Y <- c(2,3,4)
-Z <- c(3,5,7)
-
-## The vector Z is a linear combination of X and Y, and R will throw
-## an error when taking the inverse
-W <- cbind(X, Y, Z)
-solve(W)
-
-## Replace an element to invert the matrix W
-W[1,1] <- 4
-solve(W)
-
-## Question 2
-
-X <- matrix(rnorm(9), nrow = 3)
-all.equal(solve(t(X)), t(solve(X)))
-
-## Question 3
-
-i <- matrix(c(1,1,1))
-A <- diag(3) - (1/3)* i %*% t(i)
-
-demeaned <- X %*% A
-all.equal(X[1, ] - mean(X[1,]), demeaned[1,])
-all.equal(X[2, ] - mean(X[2,]), demeaned[2,])
-all.equal(X[3, ] - mean(X[3,]), demeaned[3,])
-
-## Question 4
-
-X <- matrix(rnorm(9), 3)
-Y <- matrix(rnorm(9), 3)
-Z <- matrix(rnorm(9), 3)
-
-c <- solve(X %*% Y %*% Z)
-d <- solve(Z) %*% solve(Y) %*% solve(X)
-all.equal(c, d)
-
-## Question 5
-
-X <- matrix(rnorm(400), 20)
-Y <- matrix(rnorm(400), 20)
-
-f <- sum(diag(X + Y))
-g <- sum(diag(X)) + sum(diag(Y))
-all.equal(f, g)
-
-## Question 6
-
-X <- diag(runif(10, min = 10, max = 20))
-B <- chol(X)
-all.equal(B %*% t(B), X)
-# Per #20 on the linear algebra review, X must be positive semi-definite
-
-## Question 7
-
-c <- 5
-n <- 3
-X <- matrix(rnorm(9), nrow = n)
-all.equal(det(c * X), c^n * det(X))
-
-## Question 8
-
-X <- matrix(runif(9), 3)
-Y <- matrix(runif(16), 4)
-h <- det(kronecker(X, Y))
-j <- det(X)^4 * det(Y)^3
-all.equal(h, j)
-
-#+END_SRC
-
-#+RESULTS:
-
