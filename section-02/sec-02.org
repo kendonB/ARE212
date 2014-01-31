@@ -47,7 +47,7 @@ This section continues where we left off last week, introducing you to increasin
 
 But first, as promised, some answers to questions from last week:
 * Questions from last week's section
-*Supplementary materials for each section*: Last week we had some trouble accessing the dataset I used in section. Sorry about that. In this and all future sections, supplementary materials will be posted before section in the section notes folder.
+*Supplementary materials for each section*: Last week we had some trouble accessing the dataset I used in section. Sorry about that. In this and all future sections, supplementary materials will be posted in the section notes folder. \\
 
 *Row names*: Dataframe rows also have names in =R=. The preferred function to get and set those names is =row.names()=, which is the row analogue of =names()=. Since there are 74 rows, I only show the first five, but you get the point.
 
