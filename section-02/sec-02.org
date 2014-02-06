@@ -49,7 +49,7 @@ But first, as promised, some answers to questions from last week:
 * Questions from last week's section
 *Supplementary materials for each section*: Last week we had some trouble accessing the dataset I used in section. Sorry about that. In this and all future sections, supplementary materials will be posted in the section notes folder. \\
 
-*Row names*: Dataframe rows also have names in =R=. The preferred function to get and set those names is =row.names()=, which is the row analogue of =names()=. Since there are 74 rows, I only show the first five, but you get the point.
+*Row names*: Dataframe rows also have names in =R=. The preferred function to get and set those names is =row.names()=, which is the row analogue of =names()=. We can see how this function works using the dataset we loaded last week. Since there are 74 rows, I only show the first five, but you get the point.
 
 #+BEGIN_SRC R :results output :exports none :session :tangle yes
 require(foreign)
@@ -74,7 +74,7 @@ row.names(data)[1:5]
 
 As you can see, you can set as many or as few of the row names as you like. Note that we have to be careful when rewriting an already existing vector in =R=. If the sizes don't match, it will throw an error. Try it! \\
 
-*Row means*: Here's how to calculate the mean of a row in R. This example isn't very meaningful, since we're averaging =price=, =mpg=, and =weight=, but it works as a proof of concept. 
+*Row means*: Here's how to calculate the mean of a row in R. This example isn't very meaningful, since we're averaging =price=, =mpg=, and =weight=, but it works as a proof of concept.
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 data$price[2] = NA
 weirdmeans1 <- data.frame(Means=rowMeans(data))
@@ -91,11 +91,11 @@ cbind(head(weirdmeans1),head(weirdmeans2))
 : 7      3974.000 3974.000
 : 8      3158.667 3158.667
 
-There are a couple wrinkles in here. First, to make it more interesting, I set one of prices equal to =NA=, which is =R=-speak for "not available". The first time we take =rowMeans=, =R= basically tells us that it can't take the mean of a set of numbers when one of them is not available[fn:: In high school, I had a friend named Jared who got his license a full year before the rest of us. Apparently he was told that if he had more than one person in the car he could get arrested, so if we ever wanted to get anywhere he had to shuttle us. =R= is kind of acting like Jared here.]. But by passing the optional argument =na.rm=TRUE= we can tell =R= to recklessly take the mean of the remaining numbers. The second wrinkle is less interesting but also useful --- I just used =cbind()= to bind the two means columns together in a data frame for easy of display.\\ 
+There are a couple wrinkles in here. First, to make it more interesting, I set one of prices equal to =NA=, which is =R=-speak for "not available". The first time we take =rowMeans=, =R= basically tells us that it can't take the mean of a set of numbers when one of them is not available[fn:: In high school, I had a friend named Jared who got his license a full year before the rest of us. Apparently he was told that if he had more than one person in the car he could get arrested, so if we ever wanted to get anywhere he had to shuttle us. =R= is kind of acting like Jared here.]. But by passing the optional argument =na.rm=TRUE= we can tell =R= to recklessly take the mean of the remaining numbers. The second wrinkle is less interesting but also useful --- I just used =cbind()= to bind the two means columns together in a data frame for ease of display.\\
 
-*Double Y Axes*: 
+*Double Y Axes*:
 
-Overlaying two variables on the same axis is a convenient way to display the two relationships at the same time. In this case, let's say we want to visually compare how price and weight change with miles per gallon. We can do this by telling =R= to draw a second scatterplot directly on top of the first one. 
+Overlaying two variables on the same axis is a convenient way to display the two relationships at the same time. In this case, let's say we want to visually compare how price and weight change with miles per gallon. We can do this by telling =R= to draw a second scatterplot directly on top of the first one.
 
 #+begin_src R :results output graphics :file inserts/graph1.png :width 500 :height 300 :session :tangle yes :exports both
 par(mar=c(5.1,4.1,4.1,5.1)) # just so we can fit the label for the second y axis
@@ -110,11 +110,11 @@ mtext("weight",side=4,line=3)
 [[file:inserts/graph1.png]]
 
 There are a lot of new commands here[fn:: Credit to Professor Rob J Hyndman for this code. Original available here: http://robjhyndman.com/hyndsight/r-graph-with-two-y-axes/.]. =par()= lets us pre-set parameters for what we're about to graph. First, we set =mar= to increase the size of the right-hand side margin in order to fit the label for the second axis. Second, we set =new=TRUE=, which allows us to draw our second scatterplot on the same plotting device[fn:: No, the boolean choice here doesn't make sense to me either.].
+
+That's it for last week. And now for something completely different, matrix commands!
 \newpage
 
 * Creating and testing matrices
-
-The lingua franca of this course is matrix algebra, so we will start by introducing some of the more common commands for working with matrices in =R=. \\
 
 There are a variety of data objects in =R=, including numbers, vectors, matrices, strings, and dataframes.  We will mainly be working with vectors and matrices, which are quick to create and manipulate in =R=. The =matrix= function will create a matrix, according to the supplied arguments. \\
 
@@ -252,7 +252,7 @@ apply(A, 2, whoop)
 : [2,]    4   10
 : [3,]    9   18
 
-We will often need to define an identity matrix of dimension $n$, or $\In$.  This is quick using =diag=:
+We will often need to define an identity matrix of dimension $n$, or $\In$.  This is quick using =diag()=:
 
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
 I <- diag(5)
@@ -267,8 +267,7 @@ all(solve(I) == I)
 #+END_SRC
 
 #+RESULTS:
-: Error in as.vector(x, mode) : 
-:   cannot coerce type 'closure' to vector of type 'any'
+: [1] TRUE
 
 There are many ways to calculate the trace of $\I_5$.  One method has been bundled into a function, called =tr()=, that is included in a package called =psych= which is not included in the base distribution of =R=.  We will need to grab and call the library to have access to the function, installing it with the command =install.packages("psych")=.  For this, you'll need an internet connection.
 
@@ -287,7 +286,7 @@ ls()
 #+END_SRC
 
 #+results:
-: [1] "A"           "B"           "data"        "e"           "I"          
+: [1] "A"           "B"           "data"        "e"           "I"
 : [6] "weirdmeans1" "weirdmeans2" "whoop"
 
 Note that the objects we did not explicitly assign, such the transpose of $\B$, =t(B)=, or the trace of \I, =tr(I)=, are created on the fly and not stored in memory. \\
@@ -302,7 +301,7 @@ When paired with the =rm()= function, we can use =ls()= to delete all of the obj
 
 What's going on here? =list= is actually the name of an argument built in to the =rm()= command. The default behavior of =rm= is to accept character strings; we could have alternatively specified =rm("A","B","data","e","I","weirdmeans1","weirdmeans2","whoop")= and the outcome would have been the same. But by passing it a list of all of the objects in memory, we are telling =rm()= to clear everything, not just the variables we name. \\
 
-Next week we will leave the training wheels behind and dig into an example with real data. Now that we have all of the tools, our new best friend $(X'X)^{-1}X'y$ may even make an appearance. Hopefully you all have started work on the first problem set and are starting to feel at least somewhat comfortable in =R=. 
+Next week we will leave the training wheels behind and dig into an example with real data. Now that we have all of the tools, our new best friend $(X'X)^{-1}X'y$ may even make an appearance. Hopefully you all have started work on the first problem set and are starting to feel at least somewhat comfortable in =R=.
 
 * Linear algebra puzzles
 

@@ -11,76 +11,80 @@
 #+LATEX_HEADER: \usepackage{color}
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
-#+LATEX: \renewcommand{\P}{{\bf P}}
+#+LATEX: \newcommand{\Ap}{{\bf A}^{\prime}}
+#+LATEX: \newcommand{\A}{{\bf A}}
+#+LATEX: \newcommand{\Bp}{{\bf B}^{\prime}}
+#+LATEX: \newcommand{\B}{{\bf B}}
+#+LATEX: \newcommand{\In}{{\bf I}_n}
+#+LATEX: \newcommand{\In}{{\bf I}_n}
+#+LATEX: \newcommand{\I}{{\bf I}}
+#+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
+#+LATEX: \newcommand{\M}{{\bf M}}
+#+LATEX: \newcommand{\N}{{\bf N}}
+#+LATEX: \newcommand{\Q}{{\bf Q}}
+#+LATEX: \newcommand{\Qp}{{\bf Q}^{\prime}}
+#+LATEX: \newcommand{\W}{{\bf W}}
+#+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
+#+LATEX: \newcommand{\X}{{\bf X}}
+#+LATEX: \newcommand{\Y}{{\bf Y}}
+#+LATEX: \newcommand{\Z}{{\bf Z}}
+#+LATEX: \renewcommand{\and}{\hspace{8pt} \mbox{and} \hspace{8pt}}
+#+LATEX: \newcommand{\code}[1]{\texttt{#1}}
+#+LATEX: \newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
 #+LATEX: \newcommand{\ep}{{\bf e}^\prime}
 #+LATEX: \newcommand{\e}{{\bf e}}
-#+LATEX: \newcommand{\I}{{\bf I}}
-#+LATEX: \newcommand{\W}{{\bf W}}
-#+LATEX: \newcommand{\w}{{\bf w}}
-#+LATEX: \newcommand{\X}{{\bf X}}
-#+LATEX: \newcommand{\x}{{\bf x}}
-#+LATEX: \newcommand{\Y}{{\bf Y}}
-#+LATEX: \newcommand{\y}{{\bf y}}
-#+LATEX: \newcommand{\Z}{{\bf Z}}
-#+LATEX: \newcommand{\z}{{\bf z}}
-#+LATEX: \newcommand{\M}{{\bf M}}
-#+LATEX: \newcommand{\A}{{\bf A}}
-#+LATEX: \newcommand{\Ap}{{\bf A}^{\prime}}
-#+LATEX: \newcommand{\B}{{\bf B}}
-#+LATEX: \newcommand{\Bp}{{\bf B}^{\prime}}
-#+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
-#+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
-#+LATEX: \newcommand{\yp}{{\bf y}^{\prime}}
-#+LATEX: \newcommand{\yh}{\hat{{\bf y}}}
-#+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
-#+LATEX: \newcommand{\In}{{\bf I}_n}
-#+LATEX: \newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+#+LATEX: \newcommand{\f}{{\bf f}}
+#+LATEX: \newcommand{\g}{{\bf g}}
+#+LATEX: \newcommand{\gho}{\hat{\gamma}_1}
+#+LATEX: \newcommand{\ghth}{\hat{\gamma}_3}
+#+LATEX: \newcommand{\ght}{\hat{\gamma}_2}
 #+LATEX: \newcommand{\id}[1]{{\bf I}_{#1}}
 #+LATEX: \newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
+#+LATEX: \newcommand{\sigs}{\sigma^2}
+#+LATEX: \newcommand{\w}{{\bf w}}
+#+LATEX: \newcommand{\x}{{\bf x}}
+#+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
+#+LATEX: \newcommand{\yh}{\hat{{\bf y}}}
+#+LATEX: \newcommand{\yp}{{\bf y}^{\prime}}
+#+LATEX: \newcommand{\y}{{\bf y}}
+#+LATEX: \newcommand{\z}{{\bf z}}
+#+LATEX: \renewcommand{\P}{{\bf P}}
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline
 
 *Ordinary Least Squares* \hfill
 *ARE212*: Section 03 \\ \hline \bigskip
 
-This section continues our work with =auto.csv= from the first section, using the matrix operations we learned in the second second.
-
-Now for the analysis, a linear model using =lm()=.  We specify the model by referring to the column headers within the specified data set --- along with a 1 to indicate a column of ones. =R= is unique for intelligently snapping the dimensions of comparable matrices.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  lm(price ~ 1 + mpg + weight, data=data)
-#+end_src
-
-#+RESULTS:
-:
-: Call:
-: lm(formula = price ~ 1 + mpg + weight, data = data)
-:
-: Coefficients:
-: (Intercept)          mpg       weight
-:    1946.069      -49.512        1.747
-
-Note that we do not need to refer to the data set in calling a vector, e.g., =data$price=.  Instead, we "attach" the data within the linear model.  We can do the same thing for the =R=
-session, which tends to simplify notation.  The columns can be referenced directly after the data set has been attached.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  attach(data)
-  head(mpg)
-#+end_src
-
-#+RESULTS:
-: [1] 22 17 22 20 15 18
+This section continues our work with =auto.csv= from the first section, using the matrix operations we learned in the second. \\
 
 The use of canned routines is not permitted for most of this class; you'll have to write the econometric routines from first principles. First, create matrices of the data, since we will be working mainly with matrix operations.  Let $\y$ be the dependent variable, price, and let $\X$ be a matrix of the other car characteristics, along with a column of ones prepended.  The =cbind()= function binds the columns horizontally and coerces the =matrix= class.
 
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  y <- matrix(price)
-  X <- cbind(1, mpg, weight)
-#+end_src
+#+BEGIN_SRC R :results output :exports none :session :tangle yes
+require(foreign)
+data <- read.csv("auto.csv", header=TRUE)
+names(data) <- c("price", "mpg", "weight")
+#+END_SRC
 
 #+RESULTS:
 
-Check that the number of observations are the same in both the dependent vector $\y$ and the cofactor matrix $\X$.
+#+begin_src R :results output graphics :exports both :tangle yes :session
+y <- matrix(data$price)
+X <- cbind(1, data$mpg, data$weight)
+head(X)
+#+end_src
+
+#+RESULTS:
+:      [,1] [,2] [,3]
+: [1,]    1   22 2930
+: [2,]    1   17 3350
+: [3,]    1   22 2640
+: [4,]    1   20 3250
+: [5,]    1   15 4080
+: [6,]    1   18 3670
+
+Note that =R= is doing something clever here. We only passed it a single =1= variable, and yet it has created an entire column vector full of ones! This is because =cbind()= automatically ensures that every column is as long as the longest column in the matrix, recycling data as needed. \\
+
+Just to make sure that our matrices will be conformable when we regress =y= on =X=, check that the number of observations are the same in both variables.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 dim(X)[1] == nrow(y)
@@ -89,28 +93,37 @@ dim(X)[1] == nrow(y)
 #+RESULTS:
 : [1] TRUE
 
-Before proceeding, we should =detach= the data frame, so that if we reload the =R= script, there won't be any naming conflicts.  The =X= and =y= objects will persist, as will =data$mpg=, but we will no longer be able to call the variables without referencing the data frame.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  detach(data)
-#+end_src
-
-#+RESULTS:
-
 Using the matrix operations described in the previous section, we can quickly estimate the ordinary least squared parameter vector.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 beta <- solve(t(X) %*% X) %*% t(X) %*% y
-print(beta)
+beta
 #+end_src
 
 #+RESULTS:
-:               [,1]
-:        1946.068668
-: mpg     -49.512221
-: weight    1.746559
+:             [,1]
+: [1,] 1946.068668
+: [2,]  -49.512221
+: [3,]    1.746559
 
-This vector matches the coefficient vector from the canned routine, thankfully.  Digging deeper into the numbers, consider the projection matrix $\P = \X(\Xp\X)^{-1}\Xp$ and the residual maker matrix $\M = \In - \P$
+That's it! And although you're not allowed to use it in your problem sets, =lm()= is a nice tool for checking our results.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+lm(y ~ X - 1)
+#+end_src
+
+#+RESULTS:
+:
+: Call:
+: lm(formula = y ~ X - 1)
+:
+: Coefficients:
+:       X1        X2        X3
+: 1946.069   -49.512     1.747
+
+They match! Thank goodness. If you're interested in knowing what =lm()= does, I highly recommend reading through relevant =R= documentation[fn:: Remember, you can do this using =?lm=.]. \\
+
+Digging deeper into the numbers, consider the projection matrix $\P = \X(\Xp\X)^{-1}\Xp$ and the residual maker matrix $\M = \In - \P$
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 n <- nrow(y)
@@ -136,7 +149,7 @@ all.equal(M, t(M), tol=0)
 #+end_src
 
 #+RESULTS:
-: [1] "Mean relative difference: 7.266263e-15"
+: [1] "Mean relative difference: 5.547715e-15"
 
 The residual maker matrix should also be idempotent, or $\M = \M\Mp$.
 
@@ -173,6 +186,8 @@ all.equal(tss, ess + rss)
 #+RESULTS:
 : [1] TRUE
 
+Cool.
+
 * Additional puzzles
 
 1. Write a function =wt.coef()= that will return the OLS coefficient on weight from the regression of car price on the covariate matrix described above.
@@ -180,20 +195,3 @@ all.equal(tss, ess + rss)
 2. Adjust the function to return a list of coefficients from the same linear regression, appropriately named.
 
 3. Find the estimate of the covariance matrix $\sigs (\Xp\X)^{-1}$ and show that the residuals and covariate matrix are orthogonal.
-
-4. *Partitioned regression*: Generate a $100 \times 5$ matrix $\X$ /including/ a column of ones for the intercept. Additionally, generate a vector $\y$ according to the generating process: $$y_i = 1 + x_{1i} + 2x_{2i} + 3x_{3i} + 4x_{4i} + \epsilon_i, $$ where $\epsilon_i \sim N(0,1)$.  Let $\Q$ be the first three columns of $\X$ and let $\N$ be the final two columns.  In addition, let
-   \begin{eqnarray*}
-      \gho  &=& (\Qp\Q)^{-1}\Qp\y \and \f = \y - \Q\gho   \\
-      \ght  &=& (\Qp\Q)^{-1}\Qp\N \and \g = \N - \Q\ght   \\
-      \ghth &=& \f \cdot \g / ||\g||^2 \and \e = \f - \g \ghth \\
-   \end{eqnarray*}
-   Show that $\hat{\beta} = [\gho - \ght\ghth \hspace{10pt}
-   \ghth]$. Note that the total dimension of $\hat{\beta}$ is 5.
-
-$$\max \int_0^{T} \left[p\cdot f(x_{1t}, x_{2t}) -
-c_{1}(R_1)x_{1t} - c_2 x_{2t} - k \cdot y_t\right] e^{-\delta t}\,dt$$
-subject to
-\begin{eqnarray*}
-\dot{R} &=& g(x_{2t}) - x_{1t}\\
-x_{2,t+1} &=& y_t
-\end{eqnarray*}
