@@ -14,7 +14,7 @@ shinyServer(function(input, output) {
 
     if (input$density) {
       dens <- density(faithful$eruptions,
-          adjust = input$bw_adjust)
+          adjust = input$bw_adjust, kernel=input$kernel)
       lines(dens, col = "blue")
     }
 
