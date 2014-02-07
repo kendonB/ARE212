@@ -1,0 +1,2 @@
+Show Gauss-Markov implications? Unbiasedness of s?
+Or maybe even do a hypothesis test to stay current?
