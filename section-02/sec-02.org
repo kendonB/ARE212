@@ -72,7 +72,7 @@ row.names(data)[1:5]
 : [1] "3" "4" "5" "6" "7"
 : [1] "myrow1" "myrow2" "5"      "6"      "7"
 
-As you can see, you can set as many or as few of the row names as you like. Note that we have to be careful when rewriting an already existing vector in =R=. If the sizes don't match, it will throw an error. Try it! \\
+As you can see, you can set as many or as few of the row names as you like. \\
 
 *Row means*: Here's how to calculate the mean of a row in R. This example isn't very meaningful, since we're averaging =price=, =mpg=, and =weight=, but it works as a proof of concept.
 #+BEGIN_SRC R :results output :exports both :session :tangle yes
