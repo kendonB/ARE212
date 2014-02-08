@@ -17,13 +17,14 @@
 #+LATEX: \newcommand{\B}{{\bf B}}
 #+LATEX: \newcommand{\C}{{\bf C}}
 #+LATEX: \newcommand{\In}{{\bf I}_n}
-#+LATEX: \newcommand{\In}{{\bf I}_n}
+#+LATEX: \renewcommand{\In}{{\bf I}_n}
 #+LATEX: \newcommand{\I}{{\bf I}}
 #+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
 #+LATEX: \newcommand{\M}{{\bf M}}
 #+LATEX: \newcommand{\N}{{\bf N}}
 #+LATEX: \newcommand{\Q}{{\bf Q}}
 #+LATEX: \newcommand{\Qp}{{\bf Q}^{\prime}}
+#+LATEX: \newcommand{\aRsq}{{\bf \overline{R}}^{2}}
 #+LATEX: \newcommand{\Rsq}{{\bf R}^{2}}
 #+LATEX: \newcommand{\W}{{\bf W}}
 #+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
@@ -46,8 +47,6 @@
 #+LATEX: \newcommand{\sigs}{\sigma^2}
 #+LATEX: \newcommand{\w}{{\bf w}}
 #+LATEX: \newcommand{\x}{{\bf x}}
-#+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
-#+LATEX: \newcommand{\yh}{\hat{{\bf y}}}
 #+LATEX: \newcommand{\yp}{{\bf y}^{\prime}}
 #+LATEX: \newcommand{\y}{{\bf y}}
 #+LATEX: \newcommand{\ys}{{\bf y}^{*}}
@@ -64,10 +63,10 @@
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline
 
-*Centered $R^2$* \hfill
+*Loops and Maximizing $R^2$* \hfill
 *ARE212*: Section 03 \\ \hline \bigskip
 
-This week we'll start out by reviewing some key concepts that we sped over last week. We'll also go over an example to demonstrate why any variable that we add to a regression will increase the $R^2$ (and why you should therefore be suspicious of any "$R^2$ maximizers"!
+This week we'll start out by reviewing some key concepts that we sped over last week. Next, we'll briefly learn how to use loops in =R=. Finally, we'll work through an example that uses many of the tools we've developed in section to demonstrate why you should be suspicious of any "$R^2$ maximizers"! With remaining time we'll address your questions about the problem set and look ahead to hypothesis testing.
 
 * Last section
 *Using =apply=, round two*: Simply put, =apply()= is a function that lets you perform operations on different parts of a matrix. I'll show you a few different ways to use =apply()=, borrowing heavily from Neil Saunders' excellent blog post on the topic[fn:: Available at http://nsaunders.wordpress.com/2010/08/20/a-brief-introduction-to-apply-in-r/. He goes into more detail on the entire family of =apply()= functions, if you're interested.]. \\
@@ -168,21 +167,50 @@ b
 That's it! And although you're not allowed to use it in your problem sets, =lm()= is a nice tool for checking our results.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-lm(y ~ X - 1)
+coefficients(lm(y ~ X - 1))
 #+end_src
 
 #+RESULTS:
-:
-: Call:
-: lm(formula = y ~ X - 1)
-:
-: Coefficients:
-:       X1        X2        X3
-: 1946.069   -49.512     1.747
+:          X1          X2          X3
+: 1946.068668  -49.512221    1.746559
 
 They match! Thank goodness. If you're interested in knowing what =lm()= does, I highly recommend reading through relevant =R= documentation[fn:: Remember, you can do this using =?lm=.].
 
+* Loops in =R=
+Loops are a familiar concept in programming. In general, a loop is a programming statement that allows repeated execution of some piece of code. Let's take a look at one of the most common loop types, a =for= loop:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+for (i in 1:5) {
+  print(i*i)
+}
+#+end_src
+
+#+RESULTS:
+: [1] 1
+: [1] 4
+: [1] 9
+: [1] 16
+: [1] 25
+
+The structure of the =for= loop always the same. First, we specify the counter variable, =i=, with =for (i in 1:5)=. This tells =R= to run the loop five times, first with =i=1=, second with =i=2=, and so on. Then, we specify the commands we want to run repeatedly. In this case, we want =R= to print $i^2$ for each value of =i=. And that's it! \\
+
+I should mention that using loops is somewhat discouraged in =R=. =R= is a "vector-based" language, so in theory loops are much less efficient than vectorized functions like =%*%= or =apply()=. Of course, the datasets we will work with in this class are small, so any practical difference will be neglible until you get involved with real data. But if you're interested, you can try your hand at writing the equivalent vectorized function using the =apply()= family.
+
+#+begin_src R :results output graphics :exports none :tangle yes :session
+sapply(1:5, function(i) {print(i*i)})
+#+end_src
+
+#+RESULTS:
+: [1] 1
+: [1] 4
+: [1] 9
+: [1] 16
+: [1] 25
+: [1]  1  4  9 16 25
+
 * Centered $R^2$
+
+We've now laid enough groundwork to start getting into some detailed examples of employing =R= to learn and do applied econometrics. In other words, I can finally stop torturing you with pointless matrix algebra and start torturing you with matrix algebra /with a purpose/! The first such example has to do with $R^2$ values. You will all be calculating this $R^2$ for your problem sets, but here we'll take it a step farther and look at what happens to $R^2$ when we add random variables to our regression. Along the way, we'll use many of the tools we've developed in this and the first two sections. \\
 
 First, we create a random matrix, where each element is drawn from a standard uniform distribution --- another context to practice the =function()= structure. The function =randomMat()= generates a long vector of length $n \cdot k$ and then reshapes it into an $n \times k$ matrix.
 
@@ -210,7 +238,7 @@ randomMat(3,2)
 Another useful function for this section will be to create a square demeaning matrix $\A$ of dimension $n$.  The following function just wraps a few algebraic maneuvers, so that subsequent code is easier to read.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-  demeanMat <- function(n) {
+demeanMat <- function(n) {
   ones <- rep(1, n)
   diag(n) - (1/n) * ones %*% t(ones)
 }
@@ -233,11 +261,11 @@ all.equal(A %*% B, t(C))
 
 Alright, we're ready to apply the functions to real data in order to calculate the centered $\Rsq$. First, read in the data to conform to equation (2.37) on page 14 of the lecture notes, and identify the number of observations $n$ for later use:
 #+begin_src R :results output graphics :exports both :tangle yes :session
-  data <- read.csv("auto.csv", header=TRUE)
-  names(data) <- c("price", "mpg", "weight")
-  y <- matrix(data$price)
-  X2 <- cbind(data$mpg, data$weight)
-  n <- nrow(X2)
+data <- read.csv("auto.csv", header=TRUE)
+names(data) <- c("price", "mpg", "weight")
+y <- matrix(data$price)
+X2 <- cbind(data$mpg, data$weight)
+n <- nrow(X2)
 #+end_src
 
 #+RESULTS:
@@ -263,22 +291,20 @@ R.squared <- function(y, X) {
   R2 <- t(b2) %*% xtax %*% b2 / ytay
   R2.adj <- 1 - ((n-1)/(n-k))*(1-R2)
   return(cbind(R2,R2.adj))
-  }
+}
 
-  R.squared(y, X2)
+R.squared(y, X2)
 #+end_src
 
 #+RESULTS:
 :           [,1]      [,2]
 : [1,] 0.2933891 0.2835751
 
-Without some penalty for addtional cofactors, the centered $\Rsq$ will monotonically increase with the number of columns in the cofactor matrix $\X$, /even if all we do is add random covariates/. However, the $\bar{\Rsq}$ behaves a little bit more reasonably. You can see this Figure (\ref{fig:r}).
+Now, what happens if we use our =randomMat()= function to add columns of random covariates to our regression? We'll use a =for= loop to calculate the $\Rsq$ and $\aRsq$ as we add additional covariates.
 
-#+ATTR_LaTeX: width=0.5\textwidth
-#+CAPTION:    $\Rsq$ rises monotonically as a function of columns
-#+LABEL:    fig:r
-#+begin_src R :results output graphics :file inserts/graph1.png :width 500 :height 300 :session :tangle yes :exports both
-n <- nrow(X2); k.max <- 40
+#+begin_src R :results output graphics :exports both :tangle yes :session
+n <- nrow(X2)
+k.max <- 40
 X.rnd <- randomMat(n, k.max)
 res.R2 <- rep(0, k.max)
 res.adjR2 <- rep(0, k.max)
@@ -288,7 +314,11 @@ for (i in 1:k.max) {
   res.R2[i] <- R.squared(y, X.ext)[1]
   res.adjR2[i] <- R.squared(y, X.ext)[2]
 }
+#+end_src
 
+Next, we'll plot our $\Rsq$ and $\aRsq$ values using a line plot:
+
+#+begin_src R :results output graphics :file inserts/graph1.png :width 500 :height 300 :session :tangle yes :exports both
 plot(res.R2, type = "l", lwd = 3, col = "blue",
 xlab = "num. of additional columns", ylab = "R-squared value", ylim=c(0,1))
 lines(res.adjR2, type = "l", lwd = 3, col = "red")
@@ -298,6 +328,7 @@ legend(0,1,c("R^2","adj R^2"), lty = c(1,1), lwd = c(3,3), col = c("red","blue")
 #+RESULTS:
 [[file:inserts/graph1.png]]
 
+As you can see, our $\Rsq$ has gone from a puny 0.3 to a robust 0.7, so our model must be much better, right? This is another example of the classic "overfitting" problem: in a regression with 74 observations and 40+ covariates, /something/ is always going to explain some portion of the variation. The $\aRsq$, on the other hand, stays mostly at the same level. But what if we set =k.max <- 70=? =k.max <- 100=?
 
 * Additional puzzles
 

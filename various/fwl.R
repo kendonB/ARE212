@@ -9,12 +9,17 @@ names(data) <- c("price", "mpg", "weight")
 X <- cbind(rep(1,n),data$mpg,data$weight)
 y <- data$price
 
+b <- solve(t(X) %*% X) %*% t(X) %*% y
+lm(y ~ X - 1)
+
 # define OLS function (we could use lm() but it's canned)
 OLS <- function(y,X) {
   # function OLS:
   # take in vector y and matrix X and return OLS coefficient b
   return(solve(t(X) %*% X) %*% t(X) %*% y)
 }
+
+b <- OLS(y,X)
 
 # test our new function
 all(solve(t(X) %*% X) %*% t(X) %*% y == OLS(y,X))
@@ -48,3 +53,5 @@ e_X2_X1 <- apply(X2, 2, function(z) {z - X1 %*% OLS(z,X1)}) # run OLS on each ro
 
 b_2 <- OLS(e_y_X1,e_X2_X1)
 all.equal(b[3, ], b_2[1, ]) # we use all.equal because of floating point issues
+
+b[3, ] == b_2[1, ]
