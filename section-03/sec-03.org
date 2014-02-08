@@ -124,6 +124,7 @@ names(data) <- c("price", "mpg", "weight")
 #+END_SRC
 
 #+RESULTS:
+: Loading required package: foreign
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 y <- matrix(data$price)
@@ -171,7 +172,7 @@ coefficients(lm(y ~ X - 1))
 #+end_src
 
 #+RESULTS:
-:          X1          X2          X3
+:          X1          X2          X3 
 : 1946.068668  -49.512221    1.746559
 
 They match! Thank goodness. If you're interested in knowing what =lm()= does, I highly recommend reading through relevant =R= documentation[fn:: Remember, you can do this using =?lm=.].
@@ -231,9 +232,9 @@ randomMat(3,2)
 
 #+RESULTS:
 :           [,1]      [,2]
-: [1,] 0.6034025 0.2292800
-: [2,] 0.4982068 0.7240422
-: [3,] 0.2094200 0.3239267
+: [1,] 0.4038079 0.1510001
+: [2,] 0.4651371 0.5327743
+: [3,] 0.4800283 0.8856391
 
 Another useful function for this section will be to create a square demeaning matrix $\A$ of dimension $n$.  The following function just wraps a few algebraic maneuvers, so that subsequent code is easier to read.
 
@@ -315,6 +316,8 @@ for (i in 1:k.max) {
   res.adjR2[i] <- R.squared(y, X.ext)[2]
 }
 #+end_src
+
+#+RESULTS:
 
 Next, we'll plot our $\Rsq$ and $\aRsq$ values using a line plot:
 
