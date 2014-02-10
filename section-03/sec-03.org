@@ -3,12 +3,12 @@
 *Loops and Maximizing $R^2$* \hfill
 *ARE212*: Section 03 \\ \hline \bigskip
 
-This week we'll start out by reviewing some key concepts that we sped over last week. Next, we'll briefly learn how to use loops in =R=. Finally, we'll work through an example that uses many of the tools we've developed in section to demonstrate why you should be suspicious of any "$R^2$ maximizers"! With remaining time we'll address your questions about the problem set and look ahead to hypothesis testing.
+This week we'll start out by reviewing some key concepts that we sped over last week. Next, we'll briefly learn how to use loops in =R=. Finally, we'll work through an example that uses many of the tools we've developed in section to demonstrate why you should be suspicious of any "$R^2$ maximizers"!
 
 * Last section
 *Using =apply=, round two*: Simply put, =apply()= is a function that lets you perform operations on different parts of a matrix. I'll show you a few different ways to use =apply()=, borrowing heavily from Neil Saunders' excellent blog post on the topic[fn:: Available at http://nsaunders.wordpress.com/2010/08/20/a-brief-introduction-to-apply-in-r/. He goes into more detail on the entire family of =apply()= functions, if you're interested.]. \\
 
-First we use our =matrix()= command from last week to construct a 2 $\times$ 10 matrix.
+First we use our =matrix()= command from last week to construct a 2 $\times$ 10 matrix:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 (m <- matrix(c(1:10, 11:20), nrow = 2, ncol = 10, byrow=T))
@@ -37,9 +37,9 @@ apply(m, 2, mean)
 #+RESULTS:
 :  [1]  6  7  8  9 10 11 12 13 14 15
 
-Note that including the parameter names is not strictly necessary, so I omitted it above. If you don't pass the parameter names, however, be sure to pass your arguments in the correct order! Otherwise you may get some very confusing results. \\
+Note that including the parameter names is not strictly necessary, so I omitted it above. If you don't pass the parameter names, however, be sure to pass your arguments in the correct order! \\
 
-Finally, we can =apply()= a function to every cell in the matrix individually using =MARGIN = 1:2= (or just =1:2= as our second argument, for short).
+Finally, we can =apply()= a function to every cell in the matrix individually using =MARGIN = 1:2=:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 apply(m, 1:2, function(x) {x/2})
@@ -50,7 +50,7 @@ apply(m, 1:2, function(x) {x/2})
 : [1,]  0.5    1  1.5    2  2.5    3  3.5    4  4.5     5
 : [2,]  5.5    6  6.5    7  7.5    8  8.5    9  9.5    10
 
-This example is a bit contrived since we could have achieved the same result with the command =m / 2=, but hopefully it makes the point clear. \\
+\newpage
 
 *OLS with matrices*: As we discussed last week, the use of canned routines is not permitted for most of this class; you'll have to write the econometric routines from first principles. First, create matrices of the data, since we will be working mainly with matrix operations.  Let $\y$ be the dependent variable, price, and let $\X$ be a matrix of the other car characteristics, along with a column of ones prepended.  The =cbind()= function binds the columns horizontally and coerces the =matrix= class.
 
@@ -61,7 +61,6 @@ names(data) <- c("price", "mpg", "weight")
 #+END_SRC
 
 #+RESULTS:
-: Loading required package: foreign
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 y <- matrix(data$price)
@@ -146,6 +145,8 @@ sapply(1:5, function(i) {print(i*i)})
 : [1] 25
 : [1]  1  4  9 16 25
 
+\newpage
+
 * Centered $R^2$
 
 We've now laid enough groundwork to start getting into some detailed examples of employing =R= to learn and do applied econometrics. In other words, I can finally stop torturing you with pointless matrix algebra and start torturing you with matrix algebra /with a purpose/! The first such example has to do with $R^2$ values. You will all be calculating this $R^2$ for your problem sets, but here we'll take it a step farther and look at what happens to $R^2$ when we add random variables to our regression. Along the way, we'll use many of the tools we've developed in this and the first two sections. \\
@@ -215,9 +216,7 @@ The centered $\Rsq$ is defined according to equation (2.41) as follows:
 \Rsq = \frac{\bp_{2}\Xsp_{2}\Xs_{2}\b_{2}}{\ysp\ys},
 \end{equation}
 
-where $\ys = \A\y$, $\Xs_2 = \A\X_2$, and $\b_2 = (\Xsp_{2}\Xs_{2})^{-1}\Xsp_{2}\ys$.  Noting that $\A$ is both symmetric and idempotent, we can rewrite Equation (\ref{eq:rsq}) in terms of matrices already defined, thereby simplifying the subsequent code dramatically.  From my limited experience with programming, the best
-code is that which reflects the core idea of the procedure; more time spent with a pen and paper and not in =R= will almost always yield more readable code, and more readable code yields fewer errors and suggests quick extensions.  That said, note that $\Xsp_{2}\Xs_{2} = \Xp_2\Ap\A\X_2 = \Xp_2\A\A\X_2 = \Xp_2\A\X_2$ and similarly that
-$\ysp\ys = \yp\A\y$ and $\Xsp_{2}\ys = \Xp_{2}\A\y$. If we write a more general function, though, we can apply it to an arbitrary dependent vector and associated cofactor matrix:
+where $\ys = \A\y$, $\Xs_2 = \A\X_2$, and $\b_2 = (\Xsp_{2}\Xs_{2})^{-1}\Xsp_{2}\ys$.  Noting that $\A$ is both symmetric and idempotent, we can rewrite Equation (\ref{eq:rsq}) using $\A$, $\X$, and $\y$ as follows. We use that $\Xsp_{2}\Xs_{2} = \Xp_2\Ap\A\X_2 = \Xp_2\A\A\X_2 = \Xp_2\A\X_2$ and similarly that $\ysp\ys = \yp\A\y$ and $\Xsp_{2}\ys = \Xp_{2}\A\y$. We'll use this in our code below to construct $\Rsq$, constructing a general function that we can use with any arbitrary dependent vector and associated cofactor matrix:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 R.squared <- function(y, X) {
@@ -239,19 +238,19 @@ R.squared(y, X2)
 :           [,1]      [,2]
 : [1,] 0.2933891 0.2835751
 
-Now, what happens if we use our =randomMat()= function to add columns of random covariates to our regression? We'll use a =for= loop to calculate the $\Rsq$ and $\aRsq$ as we add additional covariates.
+Note that this code also returns $\aRsq$, the adjusted $\Rsq$. Now, what happens if we use our =randomMat()= function to add columns of random covariates to our regression? We'll use a =for= loop to calculate the $\Rsq$ and $\aRsq$ as we add additional covariates.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-n <- nrow(X2)
-k.max <- 40
+n <- nrow(X2); k.max <- 40
 X.rnd <- randomMat(n, k.max)
 res.R2 <- rep(0, k.max)
 res.adjR2 <- rep(0, k.max)
 
 for (i in 1:k.max) {
   X.ext <- cbind(X2, X.rnd[, seq(i)])
-  res.R2[i] <- R.squared(y, X.ext)[1]
-  res.adjR2[i] <- R.squared(y, X.ext)[2]
+  R2.out <-  R.squared(y, X.ext)
+  res.R2[i] <- R2.out[1]
+  res.adjR2[i] <- R2.out[2]
 }
 #+end_src
 
@@ -269,7 +268,7 @@ legend(0,1,c("R^2","adj R^2"), lty = c(1,1), lwd = c(3,3), col = c("red","blue")
 #+RESULTS:
 [[file:inserts/graph1.png]]
 
-As you can see, our $\Rsq$ has gone from a puny 0.3 to a robust 0.7, so our model must be much better, right? This is another example of the classic "overfitting" problem: in a regression with 74 observations and 40+ covariates, /something/ is always going to explain some portion of the variation. The $\aRsq$, on the other hand, stays mostly at the same level. But what if we set =k.max <- 70=? =k.max <- 100=? Why?
+As you can see, our $\Rsq$ has gone from a puny 0.3 to a robust 0.7, so our model must be much better, right? Wrong! This is another example of the classic "overfitting" problem: in a regression with 74 observations and 40+ covariates, /something/ is always going to explain some portion of the variation. The $\aRsq$, on the other hand, stays mostly at the same level. But what if we set =k.max <- 70=? =k.max <- 100=? Why? \\
 
 That's it for this section. Next week, we'll turn our attention to hypothesis testing.
 

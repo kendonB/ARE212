@@ -66,16 +66,16 @@ R.squared <- function(y, X) {
 
 R.squared(y, X2)
 
-n <- nrow(X2)
-k.max <- 40
+n <- nrow(X2); k.max <- 40
 X.rnd <- randomMat(n, k.max)
 res.R2 <- rep(0, k.max)
 res.adjR2 <- rep(0, k.max)
 
 for (i in 1:k.max) {
   X.ext <- cbind(X2, X.rnd[, seq(i)])
-  res.R2[i] <- R.squared(y, X.ext)[1]
-  res.adjR2[i] <- R.squared(y, X.ext)[2]
+  R2.out <-  R.squared(y, X.ext)
+  res.R2[i] <- R2.out[1]
+  res.adjR2[i] <- R2.out[2]
 }
 
 png(filename="inserts/graph1.png",height=300,width=500)
