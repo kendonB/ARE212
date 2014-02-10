@@ -172,7 +172,7 @@ coefficients(lm(y ~ X - 1))
 #+end_src
 
 #+RESULTS:
-:          X1          X2          X3 
+:          X1          X2          X3
 : 1946.068668  -49.512221    1.746559
 
 They match! Thank goodness. If you're interested in knowing what =lm()= does, I highly recommend reading through relevant =R= documentation[fn:: Remember, you can do this using =?lm=.].
@@ -261,6 +261,7 @@ all.equal(A %*% B, t(C))
 : [1] TRUE
 
 Alright, we're ready to apply the functions to real data in order to calculate the centered $\Rsq$. First, read in the data to conform to equation (2.37) on page 14 of the lecture notes, and identify the number of observations $n$ for later use:
+
 #+begin_src R :results output graphics :exports both :tangle yes :session
 data <- read.csv("auto.csv", header=TRUE)
 names(data) <- c("price", "mpg", "weight")
@@ -331,7 +332,9 @@ legend(0,1,c("R^2","adj R^2"), lty = c(1,1), lwd = c(3,3), col = c("red","blue")
 #+RESULTS:
 [[file:inserts/graph1.png]]
 
-As you can see, our $\Rsq$ has gone from a puny 0.3 to a robust 0.7, so our model must be much better, right? This is another example of the classic "overfitting" problem: in a regression with 74 observations and 40+ covariates, /something/ is always going to explain some portion of the variation. The $\aRsq$, on the other hand, stays mostly at the same level. But what if we set =k.max <- 70=? =k.max <- 100=?
+As you can see, our $\Rsq$ has gone from a puny 0.3 to a robust 0.7, so our model must be much better, right? This is another example of the classic "overfitting" problem: in a regression with 74 observations and 40+ covariates, /something/ is always going to explain some portion of the variation. The $\aRsq$, on the other hand, stays mostly at the same level. But what if we set =k.max <- 70=? =k.max <- 100=? Why?
+
+That's it for this section. Next week, we'll turn our attention to hypothesis testing.
 
 * Additional puzzles
 
