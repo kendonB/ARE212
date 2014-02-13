@@ -35,6 +35,9 @@ se <- matrix(sqrt(s2 * diag(XpXinv)),ncol=1)
 # and now we can get our t stat
 t <- (b - gamma) / se
 
+# note on one-tailed vs. two-tailed
+# good chance for class interaction
 
-
+# Next do an F test
+# Compare & graph regions?
 
