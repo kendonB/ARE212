@@ -29,9 +29,23 @@ R.squared <- function(y, X) {
   e <- y - X %*% b
   R2.unc <- 1 - (t(e) %*% e)/(t(y) %*% y)
   
+  # what if we calculate this otherwise?
+  yh <- X %*% b
+  ssm <-  sum((yh - mean(y))^2)
+  ssr <- t(e) %*% e
+  sst <- sum((y-mean(y))^2)
+  
+  # first, we should see that sst = ssm + ssr
+  all.equal(sst,as.numeric(ssm + ssr))
+  
+  print(ssm/sst)
+  print(1 - (ssr/sst))
+  
+  # now we do it with the matrix formula
+  
   A <- demeanMat(n)
   
-  # remove the intercept if there is one  
+  # remove the intercept if there is one (assume it would be in the first col) 
   if (all(X[ ,1] == rep(1,n))) X <- X[ ,-1]
   xtax <- t(X) %*% A %*% X
   ytay <- t(y) %*% A %*% y
@@ -39,6 +53,8 @@ R.squared <- function(y, X) {
   
   R2 <- t(b2) %*% xtax %*% b2 / ytay
   R2.adj <- 1 - ((n-1)/(n-k))*(1-R2)
+  
+ 
   return(cbind(R2.unc,R2,R2.adj))
 }
 
