@@ -1,7 +1,395 @@
 #+INCLUDE: ../orgpreamble.org
 
-*Goodness of Fit* \hfill
+*Hypothesis testing* \hfill
 *ARE212*: Section 04 \\ \hline \bigskip
+
+This is an introducton to basic hypothesis testing in =R=. After catching up on a few items from last section, we'll demonstrate graphically that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. With remaining time,
+
+* Last section
+[TBD]
+
+* Calculate t-tests and F-tests
+
+First, a basic overview in conducting t- and F-tests. Back to =auto.csv=! At some point I will stop using this data. But not today.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+data <- read.csv("auto.csv", header=TRUE)
+names(data) <- c("price", "mpg", "weight")
+y <- matrix(data$price)
+X <- cbind(1, data$mpg, data$weight)
+#+end_src
+
+#+RESULTS:
+
+For reference, consider the regression output from =lm()=.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+res <- lm(price ~ 1 + mpg + weight, data = data)
+coef(summary(res))
+summary(res)$fstatistic
+#+end_src
+
+#+results:
+:                Estimate   Std. Error    t value    Pr(>|t|)
+: (Intercept) 1946.068668 3597.0495988  0.5410180 0.590188628
+: mpg          -49.512221   86.1560389 -0.5746808 0.567323727
+: weight         1.746559    0.6413538  2.7232382 0.008129813
+:    value    numdf    dendf
+: 14.73982  2.00000 71.00000
+
+Now we'll run OLS and define some useful elements for hypothesis testing using the definitions in lecture notes:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+n <- nrow(X); k <- ncol(X)
+b <- OLS(y,X)
+e <- y - X %*% b
+s2 <- t(e) %*% e / (n - k)
+XpXinv <- solve(t(X) %*% X)
+se <- sqrt(s2 * diag(XpXinv))
+#+end_src
+
+#+RESULTS:
+
+By the way, it's good practice to define intermediate variables like =XpXinv=, =s2=, and =se=. This can be useful for bug-checking and for making your code intuitive. For example, I could have defined =se= as =sqrt((t(y - X %*% b) %*% (y - X %*% b) / (n-k)) * diag(solve(t(X) %*% X)))= (or worse!), which would have been a nightmare to debug or understand. \\
+
+We can now use the vector of standard errors to calculate our =t= and =p= values for the individual t-tests:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+t <- (b - 0) / se
+(p <- apply(t, 1, function(t) {2 * pt(-abs(t), df = (n - k))}))
+#+end_src
+
+#+RESULTS:
+: [1] 0.590188628 0.567323727 0.008129813
+
+Great!  We have replicated the =Pr(>|t|)= column of the canned output. Now let's try to replicate the full regression F-statistic.  This is a joint test of coefficient significance; are the coefficients jointly different from a zero vector?  Max has a great description as to why this is different from three separate tests of significance.  For now, note that we are testing joint significance by setting:
+\begin{equation}
+\label{eq:fmats}
+\Rb = \left[ \begin{array}{ccc} 1 & 0 & 0 \\
+                                0 & 1 & 0 \\
+                                0 & 0 & 1 \\ \end{array} \right]
+\hspace{10pt} \mbox{and} \hspace{10pt}
+\r = \left[ \begin{array}{c} 0 \\ 0 \\ 0 \\ \end{array} \right]
+\end{equation}
+
+This is great. This simplifies the equation (2.81), which is fairly daunting at first:
+
+\begin{equation}
+\label{eq:F}
+F = \frac{(\Rb\b - \r)'[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb\b - \r)/J}{s^2} =
+    \frac{\bp(\Xp\X)\b/J}{s^2}
+\end{equation}
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+(F <- t(b) %*% (t(X) %*% X) %*% b / (s2*3))
+#+end_src
+
+#+RESULTS:
+:          [,1]
+: [1,] 158.1714
+
+Uh oh. This is much larger than the reported F-statistic of 14.74.  What happened?  The problem is that we also included the intercept, whereas =R= assumes that this shouldn't be included in the joint test.  Simplification failed.  Let's try again, redefining $\Rb$ and $\r$ without a restriction on the intercept:
+\begin{equation}
+\label{eq:fmats}
+\Rb = \left[ \begin{array}{ccc} 0 & 1 & 0 \\
+                                0 & 0 & 1 \\ \end{array} \right]
+\hspace{10pt} \mbox{and} \hspace{10pt}
+\r = \left[ \begin{array}{c} 0 \\ 0 \\ \end{array} \right]
+\end{equation}
+
+Unfortunately, our formula doesn't simplify as nicely, but we still get to drop the $\r$ vectors.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+R <- rbind(c(0, 1, 0), c(0, 0, 1)); J <- 2
+select.var <- solve(R %*% solve(t(X) %*% X) %*% t(R))
+(F <- t(R %*% b) %*% select.var %*% (R %*% b) / (s2 * J))
+#+end_src
+
+#+RESULTS:
+:          [,1]
+: [1,] 14.73982
+
+It worked! This is, of course, one of the simplest possible F-tests we could conduct, but you can see how it would be easy to construct your own F-tests using this framework.
+
+\newpage
+
+* =t= distribution proof
+
+Max showed in class that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. We won't go over the proof again, but we will use simulated data to visualize the distributions of $z_j$, $q$, and $t_j$. Part of the purpose of this exercise is to give you practice in simulating data, an immensely valuable tool for testing econometric routines and hypotheses. \\
+
+\begin{eqnarray}
+z_j \equiv \frac{(b_j) - \bar{\gamma}}{\sqrt{\sigma^2 \cdot (\Xp \X)^{-1}_{jj}}} ~\sim \N (0,1) \\
+q \equiv \frac{\ep \e}{\sigma^2} ~ \sim \chi_^2{(n-k)} \\
+t_j \equiv \frac{b_j - \bar{\gamma}}{\sqrt{s^2 \cdot (\Xp \X)^{-1}_{jj}}} = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)} ~\sim t_{n-k}
+\end{eqnarray}
+
+First, we'll do some basic setup, creating our =OLS()= function and setting =reps= (the number of times we'll randomly generate data and test statistics), =n=, and =k=.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+OLS <- function(y,X) {
+  return(solve(t(X) %*% X) %*% t(X) %*% y)
+}
+reps <- 10000; n <- 100; k <- 2
+#+end_src
+
+#+RESULTS:
+
+Next we'll create the $\text{reps} \times k$ matrices for storing the =z=, =q=, and =t= that we'll create in each loop
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+z <- matrix(rep(0,reps*k),ncol=k)
+q <- matrix(rep(0,reps),ncol=1)
+t <- matrix(rep(0,reps*k),ncol=k)
+#+end_src
+
+#+RESULTS:
+
+This isn't strictly necessary but it is much more efficient to create these now than to have =R= resize them every time we run the loop. Now, the action! Once again we're using a =for= loop.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+for (i in 1:reps) {
+  # simulate the true model
+  beta <- matrix(c(42,8), nrow=2)
+  X <- cbind(1, rnorm(n))
+  sigma <- 1
+  eps <- matrix(rnorm(n, 0, sigma), nrow=n)
+  y <- X %*% beta + eps
+
+  # run OLS and prepare everything we need to calculate z, q, and t
+  b <- OLS(y,X)
+  e <- y - X %*% b
+  XpXinv = solve(t(X) %*% X)
+  s2 <- t(e) %*% e / (n-k)
+  se <- sqrt(s2 * diag(XpXinv))
+
+  # calculate test statistics
+  z[i, ] <- (b - beta) / sqrt(sigma^2 * diag(XpXinv))
+  q[i] <- (t(e) %*% e) / sigma^2
+  t[i, ] <- (b - beta) / se # t[i, ] <- (b - c(42,7.9)) / se # what if we have the wrong null?
+}
+#+end_src
+
+#+RESULTS:
+
+There are three distinct parts to this loop. First, we simulate a real DGP (including noise), creating =X=, =beta=, and =eps= and then constructing $\y = \X \beta + \varepsilon$. The enormous advantage of simulation is obvious here --- since we know exactly what is driving our DGP we can verify that our estimating equation performs as we expect. Next, we run OLS, just as we would if we were presented with a real dataset. Finally, we calculate $z_j$, $q$, and $t_j$. \\
+
+All that remains now is to compare the simulated distributions of $z_j$, $q$, and $t_j$ to their expected true distributions that we demonstrated in lecture. We'll focus on the second columns of $z_j$ and $t_j$, since that corresponds to our coefficient $b_2$, which is our randomly generated =X= variable (not the intercept). First, we'll show that $z_j \sim N(0,1)$:
+
+#+begin_src R :results output graphics :file inserts/graph1.png :width 500 :height 300 :session :tangle yes :exports both
+hist(z[ , 2], breaks = reps / 200, probability = T)
+curve(dnorm(x, mean = 0, sd = 1), from = -4, to = 4, add=T, lwd=2, col="darkblue")
+#+end_src
+
+#+RESULTS:
+[[file:inserts/graph1.png]]
+
+There are many prettier ways to plot a graph like this one[fn:: For example, using the package =ggplot2=], but this gets the job done. You may notice that we passed =dnorm()= =x=, which is a variable we haven't defined. This would normally throw an error, but since =dnorm()= is a function of =curve()=, which accepts functions of =x=, it works as we expect. Now we'll do the same for $q$:
+
+#+begin_src R :results output graphics :file inserts/graph2.png :width 500 :height 300 :session :tangle yes :exports both
+hist(q, breaks = 50, probability = T)
+curve(dchisq(x, df = n-k), from = 60, to = 160, add=T, lwd=2, col="darkred")
+#+end_src
+
+#+RESULTS:
+[[file:inserts/graph2.png]]
+
+We now have graphically demonstrated the truthiness of the two main conditions required to show that $t_j \sim t_{n-k}$. But let's show that graphically as well!
+
+#+begin_src R :results output graphics :file inserts/graph3.png :width 500 :height 300 :session :tangle yes :exports both
+hist(t[ ,2], breaks = reps / 200, probability = T)
+curve(dnorm(x, mean = 0, sd = 1), from = -4, to = 4, add=T, lwd=2, col="darkblue")
+curve(dt(x, df = n-k), from = -4, to = 4, add=T, lwd=2, col="darkgreen")
+#+end_src
+
+#+RESULTS:
+[[file:inserts/graph3.png]]
+
+You'll notice that I threw another normal curve on there for good measure. You'll also notice that it lies more or less on top of the t distribution, which is what we expect with any reasonable $\text{df} = \text{n} - \text{k}$. \\
+
+* Puzzle (sort of)						   :noexport:
+
+We will replicate the results of a sort of silly study that examines
+the causes of McCarthyism, using a /path model/.  The study was
+published in the /American Political Science Review/ by Gibson (1988)
+and reprinted in Freedman (2009) to illustrate path models, which are
+essentially a simple graphical framework to keep track of direct and
+indirect causation.  The path model is recreated in Figure
+(\ref{fig:path}), and shows that tolerance scores of both the masses
+and elites directly impact repression.  This is a theoretical
+framework.  The unlabeled connection between the tolerance nodes
+indicates association rather than causation.  The repression and
+tolerance scores have been standardized, so that they have mean equal
+to zero and standard deviation equal to one.\\
+
+The purpose of this exercise is to build up an intuition of the
+relationship between the OLS estimates and covariate correlations.
+
+\begin{figure}[t]
+        \centering
+
+        \begin{picture}(150,150)(0,0)
+
+        \put(0,18){$\var{mass tolerance}$}
+        \put(0,127){$\var{elite tolerance}$}
+        \put(110,72){$\var{repression}$}
+
+        \put(10,30){\circle*{5}}
+        \put(10,120){\circle*{5}}
+        \put(100,75){\circle*{5}}
+
+        \thicklines
+
+        \put(10,30){\vector(2,1){87}}
+        \put(10,120){\vector(2,-1){87}}
+
+        \thinlines
+
+        \qbezier(8,36)(0,75)(8,114)
+
+        \end{picture}
+
+        \caption{Path model, causes of McCarthyism, reproduced from
+        Freedman (2009)}
+
+        \label{fig:path}
+\end{figure}
+
+Gibson reports the correlation matrix for the path diagram:
+
+|         | Masses | Elite | Repress |
+|---------+--------+-------+---------|
+| Masses  |   1.00 |  0.52 |   -0.26 |
+| Elite   |   0.52 |  1.00 |   -0.42 |
+| Repress |  -0.26 | -0.42 |    1.00 |
+
+His model for political repression for $n = 36$ states is given by:
+\begin{equation}
+\var{repression} = \beta_1 \cdot \var{mass tolerance} + \beta_2 \cdot
+\var{elite tolerance} + \epsilon,
+\label{eq:one}
+\end{equation} Denote $\var{mass tolerance}$ as $M$, $\var{elite
+tolerance}$ as $E$, and $\var{repression}$ as $R$, such that Equation
+(\ref{eq:one}) becomes $R = \beta_1 M + \beta_2 E + \epsilon$.  Finally,
+let $\X = [M \hspace{8pt} E]$, so that $R = \X\beta + \epsilon$.  \\
+
+Here is the kicker.  Since, all  variables were standardized, we know that
+\[
+\frac{1}{n} \sum_{i=1}^n E_i = 0 \qquad \and \qquad \frac{1}{n}\sum_{i=1}^n E_i^2 = 1
+\]
+
+This is true, also, for $M$ and $R$.  Being careful about matrix
+multiplication, we can compute the following:
+\begin{equation}
+\Xp\X = \left[
+\begin{array}{cc}
+\sumi M_i^2 & \sumi M_i E_i \\
+\sumi M_i E_i & \sumi E_i^2  \\
+\end{array}\right] =
+n\left[
+\begin{array}{cc}
+1 & r_{ME} \\
+r_{ME} & 1
+\end{array}
+\right]=
+n\left[
+\begin{array}{cc}
+1 & 0.52 \\
+0.52 & 1
+\end{array}
+\right]
+\end{equation}
+
+\begin{equation}
+\Xp R = \left[
+\begin{array}{cc}
+\sumi M_i R_i  \\
+\sumi E_i R_i \\
+\end{array}\right] =
+n\left[
+\begin{array}{cc}
+r_{MR} \\
+r_{ER}
+\end{array}
+\right]=
+n\left[
+\begin{array}{cc}
+-0.26 \\
+-0.42
+\end{array}
+\right]
+\end{equation}
+
+We don't even need the actual data to compute the OLS coefficients!
+Specifically, $\beta = (\Xp\X)^{-1}\Xp R$:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+  n <- 36
+  xtx <- n * matrix(c(1, 0.52, 0.52, 1), ncol = 2)
+  xtr <- n * matrix(c(-0.26, -0.42), ncol = 1)
+  (b <- solve(xtx) %*% xtr)
+#+end_src
+
+#+RESULTS:
+:             [,1]
+: [1,] -0.05701754
+: [2,] -0.39035088
+
+Given standardized tolerance and repression scores, we can use the
+following formula from page 85 in Freedman to calculate the model
+variance: $\sigsh = 1 - \hat{\beta}_1^2 - \hat{\beta}_2^2 -
+2\hat{\beta}_1\hat{\beta}_2 r_{ME}$
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+  p <- 3
+  (sigma.hat.sq <- (n / (n - p)) * (1 - b[1]^2 - b[2]^2 - 2 * b[1] * b[2] * 0.52))
+#+end_src
+
+#+RESULTS:
+: [1] 0.8958852
+
+There is an implicit intercept, since the scores are standardized, so
+that $p = 3$.  We compute the standard errors from the estimated
+covariance matrix, $\sigsh(\Xp\X)^{-1}$.  Note that $\V(\hat{\beta}_k|\X)
+= \sigsh(\Xp\X)_{kk}^{-1}$:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+  vcov.mat <- sigma.hat.sq * solve(xtx)
+  se1 <- sqrt(vcov.mat[1,1])
+  se2 <- sqrt(vcov.mat[2,2])
+  pt(b[1]/se1, n - p)
+  pt(b[2]/se2, n - p)
+#+end_src
+
+#+RESULTS:
+: [1] 0.3797346
+: [1] 0.02109715
+
+The coefficient on $\var{mass tolerance}$ is not significant, but the
+coefficient on $\var{elite tolerance}$ is significant.  But are the
+two coefficients significantly different from each other?  Let $\Rb =
+[1 \hspace{8pt} -1]$ and $\r = [0]$.  Then the following test
+statistic will test that the two coefficients are equal.
+
+\begin{equation}
+\label{eq:F}
+F = \frac{(\Rb \hat{\beta} - \r)^{\prime}[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb \hat{\beta} - \r)}{\sigsh}
+\end{equation}
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+  R <- t(matrix(c(-1, 1))); r <- 0
+  G <- R %*% b - r
+  (F <- (G %*% R %*% solve(xtx) %*% t(R) %*% t(G))/sigma.hat.sq)
+#+end_src
+
+#+RESULTS:
+:            [,1]
+: [1,] 0.01435461
+
+The test statistic follows the $F$-distribution, and is not
+significant at any reasonable $p$-value.  So, while $\var{elite
+tolerance}$ may be significant in the regression of repression on
+tolerance, it is not significantly different than the insignificant
+variable $\var{mass tolerance}$.
 
 * Additional puzzles
 
@@ -18,29 +406,5 @@
    \end{eqnarray*}
    Show that $\hat{\beta} = [\gho - \ght\ghth \hspace{10pt}
    \ghth]$. Note that the total dimension of $\hat{\beta}$ is 4.
-
-*Answer:*
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  X <- cbind(1, randomMat(100, 3))
-  e <- rnorm(100)
-
-  beta <- c(1, 1, 2, 3)
-  y <- X %*% beta + e
-
-  Q <- X[, 1:3]
-  N <- X[, 4]
-  gamma.1 <- solve(t(Q) %*% Q) %*% t(Q) %*% y
-  gamma.2 <- solve(t(Q) %*% Q) %*% t(Q) %*% N
-  f <- y - Q %*% gamma.1
-  g <- N - Q %*% gamma.2
-  gamma.3 <- as.numeric(crossprod(f,g)/crossprod(g,g))
-  e <- f - g * gamma.3
-
-  (b <- c(gamma.1 - gamma.2 * gamma.3, gamma.3))
-#+end_src
-
-#+results:
-: [1] 0.9406504 1.0952703 2.1492073 2.8091920
 
 

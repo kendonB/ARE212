@@ -59,5 +59,12 @@
 #+LATEX: \renewcommand{\and}{\hspace{8pt} \mbox{and} \hspace{8pt}}
 #+LATEX: \renewcommand{\b}{{\bf b}}
 #+LATEX: \renewcommand{\c}{{\bf c}}
+#+LATEX: \renewcommand{\r}{{\bf r}}
+#+LATEX: \newcommand{\sigsh}{\hat{\sigma}^{2}}
+#+LATEX: \newcommand{\V}{\mathbb{V}}
+#+LATEX: \newcommand{\sumi}{\sum_{i=1}^n}
+#+LATEX: \newcommand{\var}[1]{\textcolor{red}{\mbox{\texttt{#1}}}}
+#+LATEX: \newcommand{\Rb}{{\bf R}}
+#+LATEX: \newcommand{\Rbp}{{\bf R}^{\prime}}
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline

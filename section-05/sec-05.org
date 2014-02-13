@@ -1,52 +1,8 @@
-#+AUTHOR:     
-#+TITLE:      
-#+OPTIONS:     toc:nil num:nil 
-#+LATEX_HEADER: \usepackage{mathrsfs}
-#+LATEX_HEADER: \usepackage{graphicx}
-#+LATEX_HEADER: \usepackage{booktabs}
-#+LATEX_HEADER: \usepackage{dcolumn}
-#+LATEX_HEADER: \usepackage{subfigure}
-#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
-#+LATEX_HEADER: \RequirePackage{fancyvrb}
-#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
-#+LATEX: \newcommand{\Rb}{{\bf R}}
-#+LATEX: \newcommand{\Rbp}{{\bf R}^{\prime}}
-#+LATEX: \newcommand{\Rsq}{R^{2}}
-#+LATEX: \newcommand{\ep}{{\bf e}^\prime}
-#+LATEX: \renewcommand{\e}{{\bf e}}
-#+LATEX: \renewcommand{\b}{{\bf b}}
-#+LATEX: \renewcommand{\r}{{\bf r}}
-#+LATEX: \renewcommand{\bp}{{\bf b}^{\prime}}
-#+LATEX: \renewcommand{\bs}{{\bf b}^{*}}
-#+LATEX: \renewcommand{\I}{{\bf I}}
-#+LATEX: \renewcommand{\X}{{\bf X}}
-#+LATEX: \renewcommand{\M}{{\bf M}}
-#+LATEX: \renewcommand{\A}{{\bf A}}
-#+LATEX: \renewcommand{\B}{{\bf B}}
-#+LATEX: \renewcommand{\C}{{\bf C}}
-#+LATEX: \renewcommand{\P}{{\bf P}}
-#+LATEX: \renewcommand{\Xp}{{\bf X}^{\prime}}
-#+LATEX: \renewcommand{\Xsp}{{\bf X}^{*\prime}}
-#+LATEX: \renewcommand{\Xs}{{\bf X}^{*}}
-#+LATEX: \renewcommand{\Mp}{{\bf M}^{\prime}}
-#+LATEX: \renewcommand{\y}{{\bf y}}
-#+LATEX: \renewcommand{\ys}{{\bf y}^{*}}
-#+LATEX: \renewcommand{\yp}{{\bf y}^{\prime}}
-#+LATEX: \renewcommand{\ysp}{{\bf y}^{*\prime}}
-#+LATEX: \renewcommand{\yh}{\hat{{\bf y}}}
-#+LATEX: \renewcommand{\yhp}{\hat{{\bf y}}^{\prime}}
-#+LATEX: \renewcommand{\In}{{\bf I}_n}
-#+LATEX: \renewcommand{\sigs}{\sigma^{2}}
-#+LATEX: \renewcommand{\sigsh}{\hat{\sigma}^{2}}
-#+LATEX: \renewcommand{\V}{\mathbb{V}}
-#+LATEX: \renewcommand{\and}{\mbox{and}}
-#+LATEX: \renewcommand{\sumi}{\sum_{i=1}^n}
-#+LATEX: \renewcommand{\var}[1]{\textcolor{red}{\mbox{\texttt{#1}}}}
-#+LATEX: \setlength{\parindent}{0in}
-#+STARTUP: fninline
+#+INCLUDE: ../orgpreamble.org
 
 *Hypothesis testing* \hfill
-*ARE212*: Section 05 \\ \\
+*ARE212*: Section 04 \\ \hline \bigskip
+
 
 This is an introducton to basic hypothesis testing in =R=. We have
 shown that, with a certain set of assumptions, the difference between
@@ -82,19 +38,19 @@ Call:
 lm(formula = price ~ 1 + mpg + weight, data = data)
 
 Residuals:
-   Min     1Q Median     3Q    Max 
- -3332  -1858   -504   1256   7507 
+   Min     1Q Median     3Q    Max
+ -3332  -1858   -504   1256   7507
 
 Coefficients:
-             Estimate Std. Error t value Pr(>|t|)   
-(Intercept) 1946.0687  3597.0496   0.541  0.59019   
-mpg          -49.5122    86.1560  -0.575  0.56732   
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept) 1946.0687  3597.0496   0.541  0.59019
+mpg          -49.5122    86.1560  -0.575  0.56732
 weight         1.7466     0.6414   2.723  0.00813 **
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Residual standard error: 2514 on 71 degrees of freedom
-Multiple R-squared: 0.2934,	Adjusted R-squared: 0.2735 
+Multiple R-squared: 0.2934,	Adjusted R-squared: 0.2735
 F-statistic: 14.74 on 2 and 71 DF,  p-value: 4.425e-06
 #+end_example
 
@@ -153,14 +109,14 @@ note that we are testing joint significance by setting
                                 0 & 0 & 1 \\ \end{array} \right]
 \hspace{10pt} \mbox{and} \hspace{10pt}
 \r = \left[ \begin{array}{c} 0 \\ 0 \\ 0 \\ \end{array} \right]
-\end{equation} 
+\end{equation}
 
 This is great.  This simplifies the hell out of equation (2.81), which
 is fairly daunting at first:
 
 \begin{equation}
 \label{eq:F}
-F = \frac{(\Rb\b - \r)^{\prime}[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb\b - \r)/J}{s^2} = 
+F = \frac{(\Rb\b - \r)^{\prime}[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb\b - \r)/J}{s^2} =
     \frac{\bp(\Xp\X)\b/J}{s^2}
 \end{equation}
 
@@ -189,7 +145,7 @@ the joint test.  Simplification failed.  Let's try again.
 : [1] 14.7398154  0.9999956
 
 It worked!  And the probability of observing the F-statistic with
-degrees of freedom $J=2$ and $n-k = 71$ is printed as well.  
+degrees of freedom $J=2$ and $n-k = 71$ is printed as well.
 
 * Puzzle (sort of)
 
@@ -207,13 +163,13 @@ tolerance scores have been standardized, so that they have mean equal
 to zero and standard deviation equal to one.\\
 
 The purpose of this exercise is to build up an intuition of the
-relationship between the OLS estimates and covariate correlations.  
+relationship between the OLS estimates and covariate correlations.
 
 \begin{figure}[t]
         \centering
-        
+
         \begin{picture}(150,150)(0,0)
-        
+
         \put(0,18){$\var{mass tolerance}$}
         \put(0,127){$\var{elite tolerance}$}
         \put(110,72){$\var{repression}$}
@@ -228,7 +184,7 @@ relationship between the OLS estimates and covariate correlations.
         \put(10,120){\vector(2,-1){87}}
 
         \thinlines
-        
+
         \qbezier(8,36)(0,75)(8,114)
 
         \end{picture}
@@ -257,7 +213,7 @@ tolerance}$ as $E$, and $\var{repression}$ as $R$, such that Equation
 (\ref{eq:one}) becomes $R = \beta_1 M + \beta_2 E + \epsilon$.  Finally,
 let $\X = [M \hspace{8pt} E]$, so that $R = \X\beta + \epsilon$.  \\
 
-Here is the kicker.  Since, all  variables were standardized, we know that 
+Here is the kicker.  Since, all  variables were standardized, we know that
 \[
 \frac{1}{n} \sum_{i=1}^n E_i = 0 \qquad \and \qquad \frac{1}{n}\sum_{i=1}^n E_i^2 = 1
 \]
@@ -265,41 +221,41 @@ Here is the kicker.  Since, all  variables were standardized, we know that
 This is true, also, for $M$ and $R$.  Being careful about matrix
 multiplication, we can compute the following:
 \begin{equation}
-\Xp\X = \left[ 
+\Xp\X = \left[
 \begin{array}{cc}
 \sumi M_i^2 & \sumi M_i E_i \\
 \sumi M_i E_i & \sumi E_i^2  \\
-\end{array}\right] = 
+\end{array}\right] =
 n\left[
 \begin{array}{cc}
 1 & r_{ME} \\
-r_{ME} & 1 
+r_{ME} & 1
 \end{array}
 \right]=
 n\left[
 \begin{array}{cc}
 1 & 0.52 \\
-0.52 & 1 
+0.52 & 1
 \end{array}
 \right]
 \end{equation}
 
 \begin{equation}
-\Xp R = \left[ 
+\Xp R = \left[
 \begin{array}{cc}
 \sumi M_i R_i  \\
 \sumi E_i R_i \\
-\end{array}\right] = 
+\end{array}\right] =
 n\left[
 \begin{array}{cc}
 r_{MR} \\
-r_{ER} 
+r_{ER}
 \end{array}
 \right]=
 n\left[
 \begin{array}{cc}
 -0.26 \\
--0.42 
+-0.42
 \end{array}
 \right]
 \end{equation}
@@ -312,7 +268,7 @@ Specifically, $\beta = (\Xp\X)^{-1}\Xp R$:
   xtx <- n * matrix(c(1, 0.52, 0.52, 1), ncol = 2)
   xtr <- n * matrix(c(-0.26, -0.42), ncol = 1)
   (b <- solve(xtx) %*% xtr)
-#+end_src  
+#+end_src
 
 #+RESULTS:
 :             [,1]
@@ -327,7 +283,7 @@ variance: $\sigsh = 1 - \hat{\beta}_1^2 - \hat{\beta}_2^2 -
 #+begin_src R :results output graphics :exports both :tangle yes :session
   p <- 3
   (sigma.hat.sq <- (n / (n - p)) * (1 - b[1]^2 - b[2]^2 - 2 * b[1] * b[2] * 0.52))
-#+end_src  
+#+end_src
 
 #+RESULTS:
 : [1] 0.8958852
@@ -343,7 +299,7 @@ covariance matrix, $\sigsh(\Xp\X)^{-1}$.  Note that $\V(\hat{\beta}_k|\X)
   se2 <- sqrt(vcov.mat[2,2])
   pt(b[1]/se1, n - p)
   pt(b[2]/se2, n - p)
-#+end_src  
+#+end_src
 
 #+RESULTS:
 : [1] 0.3797346
@@ -364,7 +320,7 @@ F = \frac{(\Rb \hat{\beta} - \r)^{\prime}[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb \hat{\be
   R <- t(matrix(c(-1, 1))); r <- 0
   G <- R %*% b - r
   (F <- (G %*% R %*% solve(xtx) %*% t(R) %*% t(G))/sigma.hat.sq)
-#+end_src  
+#+end_src
 
 #+RESULTS:
 :            [,1]
