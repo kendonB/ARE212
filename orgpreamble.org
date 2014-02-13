@@ -31,6 +31,7 @@
 #+LATEX: \newcommand{\Y}{{\bf Y}}
 #+LATEX: \newcommand{\Z}{{\bf Z}}
 #+LATEX: \newcommand{\aRsq}{{\bf \overline{R}}^{2}}
+#+LATEX: \newcommand{\uRsq}{{\bf R}_{\text{uc}}^{2}}
 #+LATEX: \newcommand{\bp}{{\bf b}^{\prime}}
 #+LATEX: \newcommand{\bs}{{\bf b}^{*}}
 #+LATEX: \newcommand{\code}[1]{\texttt{#1}}

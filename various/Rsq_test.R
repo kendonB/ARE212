@@ -3,18 +3,14 @@ require(foreign)
 
 data <- read.csv("auto.csv", header=TRUE)
 names(data) <- c("price", "mpg", "weight")
+
 y <- matrix(data$price)
-X <- cbind(1, data$mpg, data$weight)
-X2 <- cbind(data$mpg, data$weight)
+X <- cbind(1, data$mpg)
+X2 <- cbind(data$mpg)
 n <- nrow(X2)
 
 OLS <- function(y,X) {
   b <- solve(t(X) %*% X) %*% t(X) %*% y
-}
-
-randomMat <- function(n, k) {
-  v <- runif(n*k)
-  matrix(v, nrow=n, ncol=k)
 }
 
 demeanMat <- function(n) {
@@ -22,62 +18,39 @@ demeanMat <- function(n) {
   diag(n) - (1/n) * ones %*% t(ones)
 }
 
-R.squared <- function(y, X) {
+R.squared <- function(y,X) {
   n <- nrow(X)
   k <- ncol(X)
   b <- OLS(y,X)
   yh <- X %*% b
   e <- y - yh
   
-  # first calculate the uncentered R^2
-  R2.unc <- 1 - (t(e) %*% e)/(t(y) %*% y)
+  SSR <- t(e) %*% e
+  SST.0 <- t(y) %*% y # == sum(y^2)
+  
+  # calculate the uncentered R^2
+  R2.unc <- 1 - SSR / SST.0
   
   # centered R^2  
-  A <- demeanMat(n)
-  # remove the intercept if there is one (assume it would be in the first col) 
-  #if (all(X[ ,1] == rep(1,n))) X <- X[ ,-1]
-  #xtax <- t(X) %*% A %*% X
-  #ytay <- t(y) %*% A %*% y
-  #b2 <- OLS(A %*% y, A %*% X)
+  A <- demeanMat(n) # create a demeaning matrix
+  ys <- A %*% y # this is ystar
+  SST.yh <- t(ys) %*% ys # ==  sum((y - mean(y)^2))
   
+  R2.cen <- 1 - SSR / SST.yh
   
-  ssr <- sum((y - yh)^2)
-  sst <- sum((y - mean(y))^2)
+  # adjusted R^2
+  R2.adj <- 1 - ((n-1)/(n-k))*(1-R2.cen)
   
-  R2.1 <- 1 - (ssr/sst)
-
-  return(R2.1)
-  
-  
-  
-  # now calculate the centered R^2 (method 1)
-  yh <- X %*% b2
-  ssm <-  sum((yh - mean(y))^2)
-  ssr <- t(e) %*% e
-  sst <- sum((y-mean(y))^2)
-  
-  # first, we should see that sst = ssm + ssr
-  all.equal(sst,as.numeric(ssm + ssr))
-  
-  #print(ssm/sst)
-  R2.2 <- (1 - (ssr/sst))
-  
-  
-  R2 <- t(b2) %*% xtax %*% b2 / ytay
-  R2.adj <- 1 - ((n-1)/(n-k))*(1-R2)
-  
- 
-  return(cbind(R2.unc,R2.1,R2.2,R2.adj,ssm,ssr,sst))
+  return(cbind(R2.unc,R2.cen,R2.adj))
 }
 
-R.squared(y, X2)
 R.squared(y, X)
+R.squared(y, X2) 
 
+# notice that lm() does something clever - it replaces the 
+# centered R^2 with the uncentered R^2 when you run a regression without an intercept
 summary(lm(y ~ X))$r.squared
 summary(lm(y ~ X))$adj.r.squared
-summary(lm(y ~ 0 + X2))$r.squared
-summary(lm(y ~ 0 + X2))$adj.r.squared
-
-# Looks like lm() is not to be trusted when it comes to the centered and adjusted R^2
-# when you already have an intercept
+summary(lm(y ~ 0 + X2))$r.squared # actually the uncentered R^2
+summary(lm(y ~ 0 + X2))$adj.r.squared # uncentered R^2 with a variables penalty
 

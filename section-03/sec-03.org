@@ -3,7 +3,7 @@
 *Loops and Maximizing $R^2$* \hfill
 *ARE212*: Section 03 \\ \hline \bigskip
 
-This week we'll start out by reviewing some key concepts that we sped over last week. Next, we'll briefly learn how to use loops in =R=. Finally, we'll work through an example that uses many of the tools we've developed in section to demonstrate why you should be suspicious of any "$R^2$ maximizers"!
+This week we'll start out by reviewing some key concepts that we sped over last week. Next, we'll briefly learn how to use loops in =R=. We'll then spend most of section thinking about the different kinds of $\Rsq$ measures and how to construct them. Finally, we'll work through an example that uses many of the tools we've developed in section to demonstrate why you should be suspicious of any "$\Rsq$ maximizers"!
 
 * Last section
 *Using =apply=, round two*: Simply put, =apply()= is a function that lets you perform operations on different parts of a matrix. I'll show you a few different ways to use =apply()=, borrowing heavily from Neil Saunders' excellent blog post on the topic[fn:: Available at http://nsaunders.wordpress.com/2010/08/20/a-brief-introduction-to-apply-in-r/. He goes into more detail on the entire family of =apply()= functions, if you're interested.]. \\
@@ -104,7 +104,7 @@ b
 That's it! And although you're not allowed to use it in your problem sets, =lm()= is a nice tool for checking our results.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-coefficients(lm(y ~ X - 1))
+coefficients(lm(y ~ 0 + X))
 #+end_src
 
 #+RESULTS:
@@ -145,11 +145,125 @@ sapply(1:5, function(i) {print(i*i)})
 : [1] 25
 : [1]  1  4  9 16 25
 
-\newpage
+* Calculating $R^2$
 
-* Centered $R^2$
+We've now laid enough groundwork to start getting into some detailed examples of employing =R= to learn and do applied econometrics. In other words, I can finally stop torturing you with pointless matrix algebra and start torturing you with matrix algebra /with a purpose/! The first such example has to do with $R^2$ values. \\
 
-We've now laid enough groundwork to start getting into some detailed examples of employing =R= to learn and do applied econometrics. In other words, I can finally stop torturing you with pointless matrix algebra and start torturing you with matrix algebra /with a purpose/! The first such example has to do with $R^2$ values. You will all be calculating this $R^2$ for your problem sets, but here we'll take it a step farther and look at what happens to $R^2$ when we add random variables to our regression. Along the way, we'll use many of the tools we've developed in this and the first two sections. \\
+First, we'll go over how to calculate the $R^2$ values. Since it came up in office hours, we're going to write the code so that we can retrieve the uncentered $\uRsq$, the centered $\Rsq$, and the adjusted $\aRsq$ with /or/ without an intercept in our model. However, computing $\Rsq$ values can be trickier than it seems, particularly since many statistical packages (including =R=) are not fully transparent about which $\Rsq$ they are displaying. To ground ourselves before we start coding, we'll first go through the intuiton behind the $\Rsq$ measures, then the math, and finally the code. \\
+
+*Intuition*: Some intuition may be helpful here. The uncentered $\uRsq$ is a measure of how much of the variance in the data our model explains relative to a hyperplane[fn:: When you see "hyperplane," think "line." When you see "Separating Hyperplane Theorem," sprint the opposite direction.] where $y = 0$. The centered $\Rsq$ is a measure of how much of the variance in our model we can explain relative to a hyperplane where $y = \bar{y}$.  The adjusted $\aRsq$ is the $\Rsq$ with a penalty applied for adding more covariates.\\
+
+*Math*: Enough of that pesky intution. Let's go to the math. First, the uncentered $\uRsq$:
+
+\begin{equation}
+\uRsq \equiv \frac{\yh' \yh}{\y'\y} = 1 - \frac{\e'\e}{\y'\y} = 1 - \frac{\sum_i (y_i - \hat{y}_i)^2}{\sum_i (y_i - 0 )^2} = 1 - \frac{\text{SSR}}{\text{SST}_0}
+\end{equation}
+
+The above is perfectly general. The first equality comes from $\y' \y = \yh ' \yh + \e ' \e$, the second is matrix decomposition, and the third is just my favorite way to think about this measure. SSR is the sum of squared residuals, and $\text{SST}_0$ is the total sum of squares /relative to zero/. The latter is new notation to you, so be careful: it is NOT the SST that Max refers to in his notes --- we'll use that soon, when we define the centered $\Rsq$. Which we'll do now. \\
+
+The centered $\Rsq$ looks very similar to the uncentered $\uRsq$. The only difference is the denominator:
+
+\begin{equation}
+\Rsq \equiv 1 - \frac{\e'\e}{\ys'\ys} = 1 - \frac{\sum_i (y_i - \hat{y}_i)^2}{\sum_i (y_i - \bar{y} )^2} = 1 - \frac{\text{SSR}}{\text{SST}}
+\end{equation}
+
+Remember that $\ys = \A \y$, the demeaned version of $\y$. I diverge a bit from the lecture notes here. My definition is a bit more general, since it will allow us to calculate the $\Rsq$ for models without an intercept[fn:: If you're interested in exploring why the definition in the lecture notes won't work models without an intercept, see Greene 3.5.2.]. Here, the SST is as it was in the lecture notes --- it is sum of the squared differences between all of the values of $y$ and the mean of $y$.\\
+
+The adjusted $\aRsq$ is just the $\Rsq$ with a penalty applied for additional covariates:
+
+\begin{equation}
+\aRsq \equiv 1 - \frac{n-1}{n-k} (1 - \Rsq)
+\end{equation}
+
+What happens when =k=1=? \\
+
+*Coding*: Hopefully you now feel sufficiently prepared (or bored) to start coding. Remember, there are many ways to calculate these values, this is just one of them. However, this is most general. We'll be using the =auto.csv= data, as usual. To keep things simple, we'll define a univariate model, where =y= is price, =X= contains an intercept and =mpg=, and =X2= is just =mpg=. We'll also define an =OLS()= function:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+data <- read.csv("auto.csv", header=TRUE)
+names(data) <- c("price", "mpg", "weight")
+y <- matrix(data$price)
+X <- cbind(1, data$mpg)
+X2 <- cbind(data$mpg)
+n <- nrow(data)
+
+OLS <- function(y,X) {
+  b <- solve(t(X) %*% X) %*% t(X) %*% y
+}
+#+end_src
+
+#+RESULTS:
+
+Another useful function for this section will be to create a square demeaning matrix $\A$ of dimension $n$.  The following function just wraps a few algebraic maneuvers, so that subsequent code is easier to read.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+demeanMat <- function(n) {
+  ones <- rep(1, n)
+  diag(n) - (1/n) * ones %*% t(ones)
+}
+#+end_src
+
+#+RESULTS:
+
+Now, the main event! We'll define a function that runs OLS, computes all of our $\Rsq$ values, and returns them in a matrix. There is a lot of code here to process, but if you refer to the math above you'll see that it all matches up. Note that using a semi-colon =;= indicates the end of a statement, just like a line break.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+R.squared <- function(y,X) {
+  n <- nrow(X); k <- ncol(X)
+  b <- OLS(y,X); yh <- X %*% b; e <- y - yh # yh is y hat, the predicted value for y
+
+  SSR <- t(e) %*% e
+  SST.0 <- t(y) %*% y # == sum(y^2)
+  R2.unc <- 1 - SSR / SST.0
+
+  A <- demeanMat(n)
+  ys <- A %*% y # this is ystar
+  SST.yb <- t(ys) %*% ys # ==  sum((y - mean(y)^2))
+  R2.cen <- 1 - SSR / SST.yb
+
+  R2.adj <- 1 - ((n-1)/(n-k))*(1-R2.cen)
+
+  return(cbind(R2.unc,R2.cen,R2.adj))
+}
+#+end_src
+
+#+RESULTS:
+
+We'll test our function by calling it with =X=, our data matrix that contains an intercept and =mpg=. We'll also confirm our results with =lm()=.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+(Rsq.X2 <- R.squared(y,X))
+summary(lm(y ~ X))$r.squared
+summary(lm(y ~ X))$adj.r.squared
+#+end_src
+
+#+RESULTS:
+:          [,1]      [,2]      [,3]
+: [1,] 0.856253 0.2195829 0.2087437
+: [1] 0.2195829
+: [1] 0.2087437
+
+=lm()= does not, as far as I know, have a method for returning the uncentered $R^2$ for this model. Now let's try with =X2=, the data matrix with =mpg= but /no intercept/. If this were a horror movie, ominous music would be playing right now[fn:: Don't open that door!!]:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+(Rsq.X2 <- R.squared(y,X2))
+summary(lm(y ~ 0 + X2))$r.squared
+summary(lm(y ~ 0 + X2))$adj.r.squared
+#+end_src
+
+#+RESULTS:
+:           [,1]       [,2]       [,3]
+: [1,] 0.6718225 -0.7817091 -0.7817091
+: [1] 0.6718225
+: [1] 0.6673269
+
+Our results for $\Rsq$ and $\aRsq$ are totally insane, but for some reason our $\uRsq$ matches the output from =lm()=. Does this make any sense? Actually, yes! Remember that the centered $\Rsq$ compares our model, $\y = \X \bf \beta + \bf \varepsilon$ (with no intercept) to $\y = \bf \bar{y}$. Since $\y = \bf \bar{y}$ is actually a much better predictor of $\y$ than $\X \b$, we get that $\text{SSR} > \text{SST}$. Using that $\Rsq = 1 - \frac{\text{SST}}{\text{SST}}$, we can see why we get a negative $\Rsq$ and $\aRsq$. \\
+
+But, our results don't match the results from =lm()=. This is because =lm()= is actually pulling a bait-and-switch here: since we aren't passing it an intercept, it computes the uncentered $\uRsq$ instead of the centered $\Rsq$ [fn:: For more information, see here: http://bit.ly/1c0nA6N.]. So rather than comparing our model $\y = \X \b + \bf{\varepsilon}$ to $\y = \bf \bar{y} + \bf{\varepsilon}$, it compares it to $\y = \bf 0 + \bf{\varepsilon}$. If this doesn't make any sense to you, don't worry about it too much. Just remember to include an intercept in your model and everything will be fine. \\
+
+* More $\Rsq$ shenanigans
+
+Let's continue looking at the fishy behavior of $\Rsq$. Suppose we were to add a few "variables" to our model. Suppose these "variables" were just columns of random numbers. What would that do to our $\Rsq$? Let's find out. \\
 
 First, we create a random matrix, where each element is drawn from a standard uniform distribution --- another context to practice the =function()= structure. The function =randomMat()= generates a long vector of length $n \cdot k$ and then reshapes it into an $n \times k$ matrix.
 
@@ -169,88 +283,21 @@ randomMat(3,2)
 #+end_src
 
 #+RESULTS:
-:           [,1]      [,2]
-: [1,] 0.4038079 0.1510001
-: [2,] 0.4651371 0.5327743
-: [3,] 0.4800283 0.8856391
+:           [,1]       [,2]
+: [1,] 0.3873762 0.28559889
+: [2,] 0.4803870 0.01749506
+: [3,] 0.6425711 0.40503951
 
-Another useful function for this section will be to create a square demeaning matrix $\A$ of dimension $n$.  The following function just wraps a few algebraic maneuvers, so that subsequent code is easier to read.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-demeanMat <- function(n) {
-  ones <- rep(1, n)
-  diag(n) - (1/n) * ones %*% t(ones)
-}
-#+end_src
-
-#+results:
-
-As is described in the notes, pre-multiplying a matrix $\B$ by $\A$ will result in a matrix $\C = \A\B$ of deviations from the column means of $\B$. Check that this is true.  This may seem like a roundabout way to check the equivalence of the matrices; but it provides the opportunity to practice the =apply= function.
+Now, putting together everything we learned today[fn:: See what I did there?], we'll use the code we wrote earlier and a =for= loop to calculate the $\Rsq$ and $\aRsq$ as we add additional (random) covariates.  To avoid negative values for our $\Rsq$, we'll use =X=, which is our data matrix that contains an intercept and =mpg=:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-A <- demeanMat(3)
-B <- matrix(1:9, nrow=3)
-col.means <- apply(B, 2, mean)
-C <- apply(B, 1, function(x) {x - col.means})
-all.equal(A %*% B, t(C))
-#+end_src
-
-#+RESULTS:
-: [1] TRUE
-
-Alright, we're ready to apply the functions to real data in order to calculate the centered $\Rsq$. First, read in the data to conform to equation (2.37) on page 14 of the lecture notes, and identify the number of observations $n$ for later use:
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-data <- read.csv("auto.csv", header=TRUE)
-names(data) <- c("price", "mpg", "weight")
-y <- matrix(data$price)
-X2 <- cbind(data$mpg, data$weight)
-n <- nrow(X2)
-#+end_src
-
-#+RESULTS:
-
-The centered $\Rsq$ is defined according to equation (2.41) as follows:
-\begin{equation}
-\label{eq:rsq}
-\Rsq = \frac{\bp_{2}\Xsp_{2}\Xs_{2}\b_{2}}{\ysp\ys},
-\end{equation}
-
-where $\ys = \A\y$, $\Xs_2 = \A\X_2$, and $\b_2 = (\Xsp_{2}\Xs_{2})^{-1}\Xsp_{2}\ys$.  Noting that $\A$ is both symmetric and idempotent, we can rewrite Equation (\ref{eq:rsq}) using $\A$, $\X$, and $\y$ as follows. We use that $\Xsp_{2}\Xs_{2} = \Xp_2\Ap\A\X_2 = \Xp_2\A\A\X_2 = \Xp_2\A\X_2$ and similarly that $\ysp\ys = \yp\A\y$ and $\Xsp_{2}\ys = \Xp_{2}\A\y$. We'll use this in our code below to construct $\Rsq$, constructing a general function that we can use with any arbitrary dependent vector and associated cofactor matrix:
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-R.squared <- function(y, X) {
-  n <- nrow(X)
-  k <- ncol(X)
-  A <- demeanMat(n)
-  xtax <- t(X) %*% A %*% X
-  ytay <- t(y) %*% A %*% y
-  b2 <- solve(xtax) %*% t(X) %*% A %*% y
-  R2 <- t(b2) %*% xtax %*% b2 / ytay
-  R2.adj <- 1 - ((n-1)/(n-k))*(1-R2)
-  return(cbind(R2,R2.adj))
-}
-
-R.squared(y, X2)
-#+end_src
-
-#+RESULTS:
-:           [,1]      [,2]
-: [1,] 0.2933891 0.2835751
-
-Note that this code also returns $\aRsq$, the adjusted $\Rsq$. Now, what happens if we use our =randomMat()= function to add columns of random covariates to our regression? We'll use a =for= loop to calculate the $\Rsq$ and $\aRsq$ as we add additional covariates.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-n <- nrow(X2); k.max <- 40
+k.max <- 40
 X.rnd <- randomMat(n, k.max)
-res.R2 <- rep(0, k.max)
-res.adjR2 <- rep(0, k.max)
+R2.out <- matrix(rep(0, k.max*3), ncol = 3)
 
 for (i in 1:k.max) {
-  X.ext <- cbind(X2, X.rnd[, seq(i)])
-  R2.out <-  R.squared(y, X.ext)
-  res.R2[i] <- R2.out[1]
-  res.adjR2[i] <- R2.out[2]
+  X.ext <- cbind(X, X.rnd[, seq(i)])
+  R2.out[i, ] <-  R.squared(y, X.ext)
 }
 #+end_src
 
@@ -259,16 +306,16 @@ for (i in 1:k.max) {
 Next, we'll plot our $\Rsq$ and $\aRsq$ values using a line plot:
 
 #+begin_src R :results output graphics :file inserts/graph1.png :width 500 :height 300 :session :tangle yes :exports both
-plot(res.R2, type = "l", lwd = 3, col = "blue",
+plot(R2.out[ ,2], type = "l", lwd = 3, col = "blue",
 xlab = "num. of additional columns", ylab = "R-squared value", ylim=c(0,1))
-lines(res.adjR2, type = "l", lwd = 3, col = "red")
+lines(R2.out[ ,3], type = "l", lwd = 3, col = "red")
 legend(0,1,c("R^2","adj R^2"), lty = c(1,1), lwd = c(3,3), col = c("red","blue"))
 #+end_src
 
 #+RESULTS:
 [[file:inserts/graph1.png]]
 
-As you can see, our $\Rsq$ has gone from a puny 0.3 to a robust 0.7, so our model must be much better, right? Wrong! This is another example of the classic "overfitting" problem: in a regression with 74 observations and 40+ covariates, /something/ is always going to explain some portion of the variation. The $\aRsq$, on the other hand, stays mostly at the same level. But what if we set =k.max <- 70=? =k.max <- 100=? Why? \\
+As you can see, our $\Rsq$ has gone from a puny 0.2 to a robust 0.6, so our model must be much better, right? Wrong! This is another example of the classic "overfitting" problem: in a regression with 74 observations and 40+ covariates, /something/ is always going to explain some portion of the variation. The $\aRsq$, on the other hand, stays mostly at the same level. But what if we set =k.max <- 70=? =k.max <- 100=? Why? \\
 
 That's it for this section. Next week, we'll turn our attention to hypothesis testing.
 
