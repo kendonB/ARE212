@@ -167,7 +167,7 @@ The centered $\Rsq$ looks very similar to the uncentered $\uRsq$. The only diffe
 \Rsq \equiv 1 - \frac{\e'\e}{\ys'\ys} = 1 - \frac{\sum_i (y_i - \hat{y}_i)^2}{\sum_i (y_i - \bar{y} )^2} = 1 - \frac{\text{SSR}}{\text{SST}}
 \end{equation}
 
-Remember that $\ys = \A \y$, the demeaned version of $\y$. I diverge a bit from the lecture notes here. My definition is a bit more general, since it will allow us to calculate the $\Rsq$ for models without an intercept[fn:: If you're interested in exploring why the definition in the lecture notes won't work models without an intercept, see Greene 3.5.2.]. Here, the SST is as it was in the lecture notes --- it is sum of the squared differences between all of the values of $y$ and the mean of $y$.\\
+Remember that $\ys = \A \y$, the demeaned version of $\y$. I diverge a bit from the lecture notes here. My definition is a bit more general, since it will allow us to calculate the $\Rsq$ for models without an intercept[fn:: If you're interested in exploring why the definition in the lecture notes won't work for models without an intercept, see Greene 3.5.2.]. Here, the SST is as it was in the lecture notes --- it is sum of the squared differences between all of the values of $y$ and the mean of $y$.\\
 
 The adjusted $\aRsq$ is just the $\Rsq$ with a penalty applied for additional covariates:
 
