@@ -9,9 +9,9 @@ This is an introducton to basic hypothesis testing in =R=. After catching up on 
 
 \red{[TBD]}
 
-* Calculate t-tests and F-tests
+* Calculating t-tests and F-tests
 
-First, a basic overview in conducting t- and F-tests. Back to =auto.csv=! At some point I will stop using this data. But not today. We'll start with the usual preliminaries.
+First, a basic overview in conducting t- and F-tests. Back to =auto.csv=! At some point I will stop using this data. But not today. We'll start with the usual preliminaries:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 OLS <- function(y,X) {
@@ -25,7 +25,7 @@ X <- cbind(1, data$mpg, data$weight)
 
 #+RESULTS:
 
-For reference, consider the regression output from =lm()=.
+For reference, consider the regression output from =lm()=:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 res <- lm(price ~ 1 + mpg + weight, data = data)
