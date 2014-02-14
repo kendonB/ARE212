@@ -3,16 +3,20 @@
 *Hypothesis testing* \hfill
 *ARE212*: Section 04 \\ \hline \bigskip
 
-This is an introducton to basic hypothesis testing in =R=. After catching up on a few items from last section, we'll demonstrate graphically that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. With remaining time,
+This is an introducton to basic hypothesis testing in =R=. After catching up on a few items from last section, we'll work through calculating t- and F-statistics, followed by demonstrating graphically that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. If time remains, I'll make something up.
 
 * Last section
-[TBD]
+
+\red{[TBD]}
 
 * Calculate t-tests and F-tests
 
-First, a basic overview in conducting t- and F-tests. Back to =auto.csv=! At some point I will stop using this data. But not today.
+First, a basic overview in conducting t- and F-tests. Back to =auto.csv=! At some point I will stop using this data. But not today. We'll start with the usual preliminaries.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
+OLS <- function(y,X) {
+  return(solve(t(X) %*% X) %*% t(X) %*% y)
+}
 data <- read.csv("auto.csv", header=TRUE)
 names(data) <- c("price", "mpg", "weight")
 y <- matrix(data$price)
@@ -123,28 +127,16 @@ q \equiv \frac{\ep \e}{\sigma^2} ~ \sim \chi_^2{(n-k)} \\
 t_j \equiv \frac{b_j - \bar{\gamma}}{\sqrt{s^2 \cdot (\Xp \X)^{-1}_{jj}}} = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)} ~\sim t_{n-k}
 \end{eqnarray}
 
-First, we'll do some basic setup, creating our =OLS()= function and setting =reps= (the number of times we'll randomly generate data and test statistics), =n=, and =k=.
+First, we'll set =reps= (the number of times we'll randomly generate data and test statistics), =n=, and =k=. We'll also create the $\text{reps} \times k$ matrices for storing the =z=, =q=, and =t= that we'll create in each loop
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-OLS <- function(y,X) {
-  return(solve(t(X) %*% X) %*% t(X) %*% y)
-}
 reps <- 10000; n <- 100; k <- 2
-#+end_src
-
-#+RESULTS:
-
-Next we'll create the $\text{reps} \times k$ matrices for storing the =z=, =q=, and =t= that we'll create in each loop
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
 z <- matrix(rep(0,reps*k),ncol=k)
 q <- matrix(rep(0,reps),ncol=1)
 t <- matrix(rep(0,reps*k),ncol=k)
 #+end_src
 
-#+RESULTS:
-
-This isn't strictly necessary but it is much more efficient to create these now than to have =R= resize them every time we run the loop. Now, the action! Once again we're using a =for= loop.
+Creating =z=, =q=, and =t= in advance isn't strictly necessary but it's much more efficient to create them now than to have =R= resize them every time we run the loop. Now, the action! Once again we'll using a =for= loop:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 for (i in 1:reps) {
@@ -171,9 +163,9 @@ for (i in 1:reps) {
 
 #+RESULTS:
 
-There are three distinct parts to this loop. First, we simulate a real DGP (including noise), creating =X=, =beta=, and =eps= and then constructing $\y = \X \beta + \varepsilon$. The enormous advantage of simulation is obvious here --- since we know exactly what is driving our DGP we can verify that our estimating equation performs as we expect. Next, we run OLS, just as we would if we were presented with a real dataset. Finally, we calculate $z_j$, $q$, and $t_j$. \\
+There are three distinct parts to the loop above. First, we simulate a real DGP (including noise), creating =X=, =beta=, and =eps= and then constructing $\y = \X \beta + \varepsilon$. The enormous advantage of simulation is obvious here --- since we know exactly what is driving our DGP we can verify that our estimating equation performs as we expect. Next, we run OLS, just as we would if we were presented with a real dataset. Finally, we calculate $z_j$, $q$, and $t_j$. \\
 
-All that remains now is to compare the simulated distributions of $z_j$, $q$, and $t_j$ to their expected true distributions that we demonstrated in lecture. We'll focus on the second columns of $z_j$ and $t_j$, since that corresponds to our coefficient $b_2$, which is our randomly generated =X= variable (not the intercept). First, we'll show that $z_j \sim N(0,1)$:
+All that remains now is to compare the simulated distributions of $z_j$, $q$, and $t_j$ to their expected true distributions that we demonstrated in lecture. We'll focus on $z_2$ and $t_2$, since they corresponding to our coefficient $b_2$, which is our randomly generated =X= variable (not the intercept). First, we'll show that $z_2 \sim N(0,1)$:
 
 #+begin_src R :results output graphics :file inserts/graph1.png :width 500 :height 300 :session :tangle yes :exports both
 hist(z[ , 2], breaks = reps / 200, probability = T)
@@ -183,7 +175,7 @@ curve(dnorm(x, mean = 0, sd = 1), from = -4, to = 4, add=T, lwd=2, col="darkblue
 #+RESULTS:
 [[file:inserts/graph1.png]]
 
-There are many prettier ways to plot a graph like this one[fn:: For example, using the package =ggplot2=], but this gets the job done. You may notice that we passed =dnorm()= =x=, which is a variable we haven't defined. This would normally throw an error, but since =dnorm()= is a function of =curve()=, which accepts functions of =x=, it works as we expect. Now we'll do the same for $q$:
+There are many prettier ways to plot a graph like this one[fn:: For example, using the package =ggplot2=.], but this gets the job done. You may notice that we passed =dnorm()= =x=, which is a variable we haven't defined. This would normally throw an error, but since =dnorm()= is a function of =curve()=, which accepts functions of =x=, it works as we expect. Now we'll do the same for $q$:
 
 #+begin_src R :results output graphics :file inserts/graph2.png :width 500 :height 300 :session :tangle yes :exports both
 hist(q, breaks = 50, probability = T)
@@ -193,7 +185,7 @@ curve(dchisq(x, df = n-k), from = 60, to = 160, add=T, lwd=2, col="darkred")
 #+RESULTS:
 [[file:inserts/graph2.png]]
 
-We now have graphically demonstrated the truthiness of the two main conditions required to show that $t_j \sim t_{n-k}$. But let's show that graphically as well!
+We now have graphically demonstrated the truthiness of the two main conditions required to show that $t_2 \sim t_{n-k}$. But let's show that graphically as well!
 
 #+begin_src R :results output graphics :file inserts/graph3.png :width 500 :height 300 :session :tangle yes :exports both
 hist(t[ ,2], breaks = reps / 200, probability = T)

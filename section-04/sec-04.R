@@ -1,4 +1,7 @@
 
+OLS <- function(y,X) {
+  return(solve(t(X) %*% X) %*% t(X) %*% y)
+}
 data <- read.csv("auto.csv", header=TRUE)
 names(data) <- c("price", "mpg", "weight")
 y <- matrix(data$price)
@@ -24,11 +27,7 @@ R <- rbind(c(0, 1, 0), c(0, 0, 1)); J <- 2
 select.var <- solve(R %*% solve(t(X) %*% X) %*% t(R))
 (F <- t(R %*% b) %*% select.var %*% (R %*% b) / (s2 * J))
 
-OLS <- function(y,X) {
-  return(solve(t(X) %*% X) %*% t(X) %*% y)
-}
 reps <- 10000; n <- 100; k <- 2
-
 z <- matrix(rep(0,reps*k),ncol=k)
 q <- matrix(rep(0,reps),ncol=1)
 t <- matrix(rep(0,reps*k),ncol=k)
