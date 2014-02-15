@@ -9,6 +9,18 @@ slength <- iris$Sepal.Length
 swidth <- iris$Sepal.Width
 pwidth <- iris$Petal.Width
 
+iris.df <- data.frame(slength, swidth, pwidth)
+
+png("test.png")
+hist(pwidth)
+dev.off()
+
+for (i in 1:3) {
+  print(paste0("graphs/",names(iris.df)[i],".png"))
+  png(paste0("graphs/",names(iris.df)[i],".png"))
+  hist(iris.df[, i], main = paste("M1: Histogram of",names(iris.df)[i]))
+  dev.off
+}
 
 # method one: put them all into a dataframe, pull from there
 

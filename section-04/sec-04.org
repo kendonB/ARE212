@@ -3,13 +3,55 @@
 *Hypothesis testing* \hfill
 *ARE212*: Section 04 \\ \hline \bigskip
 
-This is an introducton to basic hypothesis testing in =R=. After catching up on a few items from last section, we'll work through calculating t- and F-statistics, followed by demonstrating graphically that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. If time remains, I'll make something up.
+This is an introducton to basic hypothesis testing in =R=. After catching up on a question about looping over variables from last section, we'll work through calculating t- and F-statistics, followed by demonstrating graphically that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. If time remains, I'll make something up.
 
 * Last section
+*Looping over variables*
+Those of you who are familiar with =Stata= know that local macros make looping over variables criminally easy. Unfortunately, we leave that ease behind to some extent when we enter the world of =R=. The difference is somewhat philosophical --- =R= is designed to behave more like a traditional programming language in that it has a clear separation between the names of variables and strings. However, there are still a few good ways to loop over variables in =R=. We'll go through three different methods of drawing multiple histograms in a loop using the variable names. \\
 
-\red{[TBD]}
+To begin, we'll load up some variables from the =iris= dataset built into =R=:
 
-* Calculating t-tests and F-tests
+#+begin_src R :results output graphics :exports both :tangle yes :session
+slength <- iris$Sepal.Length
+swidth <- iris$Sepal.Width
+pwidth <- iris$Petal.Width
+#+end_src
+
+#+RESULTS:
+
+The simplest way to deal with these three variables is to load them into a new data frame and to run either an =apply= function or a loop to produce the histogram. We'll use a =for= loop:
+
+#+begin_src R :results output :exports both :tangle yes :session
+iris.df <- data.frame(slength, swidth, pwidth)
+
+for (i in 1:3) {
+  png(paste0("graphs/",names(iris.df)[i],".png"))
+  hist(iris.df[, i], main = paste("M1: Histogram of",names(iris.df)[i]))
+  dev.off()
+}
+#+end_src
+
+#+RESULTS:
+
+I won't  the display of the graphs in the notes, but you can run the code yourself to see three different graphs
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+
+#+end_src
+
+#+RESULTS:
+: Error: unexpected symbol in "I won"
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+#+end_src
+
+#+RESULTS:
+: Error: unexpected ':' in ":"
+: Error: unexpected ':' in ":"
+: Error: unexpected '*' in "*"
+: Error: unexpected ',' in "First,"
+
+*Calculating t-tests and F-tests
 
 First, a basic overview in conducting t- and F-tests. Back to =auto.csv=! At some point I will stop using this data. But not today. We'll start with the usual preliminaries:
 
@@ -24,6 +66,9 @@ X <- cbind(1, data$mpg, data$weight)
 #+end_src
 
 #+RESULTS:
+: [1] "slength" "swidth"  "pwidth"
+: Error: unexpected '*' in "*"
+: Error: unexpected ',' in "First,"
 
 For reference, consider the regression output from =lm()=:
 
