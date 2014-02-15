@@ -1,4 +1,4 @@
-
+rm(list=ls())
 (m <- matrix(c(1:10, 11:20), nrow = 2, ncol = 10, byrow=T))
 
 apply(m, MARGIN = 1, FUN = mean)
@@ -20,7 +20,7 @@ dim(X)[1] == nrow(y)
 b <- solve(t(X) %*% X) %*% t(X) %*% y
 b
 
-coefficients(lm(y ~ 0 + X))
+coefficients(lm(y ~ X))
 
 for (i in 1:5) {
   print(i*i)
@@ -44,6 +44,8 @@ demeanMat <- function(n) {
   diag(n) - (1/n) * ones %*% t(ones)
 }
 
+A1 <- demeanMat(4)
+
 R.squared <- function(y,X) {
   n <- nrow(X); k <- ncol(X)
   b <- OLS(y,X); yh <- X %*% b; e <- y - yh # yh is y hat, the predicted value for y
@@ -62,13 +64,20 @@ R.squared <- function(y,X) {
   return(cbind(R2.unc,R2.cen,R2.adj))
 }
 
-(Rsq.X2 <- R.squared(y,X))
+(Rsq.X <- R.squared(y,X))
+
+(Rsq.X2 <- R.squared(y,X2))
+
 summary(lm(y ~ X))$r.squared
 summary(lm(y ~ X))$adj.r.squared
 
-(Rsq.X2 <- R.squared(y,X2))
+summary(lm(y ~ 0 + X))$r.squared
+summary(lm(y ~ X))$r.squared
+
 summary(lm(y ~ 0 + X2))$r.squared
 summary(lm(y ~ 0 + X2))$adj.r.squared
+
+set.seed(12345)
 
 randomMat <- function(n, k) {
   v <- runif(n*k)
@@ -77,18 +86,21 @@ randomMat <- function(n, k) {
 
 randomMat(3,2)
 
-k.max <- 40
+k.max <- 100
 X.rnd <- randomMat(n, k.max)
 R2.out <- matrix(rep(0, k.max*3), ncol = 3)
+
+seq(20)
+1:20
 
 for (i in 1:k.max) {
   X.ext <- cbind(X, X.rnd[, seq(i)])
   R2.out[i, ] <-  R.squared(y, X.ext)
 }
 
-png(filename="inserts/graph1.png",height=300,width=500)
+#png(filename="inserts/graph1.png",height=300,width=500)
 plot(R2.out[ ,2], type = "l", lwd = 3, col = "blue",
 xlab = "num. of additional columns", ylab = "R-squared value", ylim=c(0,1))
 lines(R2.out[ ,3], type = "l", lwd = 3, col = "red")
-legend(0,1,c("R^2","adj R^2"), lty = c(1,1), lwd = c(3,3), col = c("red","blue"))
-dev.off()
+legend(0,1,c("adj R^2","R^2"), lty = c(1,1), lwd = c(3,3), col = c("red","blue"))
+#dev.off()
