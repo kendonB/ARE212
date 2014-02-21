@@ -1,4 +1,30 @@
 
+slength <- iris$Sepal.Length
+swidth <- iris$Sepal.Width
+pwidth <- iris$Petal.Width
+
+iris.df <- data.frame(slength, swidth, pwidth)
+for (i in 1:3) {
+  png(paste0("graphs/method1_",names(iris.df)[i],".png"))
+  hist(iris.df[, i], main = paste0("Method 1: Histogram of ",names(iris.df)[i]))
+  dev.off()
+}
+
+varlist <- c("slength","swidth","pwidth")
+for (var in varlist) {
+  png(paste0("graphs/method2_",var,".png"))
+  hist(get(var), main = paste("Method 2: Histogram of",var))
+  dev.off()
+}
+
+varlist <- c("slength","swidth","pwidth")
+for (i in varlist) {
+  png(paste0("graphs/method3_",var,".png"))
+  evalstring = paste0("hist(",i,",main = \"Method 3: Histogram of ", i,"\")")
+  eval(parse(text = evalstring))
+  dev.off()
+}
+
 OLS <- function(y,X) {
   return(solve(t(X) %*% X) %*% t(X) %*% y)
 }
@@ -18,7 +44,7 @@ s2 <- t(e) %*% e / (n - k)
 XpXinv <- solve(t(X) %*% X)
 se <- sqrt(s2 * diag(XpXinv))
 
-t <- (b - 0) / se
+(t <- (b - 0) / se)
 (p <- apply(t, 1, function(t) {2 * pt(-abs(t), df = (n - k))}))
 
 (F <- t(b) %*% (t(X) %*% X) %*% b / (s2*3))
@@ -68,21 +94,3 @@ hist(t[ ,2], breaks = reps / 200, probability = T)
 curve(dnorm(x, mean = 0, sd = 1), from = -4, to = 4, add=T, lwd=2, col="darkblue")
 curve(dt(x, df = n-k), from = -4, to = 4, add=T, lwd=2, col="darkgreen")
 dev.off()
-
-n <- 36
-xtx <- n * matrix(c(1, 0.52, 0.52, 1), ncol = 2)
-xtr <- n * matrix(c(-0.26, -0.42), ncol = 1)
-(b <- solve(xtx) %*% xtr)
-
-p <- 3
-(sigma.hat.sq <- (n / (n - p)) * (1 - b[1]^2 - b[2]^2 - 2 * b[1] * b[2] * 0.52))
-
-vcov.mat <- sigma.hat.sq * solve(xtx)
-se1 <- sqrt(vcov.mat[1,1])
-se2 <- sqrt(vcov.mat[2,2])
-pt(b[1]/se1, n - p)
-pt(b[2]/se2, n - p)
-
-R <- t(matrix(c(-1, 1))); r <- 0
-G <- R %*% b - r
-(F <- (G %*% R %*% solve(xtx) %*% t(R) %*% t(G))/sigma.hat.sq)

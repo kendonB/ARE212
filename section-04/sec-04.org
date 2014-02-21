@@ -3,11 +3,10 @@
 *Hypothesis testing* \hfill
 *ARE212*: Section 04 \\ \hline \bigskip
 
-This is an introducton to basic hypothesis testing in =R=. After catching up on a question about looping over variables from last section, we'll work through calculating t- and F-statistics, followed by demonstrating graphically that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. If time remains, I'll make something up.
+In this section we'll explore basic hypothesis testing in =R=. After catching up on a question about looping over variables from last section, we'll work through calculating t- and F-statistics, followed by demonstrating graphically that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. If time remains,
 
 * Last section
-*Looping over variables*
-Those of you who are familiar with =Stata= know that local macros make looping over variables criminally easy. Unfortunately, we leave that ease behind to some extent when we enter the world of =R=. The difference is somewhat philosophical --- =R= is designed to behave more like a traditional programming language in that it has a clear separation between the names of variables and strings. However, there are still a few good ways to loop over variables in =R=. We'll go through three different methods of drawing multiple histograms in a loop using the variable names. \\
+*Looping over variables*: Those of you familiar with =Stata= know that local macros make looping over variables criminally easy. Unfortunately, we leave that ease behind to some extent when we enter the world of =R=. The difference is almost philosophical --- =R= is designed to behave more like a traditional programming language in that it has a clear separation between the names of variables and strings. However, there are still a few good ways to loop over variables in =R=. We'll go through three different methods of drawing multiple histograms in a loop using the variable names. \\
 
 To begin, we'll load up some variables from the =iris= dataset built into =R=:
 
@@ -19,39 +18,53 @@ pwidth <- iris$Petal.Width
 
 #+RESULTS:
 
-The simplest way to deal with these three variables is to load them into a new data frame and to run either an =apply= function or a loop to produce the histogram. We'll use a =for= loop:
+/Method 1/: The simplest way to deal with these three variables is to load them into a new data frame and to run either an =apply= function or a loop to produce the histogram. We'll use a =for= loop:
 
 #+begin_src R :results output :exports both :tangle yes :session
 iris.df <- data.frame(slength, swidth, pwidth)
-
 for (i in 1:3) {
-  png(paste0("graphs/",names(iris.df)[i],".png"))
-  hist(iris.df[, i], main = paste("M1: Histogram of",names(iris.df)[i]))
+  png(paste0("graphs/method1_",names(iris.df)[i],".png"))
+  hist(iris.df[, i], main = paste0("Method 1: Histogram of ",names(iris.df)[i]))
   dev.off()
 }
 #+end_src
 
 #+RESULTS:
 
-I won't  the display of the graphs in the notes, but you can run the code yourself to see three different graphs
+If we just wanted to draw the histogram, this code could be much simplier --- we would just have =hist(iris.df[ ,i])= inside the loop. Instead, though, we use =png()= to draw our histograms in =.png= files and =dev.off()= to close the =.png= after we've finished drawing. =paste0()= is a command for concatenating a set of objects into a single string. \\
+
+/Method 2/: Sometimes, particularly when working with large amounts of data and limited computing resources, we may prefer to use the variables in place, rather than copying them into a data frame. Or, we may have some reason to want to loop over the variable names themselves. The =get()= command can be useful in both of these situations. \\
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-
+varlist <- c("slength","swidth","pwidth")
+for (var in varlist) {
+  png(paste0("graphs/method2_",var,".png"))
+  hist(get(var), main = paste("Method 2: Histogram of",var))
+  dev.off()
+}
 #+end_src
 
 #+RESULTS:
-: Error: unexpected symbol in "I won"
+
+=get()= takes in a string and returns the object with that name. The first time the loop runs it executes =hist(slength,...)=, the second time =hist(swidth,...)=, and so on. \\
+
+/Method 3/: For completeness, I present a third method, using the =eval(parse(text = ... ))= syntax. This syntax is /very/ powerful --- it lets you pass a string that contains any =R= expression and have =R= evaluate that expression. We won't dwell on this; if for some reason you have a use case where neither of the above two methods work, this kind of solution might let you do what you want. But it won't make you happy.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
+varlist <- c("slength","swidth","pwidth")
+for (i in varlist) {
+  png(paste0("graphs/method3_",var,".png"))
+  evalstring = paste0("hist(",i,",main = \"Method 3: Histogram of ", i,"\")")
+  eval(parse(text = evalstring))
+  dev.off()
+}
 #+end_src
 
 #+RESULTS:
-: Error: unexpected ':' in ":"
-: Error: unexpected ':' in ":"
-: Error: unexpected '*' in "*"
-: Error: unexpected ',' in "First,"
 
-*Calculating t-tests and F-tests
+Yeah. That's not really fun for anyone. Note that I saved =evalstring= within the loop: this was useful for debugging the string I passed to =eval(parse(text = ...))=. Let's move on!
+\newpage
+* Calculating t-tests and F-tests
 
 First, a basic overview in conducting t- and F-tests. Back to =auto.csv=! At some point I will stop using this data. But not today. We'll start with the usual preliminaries:
 
@@ -66,9 +79,6 @@ X <- cbind(1, data$mpg, data$weight)
 #+end_src
 
 #+RESULTS:
-: [1] "slength" "swidth"  "pwidth"
-: Error: unexpected '*' in "*"
-: Error: unexpected ',' in "First,"
 
 For reference, consider the regression output from =lm()=:
 
@@ -104,11 +114,15 @@ By the way, it's good practice to define intermediate variables like =XpXinv=, =
 We can now use the vector of standard errors to calculate our =t= and =p= values for the individual t-tests:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-t <- (b - 0) / se
+(t <- (b - 0) / se)
 (p <- apply(t, 1, function(t) {2 * pt(-abs(t), df = (n - k))}))
 #+end_src
 
 #+RESULTS:
+:            [,1]
+: [1,]  0.5410180
+: [2,] -0.5746808
+: [3,]  2.7232382
 : [1] 0.590188628 0.567323727 0.008129813
 
 Great!  We have replicated the =Pr(>|t|)= column of the canned output. Now let's try to replicate the full regression F-statistic.  This is a joint test of coefficient significance; are the coefficients jointly different from a zero vector?  Max has a great description as to why this is different from three separate tests of significance.  For now, note that we are testing joint significance by setting:
@@ -137,7 +151,7 @@ F = \frac{(\Rb\b - \r)'[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb\b - \r)/J}{s^2} =
 :          [,1]
 : [1,] 158.1714
 
-Uh oh. This is much larger than the reported F-statistic of 14.74.  What happened?  The problem is that we also included the intercept, whereas =R= assumes that this shouldn't be included in the joint test.  Simplification failed.  Let's try again, redefining $\Rb$ and $\r$ without a restriction on the intercept:
+Uh oh. This is much larger than the reported F-statistic of 14.74.  What happened?  The problem is that we also included the intercept, whereas =R= assumes that this shouldn't be included in the joint test (why not?).  Simplification failed.  Let's try again, redefining $\Rb$ and $\r$ without a restriction on the intercept:
 \begin{equation}
 \label{eq:fmats}
 \Rb = \left[ \begin{array}{ccc} 0 & 1 & 0 \\
@@ -147,6 +161,14 @@ Uh oh. This is much larger than the reported F-statistic of 14.74.  What happene
 \end{equation}
 
 Unfortunately, our formula doesn't simplify as nicely, but we still get to drop the $\r$ vectors.
+
+\begin{equation}
+\label{eq:F}
+F = \frac{(\Rb\b - \r)'[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb\b - \r)/J}{s^2} =
+ \frac{(\Rb\b)'[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb\b)/J}{s^2}
+\end{equation}
+
+We could simplify a bit more[fn:: Note that $\Rb \b = [ 0 \hspace{3pt} b_1 \hspace{3pt} b_2 ]'$. ], but we've pretty much reached diminishing marginal returns so let's just start calculating:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 R <- rbind(c(0, 1, 0), c(0, 0, 1)); J <- 2
@@ -164,10 +186,10 @@ It worked! This is, of course, one of the simplest possible F-tests we could con
 
 * =t= distribution proof
 
-Max showed in class that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. We won't go over the proof again, but we will use simulated data to visualize the distributions of $z_j$, $q$, and $t_j$. Part of the purpose of this exercise is to give you practice in simulating data, an immensely valuable tool for testing econometric routines and hypotheses. \\
+Max showed in class that the t-statistic $t_j = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)}$ is distributed $t_{n-k}$. We won't go over the proof again, but we will use simulated data to visualize the distributions of $z_j$, $q$, and $t_j$. Part of the purpose of this exercise is to give you practice in simulating data, an immensely valuable tool for testing econometric routines and hypotheses[fn:: Note that Max does something similar to construct Figure 2.3 in the notes.]. Our goal is to show graphically that the three test statistics are distributed as follows:
 
 \begin{eqnarray}
-z_j \equiv \frac{(b_j) - \bar{\gamma}}{\sqrt{\sigma^2 \cdot (\Xp \X)^{-1}_{jj}}} ~\sim \N (0,1) \\
+z_j \equiv \frac{b_j - \bar{\gamma}}{\sqrt{\sigma^2 \cdot (\Xp \X)^{-1}_{jj}}} ~\sim \N (0,1) \\
 q \equiv \frac{\ep \e}{\sigma^2} ~ \sim \chi_^2{(n-k)} \\
 t_j \equiv \frac{b_j - \bar{\gamma}}{\sqrt{s^2 \cdot (\Xp \X)^{-1}_{jj}}} = \frac{b_j - \bar{\gamma}}{\text{se}(b_j)} ~\sim t_{n-k}
 \end{eqnarray}
@@ -180,6 +202,8 @@ z <- matrix(rep(0,reps*k),ncol=k)
 q <- matrix(rep(0,reps),ncol=1)
 t <- matrix(rep(0,reps*k),ncol=k)
 #+end_src
+
+#+RESULTS:
 
 Creating =z=, =q=, and =t= in advance isn't strictly necessary but it's much more efficient to create them now than to have =R= resize them every time we run the loop. Now, the action! Once again we'll using a =for= loop:
 
@@ -220,7 +244,7 @@ curve(dnorm(x, mean = 0, sd = 1), from = -4, to = 4, add=T, lwd=2, col="darkblue
 #+RESULTS:
 [[file:inserts/graph1.png]]
 
-There are many prettier ways to plot a graph like this one[fn:: For example, using the package =ggplot2=.], but this gets the job done. You may notice that we passed =dnorm()= =x=, which is a variable we haven't defined. This would normally throw an error, but since =dnorm()= is a function of =curve()=, which accepts functions of =x=, it works as we expect. Now we'll do the same for $q$:
+There are many prettier ways to plot a graph like this one[fn:: For example, using the package =ggplot2=.], but this gets the job done. You may notice that we the variable =x= to =dnorm()=, which is a variable we haven't defined. This would normally throw an error, but since =dnorm()= is a function within =curve()=, which accepts functions of =x=, it works as we expect. Now we'll do the same for $q$:
 
 #+begin_src R :results output graphics :file inserts/graph2.png :width 500 :height 300 :session :tangle yes :exports both
 hist(q, breaks = 50, probability = T)
@@ -230,7 +254,7 @@ curve(dchisq(x, df = n-k), from = 60, to = 160, add=T, lwd=2, col="darkred")
 #+RESULTS:
 [[file:inserts/graph2.png]]
 
-We now have graphically demonstrated the truthiness of the two main conditions required to show that $t_2 \sim t_{n-k}$. But let's show that graphically as well!
+We now have graphically demonstrated the truthiness of the two main conditions required to show that $t_2 \sim t_{n-k}$. To complete this exercise, we'll show the result graphically as well.
 
 #+begin_src R :results output graphics :file inserts/graph3.png :width 500 :height 300 :session :tangle yes :exports both
 hist(t[ ,2], breaks = reps / 200, probability = T)
@@ -241,194 +265,11 @@ curve(dt(x, df = n-k), from = -4, to = 4, add=T, lwd=2, col="darkgreen")
 #+RESULTS:
 [[file:inserts/graph3.png]]
 
-You'll notice that I threw another normal curve on there for good measure. You'll also notice that it lies more or less on top of the t distribution, which is what we expect with any reasonable $\text{df} = \text{n} - \text{k}$. \\
+You'll see in the code that I added a normal curve to the graph on there for good measure. Where is it? It's actually hiding behind the t distribution, since with sufficinetly high degrees of freedom, $\text{df} = \text{n} - \text{k}$, the two distributions are almost exactly the same. \\
 
-* Puzzle (sort of)						   :noexport:
+That's it for this section! Next week we'll discuss the first problem set and try our hand at an empirical example that looks at the wage returns to education.
 
-We will replicate the results of a sort of silly study that examines
-the causes of McCarthyism, using a /path model/.  The study was
-published in the /American Political Science Review/ by Gibson (1988)
-and reprinted in Freedman (2009) to illustrate path models, which are
-essentially a simple graphical framework to keep track of direct and
-indirect causation.  The path model is recreated in Figure
-(\ref{fig:path}), and shows that tolerance scores of both the masses
-and elites directly impact repression.  This is a theoretical
-framework.  The unlabeled connection between the tolerance nodes
-indicates association rather than causation.  The repression and
-tolerance scores have been standardized, so that they have mean equal
-to zero and standard deviation equal to one.\\
-
-The purpose of this exercise is to build up an intuition of the
-relationship between the OLS estimates and covariate correlations.
-
-\begin{figure}[t]
-        \centering
-
-        \begin{picture}(150,150)(0,0)
-
-        \put(0,18){$\var{mass tolerance}$}
-        \put(0,127){$\var{elite tolerance}$}
-        \put(110,72){$\var{repression}$}
-
-        \put(10,30){\circle*{5}}
-        \put(10,120){\circle*{5}}
-        \put(100,75){\circle*{5}}
-
-        \thicklines
-
-        \put(10,30){\vector(2,1){87}}
-        \put(10,120){\vector(2,-1){87}}
-
-        \thinlines
-
-        \qbezier(8,36)(0,75)(8,114)
-
-        \end{picture}
-
-        \caption{Path model, causes of McCarthyism, reproduced from
-        Freedman (2009)}
-
-        \label{fig:path}
-\end{figure}
-
-Gibson reports the correlation matrix for the path diagram:
-
-|         | Masses | Elite | Repress |
-|---------+--------+-------+---------|
-| Masses  |   1.00 |  0.52 |   -0.26 |
-| Elite   |   0.52 |  1.00 |   -0.42 |
-| Repress |  -0.26 | -0.42 |    1.00 |
-
-His model for political repression for $n = 36$ states is given by:
-\begin{equation}
-\var{repression} = \beta_1 \cdot \var{mass tolerance} + \beta_2 \cdot
-\var{elite tolerance} + \epsilon,
-\label{eq:one}
-\end{equation} Denote $\var{mass tolerance}$ as $M$, $\var{elite
-tolerance}$ as $E$, and $\var{repression}$ as $R$, such that Equation
-(\ref{eq:one}) becomes $R = \beta_1 M + \beta_2 E + \epsilon$.  Finally,
-let $\X = [M \hspace{8pt} E]$, so that $R = \X\beta + \epsilon$.  \\
-
-Here is the kicker.  Since, all  variables were standardized, we know that
-\[
-\frac{1}{n} \sum_{i=1}^n E_i = 0 \qquad \and \qquad \frac{1}{n}\sum_{i=1}^n E_i^2 = 1
-\]
-
-This is true, also, for $M$ and $R$.  Being careful about matrix
-multiplication, we can compute the following:
-\begin{equation}
-\Xp\X = \left[
-\begin{array}{cc}
-\sumi M_i^2 & \sumi M_i E_i \\
-\sumi M_i E_i & \sumi E_i^2  \\
-\end{array}\right] =
-n\left[
-\begin{array}{cc}
-1 & r_{ME} \\
-r_{ME} & 1
-\end{array}
-\right]=
-n\left[
-\begin{array}{cc}
-1 & 0.52 \\
-0.52 & 1
-\end{array}
-\right]
-\end{equation}
-
-\begin{equation}
-\Xp R = \left[
-\begin{array}{cc}
-\sumi M_i R_i  \\
-\sumi E_i R_i \\
-\end{array}\right] =
-n\left[
-\begin{array}{cc}
-r_{MR} \\
-r_{ER}
-\end{array}
-\right]=
-n\left[
-\begin{array}{cc}
--0.26 \\
--0.42
-\end{array}
-\right]
-\end{equation}
-
-We don't even need the actual data to compute the OLS coefficients!
-Specifically, $\beta = (\Xp\X)^{-1}\Xp R$:
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  n <- 36
-  xtx <- n * matrix(c(1, 0.52, 0.52, 1), ncol = 2)
-  xtr <- n * matrix(c(-0.26, -0.42), ncol = 1)
-  (b <- solve(xtx) %*% xtr)
-#+end_src
-
-#+RESULTS:
-:             [,1]
-: [1,] -0.05701754
-: [2,] -0.39035088
-
-Given standardized tolerance and repression scores, we can use the
-following formula from page 85 in Freedman to calculate the model
-variance: $\sigsh = 1 - \hat{\beta}_1^2 - \hat{\beta}_2^2 -
-2\hat{\beta}_1\hat{\beta}_2 r_{ME}$
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  p <- 3
-  (sigma.hat.sq <- (n / (n - p)) * (1 - b[1]^2 - b[2]^2 - 2 * b[1] * b[2] * 0.52))
-#+end_src
-
-#+RESULTS:
-: [1] 0.8958852
-
-There is an implicit intercept, since the scores are standardized, so
-that $p = 3$.  We compute the standard errors from the estimated
-covariance matrix, $\sigsh(\Xp\X)^{-1}$.  Note that $\V(\hat{\beta}_k|\X)
-= \sigsh(\Xp\X)_{kk}^{-1}$:
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  vcov.mat <- sigma.hat.sq * solve(xtx)
-  se1 <- sqrt(vcov.mat[1,1])
-  se2 <- sqrt(vcov.mat[2,2])
-  pt(b[1]/se1, n - p)
-  pt(b[2]/se2, n - p)
-#+end_src
-
-#+RESULTS:
-: [1] 0.3797346
-: [1] 0.02109715
-
-The coefficient on $\var{mass tolerance}$ is not significant, but the
-coefficient on $\var{elite tolerance}$ is significant.  But are the
-two coefficients significantly different from each other?  Let $\Rb =
-[1 \hspace{8pt} -1]$ and $\r = [0]$.  Then the following test
-statistic will test that the two coefficients are equal.
-
-\begin{equation}
-\label{eq:F}
-F = \frac{(\Rb \hat{\beta} - \r)^{\prime}[\Rb(\Xp\X)^{-1}\Rbp]^{-1}(\Rb \hat{\beta} - \r)}{\sigsh}
-\end{equation}
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  R <- t(matrix(c(-1, 1))); r <- 0
-  G <- R %*% b - r
-  (F <- (G %*% R %*% solve(xtx) %*% t(R) %*% t(G))/sigma.hat.sq)
-#+end_src
-
-#+RESULTS:
-:            [,1]
-: [1,] 0.01435461
-
-The test statistic follows the $F$-distribution, and is not
-significant at any reasonable $p$-value.  So, while $\var{elite
-tolerance}$ may be significant in the regression of repression on
-tolerance, it is not significantly different than the insignificant
-variable $\var{mass tolerance}$.
-
-* Additional puzzles
+* Puzzle
 
 1. *Partitioned regression*: Generate a $100 \times 4$ matrix $\X$
    /including/ a column of ones for the intercept. Additionally,
@@ -441,7 +282,7 @@ variable $\var{mass tolerance}$.
       \ght  &=& (\Qp\Q)^{-1}\Qp\N \and \g = \N - \Q\ght   \\
       \ghth &=& \f \cdot \g / ||\g||^2 \and \e = \f - \g \ghth
    \end{eqnarray*}
-   Show that $\hat{\beta} = [\gho - \ght\ghth \hspace{10pt}
+   Show that $\hat{\beta} = [(\gho - \ght\ghth) \hspace{10pt}
    \ghth]$. Note that the total dimension of $\hat{\beta}$ is 4.
 
 
