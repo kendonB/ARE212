@@ -22,7 +22,10 @@
 #+LATEX: \newcommand{\N}{{\bf N}}
 #+LATEX: \newcommand{\Qp}{{\bf Q}^{\prime}}
 #+LATEX: \newcommand{\Q}{{\bf Q}}
+#+LATEX: \newcommand{\Rbp}{{\bf R}^{\prime}}
+#+LATEX: \newcommand{\Rb}{{\bf R}}
 #+LATEX: \newcommand{\Rsq}{{\bf R}^{2}}
+#+LATEX: \newcommand{\V}{\mathbb{V}}
 #+LATEX: \newcommand{\W}{{\bf W}}
 #+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
 #+LATEX: \newcommand{\Xsp}{{\bf X}^{*\prime}}
@@ -31,7 +34,6 @@
 #+LATEX: \newcommand{\Y}{{\bf Y}}
 #+LATEX: \newcommand{\Z}{{\bf Z}}
 #+LATEX: \newcommand{\aRsq}{{\bf \overline{R}}^{2}}
-#+LATEX: \newcommand{\uRsq}{{\bf R}_{\text{uc}}^{2}}
 #+LATEX: \newcommand{\bp}{{\bf b}^{\prime}}
 #+LATEX: \newcommand{\bs}{{\bf b}^{*}}
 #+LATEX: \newcommand{\code}[1]{\texttt{#1}}
@@ -44,8 +46,15 @@
 #+LATEX: \newcommand{\ght}{\hat{\gamma}_2}
 #+LATEX: \newcommand{\g}{{\bf g}}
 #+LATEX: \newcommand{\id}[1]{{\bf I}_{#1}}
+#+LATEX: \newcommand{\likepp}{\mathscr{L}^{\prime\prime}_n(\hat{\theta})}
+#+LATEX: \newcommand{\like}{\mathscr{L}_n(\theta)}
 #+LATEX: \newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
+#+LATEX: \newcommand{\sigsh}{\hat{\sigma}^{2}}
 #+LATEX: \newcommand{\sigs}{\sigma^2}
+#+LATEX: \newcommand{\sn}[1]{\sum_{#1=1}^n}
+#+LATEX: \newcommand{\sumi}{\sum_{i=1}^n}
+#+LATEX: \newcommand{\uRsq}{{\bf R}_{\text{uc}}^{2}}
+#+LATEX: \newcommand{\var}[1]{\textcolor{red}{\mbox{\texttt{#1}}}}
 #+LATEX: \newcommand{\w}{{\bf w}}
 #+LATEX: \newcommand{\x}{{\bf x}}
 #+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
@@ -60,11 +69,5 @@
 #+LATEX: \renewcommand{\b}{{\bf b}}
 #+LATEX: \renewcommand{\c}{{\bf c}}
 #+LATEX: \renewcommand{\r}{{\bf r}}
-#+LATEX: \newcommand{\sigsh}{\hat{\sigma}^{2}}
-#+LATEX: \newcommand{\V}{\mathbb{V}}
-#+LATEX: \newcommand{\sumi}{\sum_{i=1}^n}
-#+LATEX: \newcommand{\var}[1]{\textcolor{red}{\mbox{\texttt{#1}}}}
-#+LATEX: \newcommand{\Rb}{{\bf R}}
-#+LATEX: \newcommand{\Rbp}{{\bf R}^{\prime}}
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline
