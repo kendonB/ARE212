@@ -31,13 +31,6 @@ data <- na.omit(data)
 #+end_src
 
 #+RESULTS:
-:   wage educ age
-: 1  769   12  31
-: 2  808   18  37
-: 3  825   14  33
-: 4  650   12  32
-: 5  562   11  34
-: 6 1400   16  35
 
 A quick visualization reveals the distribution of wages in the data set:
 
@@ -88,7 +81,7 @@ Call:
 lm(formula = wage ~ 1 + e1 + e2 + e3 + e4, data = data)
 
 Coefficients:
-(Intercept)           e1           e2           e3           e4
+(Intercept)           e1           e2           e3           e4  
     1196.96      -350.46      -229.97       -90.51           NA
               Estimate Std. Error   t value      Pr(>|t|)
 (Intercept) 1196.95876   38.93314 30.743953 7.969254e-144
@@ -109,8 +102,8 @@ b <- OLS(y,X)
 #+end_src
 
 #+RESULTS:
-: Error in solve.default(t(X) %*% X) (from #2) :
-:   system is computationally singular: reciprocal condition number = 1.53843e-18
+: Error in solve.default(t(X) %*% X) (from #2) : 
+:   system is computationally singular: reciprocal condition number = 3.03976e-18
 
 Uh oh! What happened? =OLS()= is not as smart as =lm()=, so it didn't automatically drop any of our dummy variables. Since the dummies sum to a column vector of ones, we violated A2: =X= does not have full column rank. We have a couple of options here: first, we can try dropping the intercept.
 
@@ -148,18 +141,18 @@ xtable(m2 <- lm(wage ~ 1 + e2 + e3 + e4, data = data))
 
 #+RESULTS:
 #+BEGIN_LaTeX
-% latex table generated in R 3.0.2 by xtable 1.7-1 package
-% Fri Feb 21 15:49:34 2014
+% latex table generated in R 3.0.1 by xtable 1.7-1 package
+% Fri Feb 21 17:04:59 2014
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrrrr}
   \hline
- & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
   \hline
-(Intercept) & 846.4948 & 17.4837 & 48.42 & 0.0000 \\
-  e2 & 120.4929 & 34.8322 & 3.46 & 0.0006 \\
-  e3 & 259.9565 & 32.5528 & 7.99 & 0.0000 \\
-  e4 & 350.4640 & 42.6787 & 8.21 & 0.0000 \\
+(Intercept) & 846.4948 & 17.4837 & 48.42 & 0.0000 \\ 
+  e2 & 120.4929 & 34.8322 & 3.46 & 0.0006 \\ 
+  e3 & 259.9565 & 32.5528 & 7.99 & 0.0000 \\ 
+  e4 & 350.4640 & 42.6787 & 8.21 & 0.0000 \\ 
    \hline
 \end{tabular}
 \end{table}
