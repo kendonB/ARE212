@@ -1,6 +1,6 @@
 #+INCLUDE: ../orgpreamble.org
 
-*Empirical example: return to education* \hfill
+*Empirical example: returns to education* \hfill
 *ARE212*: Section 05 \\ \hline \bigskip
 
 We'll start section with a review of some of the common issues on the problem set. Then, we'll use an empirical example to try out categorical dummies, exporting to \latex, and the advanced graphical package =ggplot2=.
