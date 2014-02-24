@@ -1,6 +1,6 @@
-#+AUTHOR:     
-#+TITLE:      
-#+OPTIONS:     toc:nil num:nil 
+#+AUTHOR:
+#+TITLE:
+#+OPTIONS:     toc:nil num:nil
 #+LATEX_HEADER: \usepackage{mathrsfs}
 #+LATEX_HEADER: \usepackage{graphicx}
 #+LATEX_HEADER: \usepackage{booktabs}
@@ -44,136 +44,6 @@
 \textbf{Generalized Least Squares and} \texttt{ggplot} \hfill
 *ARE212*: Section 07 \\ \\
 
-This section will briefly outline two general concepts, GLS and
-=ggplot=.  As an addendum, we will go over the recurring =R= questions
-that cropped up during the midterm.  We will examine the
-characteristics of generalized least squares (GLS), and specifically
-the efficiency gains from a special case of GLS, weighted least
-squares (WLS).  This is the econometric concepts.  We will then
-recreate the graphs from Figures 2.6 and 2.7, roughly, in the notes
-using =ggplot2= a very popular graphing package in =R=.  This is part
-is optional, especially since it is only a very brief treatment of the
-package --- there is a lot more to learn. \\
-
-Let $x \sim U(0,2000)$ and $\epsilon \sim N(0,(x/1000)^2)$.  The
-underlying data generating process in (2.102) is $y_i = \alpha + x_i
-\beta + \epsilon$, where $\alpha = 0.5$ and $\beta = 1.5$.  The
-objective is to plot the simulated sampling distribution of the OLS
-estimator applied to $B = 10,000$ draws, each of size $n = 1000$.
-First, let's generate the sample data for one draw.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  n <- 1000
-  x <- runif(n, min=0, max=2000)
-  eps <- rnorm(n, 0, sqrt((x/1000)^2))
-  y <- 0.5 + x*1.5 + eps
-#+end_src
-
-#+RESULTS:
-
-Now we can calculate the standard OLS parameter vector $[\ah
-\hspace{6pt} \bh]^{\prime}$ by noting that $\X$ is just the $x$ vector
-bound to a column of ones.  We will only examine $\hat{\beta}$ for
-this section, rather than both parameters.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  X <- cbind(1, x)
-  params <- solve(t(X) %*% X) %*% t(X) %*% y
-  beta <- params[2]
-  print(beta)
-#+end_src
-
-#+RESULTS:
-: [1] 1.50002
-
-Let's package this into a function, called =rnd.beta=, so that we can
-collect the OLS parameter for an arbitrary number of random samples,
-noting that $n$ is a constant so we may as well keep it out of the
-function so that $1000$ is not reassigned thousands of times to $n$.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  rnd.beta <- function(i) {
-    x <- runif(n)
-    eps <- rnorm(n, 0, sqrt(x/10))
-    y <- 0.5 + x * 1.5 + eps
-    X <- cbind(1, x)
-    params <- solve(t(X) %*% X) %*% t(X) %*% y
-    beta <- params[2]
-    return(beta)
-  }
-#+end_src
-
-#+RESULTS:
-
-Since there aren't any supplied arguments, the function will return an
-estimated $\bh$ from a a different random sample for each call:
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  rnd.beta()
-  rnd.beta()
-#+end_src
-
-#+RESULTS:
-: [1] 1.471441
-: [1] 1.486697
-
-This is convenient for bootstrapping without loops, but rather
-applying the function to a list of effective indices.[fn:: This is
-much more comfortable for me, with a background in functional
-programming.  There is some inherent value, however, in keeping code
-compact by mapping across indices rather than incrementing an index
-within a =for= loop; the code is more readable and less prone to
-typos.} Now replicating the process for $B$ draws is straightforward:
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  B <- 100
-  beta.vec <- sapply(1:B, rnd.beta)
-  mean(beta.vec)
-#+end_src
-
-#+RESULTS:
-: [1] 1.501141
-
-Alright.  Looking good.  The average of the simulated sample is much
-closer to $\beta$ than any individual call of =rnd.beta=, suggesting
-that the distribution of the simulated parameters will be
-appropriately centered.  Now, let's create another, similar function
-that returns the WLS estimates.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  rnd.wls.beta <- function(i) {
-    x <- runif(n)
-    y <- 0.5 + x * 1.5 + rnorm(n, 0, sqrt(x / 10))
-    C <- diag(1 / sqrt(x / 10))
-    y.wt <- C %*% y
-    X.wt <- C %*% cbind(1, x)
-    param.wls <- solve(t(X.wt) %*% X.wt) %*% t(X.wt) %*% y.wt
-    beta <- param.wls[2]
-    return(beta)
-  }
-  wls.beta.vec <- sapply(1:B, rnd.wls.beta)
-#+end_src
-
-#+RESULTS:
-
-We now have two collections of parameter estimates, one based on OLS
-and another based on WLS.  It is straightforward to plot two separate
-histograms using =R='s core histogram plotting function =hist()=.
-However, we can use this to introduce a more flexible, powerful
-graphing package called =ggplot2=.  
-
-#+CAPTION: Relative efficiency of WLS
-#+LABEL: fig:dens
-#+begin_src R :results output graphics :file inserts/hist.png :width 700 :height 400 :session :tangle yes :exports both 
-  library(ggplot2)
-  labels <- c(rep("ols", B), rep("wls", B)) 
-  data <- data.frame(beta=c(beta.vec, wls.beta.vec), method=labels)
-  ggplot(data, aes(x=beta, fill=method)) + geom_density(alpha=0.2)
-#+end_src
-
-#+RESULTS:
-[[file:inserts/hist.png]]
-
 * A review of loops, a loopy review
 
 There were many questions about =R= code on the midterm, and
@@ -205,12 +75,12 @@ Another thing that might help avoid loops is something called
 a way to formulate the problem in terms of element-wise operations?
 Suppose, for example, that I want to generate a binary vector that
 indicates whether the value in one variable exceeds the value in
-another.  
+another.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
   x <- rnorm(10); y <- rnorm(10)
   (D <- ifelse(x > y, 1, 0))
-#+end_src  
+#+end_src
 
 #+RESULTS:
 :  [1] 0 1 1 0 0 0 0 1 1 0
@@ -225,13 +95,13 @@ distributions, depending on the value of =D=.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
   factor(x <- ifelse(D == 1, runif(1), rnorm(1)))
-#+end_src  
+#+end_src
 
 #+RESULTS:
 :  [1] 0.146645265993786   0.00228817900642753 0.00228817900642753
-:  [4] 0.146645265993786   0.146645265993786   0.146645265993786  
+:  [4] 0.146645265993786   0.146645265993786   0.146645265993786
 :  [7] 0.146645265993786   0.00228817900642753 0.00228817900642753
-: [10] 0.146645265993786  
+: [10] 0.146645265993786
 : Levels: 0.00228817900642753 0.146645265993786
 
 What happened?  There are only two values in this vector.  The random
@@ -249,14 +119,14 @@ value within the reference vector:
     }
     return(r)
   }
-  
+
   factor(x <- sapply(D, randme))
 #+end_src
 
 #+RESULTS:
 :  [1] 0.545478682033718 97.0212761082557  0.589886064874008 0.781325699063018
 :  [5] 108.67800788386   0.868332070531324 54.3405163802937  0.810937537113205
-:  [9] 0.857683679787442 101.00935385884  
+:  [9] 0.857683679787442 101.00935385884
 : 10 Levels: 0.545478682033718 0.589886064874008 ... 108.67800788386
 
-: 
+:

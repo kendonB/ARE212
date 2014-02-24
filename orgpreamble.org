@@ -33,7 +33,9 @@
 #+LATEX: \newcommand{\X}{{\bf X}}
 #+LATEX: \newcommand{\Y}{{\bf Y}}
 #+LATEX: \newcommand{\Z}{{\bf Z}}
+#+LATEX: \newcommand{\ah}{\hat{\alpha}}
 #+LATEX: \newcommand{\aRsq}{{\bf \overline{R}}^{2}}
+#+LATEX: \newcommand{\bh}{\hat{\beta}}
 #+LATEX: \newcommand{\bp}{{\bf b}^{\prime}}
 #+LATEX: \newcommand{\bs}{{\bf b}^{*}}
 #+LATEX: \newcommand{\code}[1]{\texttt{#1}}
