@@ -1,28 +1,29 @@
-
+rm(list=ls())
 slength <- iris$Sepal.Length
 swidth <- iris$Sepal.Width
 pwidth <- iris$Petal.Width
 
 iris.df <- data.frame(slength, swidth, pwidth)
 for (i in 1:3) {
-  png(paste0("graphs/method1_",names(iris.df)[i],".png"))
+  #png(paste0("graphs/method1_",names(iris.df)[i],".png"))
   hist(iris.df[, i], main = paste0("Method 1: Histogram of ",names(iris.df)[i]))
-  dev.off()
+  #dev.off()
 }
 
 varlist <- c("slength","swidth","pwidth")
 for (var in varlist) {
-  png(paste0("graphs/method2_",var,".png"))
+  #png(paste0("graphs/method2_",var,".png"))
   hist(get(var), main = paste("Method 2: Histogram of",var))
-  dev.off()
+  #dev.off()
 }
 
 varlist <- c("slength","swidth","pwidth")
 for (i in varlist) {
-  png(paste0("graphs/method3_",var,".png"))
+  #png(paste0("graphs/method3_",var,".png"))
+  #var = "slength"
   evalstring = paste0("hist(",i,",main = \"Method 3: Histogram of ", i,"\")")
   eval(parse(text = evalstring))
-  dev.off()
+  #dev.off()
 }
 
 OLS <- function(y,X) {
@@ -58,6 +59,8 @@ z <- matrix(rep(0,reps*k),ncol=k)
 q <- matrix(rep(0,reps),ncol=1)
 t <- matrix(rep(0,reps*k),ncol=k)
 
+set.seed(42)
+
 for (i in 1:reps) {
   # simulate the true model
   beta <- matrix(c(42,8), nrow=2)
@@ -79,18 +82,19 @@ for (i in 1:reps) {
   t[i, ] <- (b - beta) / se # t[i, ] <- (b - c(42,7.9)) / se # what if we have the wrong null?
 }
 
-png(filename="inserts/graph1.png",height=300,width=500)
+#png(filename="inserts/graph1.png",height=300,width=500)
 hist(z[ , 2], breaks = reps / 200, probability = T)
-curve(dnorm(x, mean = 0, sd = 1), from = -4, to = 4, add=T, lwd=2, col="darkblue")
-dev.off()
+curve(dnorm(x, mean = 0, sd = 1), from = -4, to = 4, 
+      add=T, lwd=2, col="darkblue")
+#dev.off()
 
-png(filename="inserts/graph2.png",height=300,width=500)
+#png(filename="inserts/graph2.png",height=300,width=500)
 hist(q, breaks = 50, probability = T)
 curve(dchisq(x, df = n-k), from = 60, to = 160, add=T, lwd=2, col="darkred")
-dev.off()
+#dev.off()
 
-png(filename="inserts/graph3.png",height=300,width=500)
+#png(filename="inserts/graph3.png",height=300,width=500)
 hist(t[ ,2], breaks = reps / 200, probability = T)
 curve(dnorm(x, mean = 0, sd = 1), from = -4, to = 4, add=T, lwd=2, col="darkblue")
 curve(dt(x, df = n-k), from = -4, to = 4, add=T, lwd=2, col="darkgreen")
-dev.off()
+#dev.off()

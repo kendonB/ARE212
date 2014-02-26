@@ -1,4 +1,52 @@
 
+n <- 1000
+set.seed(42)
+x <- runif(n, min=0, max=2000)
+eps <- rnorm(n, 0, sqrt((x/1000)^2))
+y <- 0.5 + x*1.5 + eps
+
+X <- cbind(1, x)
+params <- solve(t(X) %*% X) %*% t(X) %*% y
+beta <- params[2]
+print(beta)
+
+rnd.beta <- function(i) {
+  x <- runif(n)
+  eps <- rnorm(n, 0, sqrt(x/10))
+  y <- 0.5 + x * 1.5 + eps
+  X <- cbind(1, x)
+  params <- solve(t(X) %*% X) %*% t(X) %*% y
+  beta <- params[2]
+  return(beta)
+}
+
+rnd.beta()
+rnd.beta()
+
+B <- 1000
+beta.vec <- sapply(1:B, rnd.beta)
+head(beta.vec)
+mean(beta.vec)
+
+rnd.wls.beta <- function(i) {
+  x <- runif(n)
+  y <- 0.5 + x * 1.5 + rnorm(n, 0, sqrt(x / 10))
+  C <- diag(1 / sqrt(x / 10))
+  y.wt <- C %*% y
+  X.wt <- C %*% cbind(1, x)
+  param.wls <- solve(t(X.wt) %*% X.wt) %*% t(X.wt) %*% y.wt
+  beta <- param.wls[2]
+  return(beta)
+}
+wls.beta.vec <- sapply(1:B, rnd.wls.beta)
+
+#png(filename="inserts/hist.png",height=400,width=700)
+library(ggplot2)
+labels <- c(rep("ols", B), rep("wls", B))
+data <- data.frame(beta=c(beta.vec, wls.beta.vec), method=labels)
+ggplot(data, aes(x=beta, fill=method)) + geom_density(alpha=0.2)
+#dev.off()
+
 library(foreign)
 library(ggplot2)
 library(xtable)
