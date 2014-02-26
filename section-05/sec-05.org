@@ -248,9 +248,7 @@ e1 & 846.49 & 17.48 \\
 \end{table}
 #+END_LaTeX
 
-We can show that the coefficients are just the average wage amongst each dummy group. Think of each dummy here as forming its own intercept. Since there are no other covariates, each captures the average wage for all of the observations in that group. We can also see that $b_4$ corresponds to the intercept from the =lm()= output, which is as we expect. It's also simple arithmatic to see that $b_1$, $b_2$, and $b_3$ in the =lm()= results correspond to the difference in the average wage between dummy group 4 and dummy groups 1, 2, and 3 respectively. \\
-
-We can also choose to omit a different group than group 4. Here, we can choose to drop dummy group 3 and to keep the intercept. What do the intercept and coefficients represent now?
+We can show that the coefficients are just the average wage amongst each dummy group. Think of each dummy here as forming its own intercept. Since there are no other covariates, each captures the average wage for all of the observations in that group. We can also choose to omit a different group than group 4. Here, we can choose to drop dummy group 3 and to keep the intercept. What do the intercept and coefficients represent now?
 
 #+begin_src R :results output graphics latex :exports both :tangle yes :session
 xtable(b_drop3 <- OLS(y,X[ , c(1,2,3,5)]))
@@ -313,6 +311,8 @@ xtable(OLS(wage,cbind(1,e2,e3,e4,age,age2)))
 \end{tabular}
 \end{table}
 #+END_LaTeX
+
+\clearpage
 
 It looks like age has a positive but diminishing effect on wage.  This makes sense, maybe, but the coefficients are not significantly different from zero.  Why might this be the case?  This is where some non-parametric graphing comes in handy.
 

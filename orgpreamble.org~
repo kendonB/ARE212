@@ -14,6 +14,7 @@
 #+LATEX: \newcommand{\A}{{\bf A}}
 #+LATEX: \newcommand{\Bp}{{\bf B}^{\prime}}
 #+LATEX: \newcommand{\B}{{\bf B}}
+#+LATEX: \renewcommand{\C}{{\bf C}}
 #+LATEX: \newcommand{\In}{{\bf I}_n}
 #+LATEX: \newcommand{\I}{{\bf I}}
 #+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
@@ -65,7 +66,6 @@
 #+LATEX: \newcommand{\ys}{{\bf y}^{*}}
 #+LATEX: \newcommand{\y}{{\bf y}}
 #+LATEX: \newcommand{\z}{{\bf z}}
-#+LATEX: \renewcommand{\C}{{\bf C}}
 #+LATEX: \renewcommand{\P}{{\bf P}}
 #+LATEX: \renewcommand{\and}{\hspace{8pt} \mbox{and} \hspace{8pt}}
 #+LATEX: \renewcommand{\b}{{\bf b}}
