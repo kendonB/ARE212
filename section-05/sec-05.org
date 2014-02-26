@@ -3,23 +3,30 @@
 *Empirical example: returns to education* \hfill
 *ARE212*: Section 05 \\ \hline \bigskip
 
-We'll start section with some brief comments on the problem set and a plug for =knitr=. Then, we'll look at the efficiency gains from a specialized case of generalized least squares using simulated data. With remaing time, we'll try out an empirical example to demonstrate the use of categorical dummies. Along the way, we'll try out some more advanced tools of the trade, in particular exporting to \LaTeX{} and using the advanced graphing package =ggplot2=.
-
+We'll start section with some brief comments on the problem set and a plug for =knitr=. Then, we'll look at the efficiency gains from a specialized case of generalized least squares using simulated data. With remaing time, we'll try out an empirical example to demonstrate the use of categorical dummies. Along the way, we'll apply some more advanced tools of the trade, in particular using =ggplot2= and exporting =R= tables in \LaTeX{} format.
 * Problem set retrospective
 
-In general, you guys did really well on the problem set. I've put the answer key on bSpace and will be handing your problem sets back today at the end of section. Many students found it useful to use \LaTeX{} and =knitr= (in =RStudio=) to format their assignments. The basic idea of =knitr= is that you can answer math or non-code questions using text or \LaTeX{} and then "knit" in your =R= code and/or results[fn:: =sweave= is similar --- in fact, =knitr= is an update of sorts to =sweave=.] in the same file; this means that you don't have to separate files for your notes, results, and code. This process is a form of "Literate Programming"[fn:: A term coined originally by the computer scientist Donald Knuth], and it can be very useful for developing research ideas, collaborating on projects, and, of course, writing problem sets. If you're interested in learning how to use =knitr=, have a look at =ps1_answers.rnw= on bSpace --- it's the code Max and I used to generate the answer key.
+In general, you guys did really well on the problem set. I've put the answer key on bSpace and will be handing your problem sets back today at the end of section. Many students found it useful to use \LaTeX{} and =knitr= (in =RStudio=) to format their assignments. This is great! The basic idea of =knitr= is that you can answer math or non-code questions using text or \LaTeX{} and then "knit" in your =R= code and/or results[fn:: =sweave= is similar --- in fact, =knitr= is an update of sorts to =sweave=.] in the same file; this means that you don't have to maintain separate files for your notes, results, and code. This process is a form of "Literate Programming"[fn:: A term coined originally by the computer scientist Donald Knuth], and it can be very useful for developing research ideas, collaborating on projects, and, of course, writing problem sets. If you're interested in learning how to use =knitr=, have a look at =ps1_answers.rnw= on bSpace --- it's the code Max and I used to generate the answer key.
 
 * Efficiency gains from GLS
 
 This section will briefly outline two general concepts, GLS and =ggplot=. We will examine the characteristics of generalized least squares (GLS), and specifically
 the efficiency gains from a special case of GLS, weighted least squares (WLS). We will then recreate the graphs from Figures 2.6 and 2.7, roughly, in the notes using =ggplot2= a very popular graphing package in =R=. \\
 
-Let $x \sim U(0,2000)$ and $\epsilon \sim N(0,(x/1000)^2)$.  The underlying data generating process in (2.102) is $y_i = \alpha + x_i \beta + \epsilon$, where $\alpha = 0.5$ and $\beta = 1.5$.  The objective is to plot the simulated sampling distribution of the OLS estimator applied to $B = 1000$ draws, each of size $n = 1000$.
-After setting the seed to The Answer to the Ultimate Question of Life, the Universe, and Everything, we'll generate the population data.
+Let $x \sim U(0,2000)$ and $\varepsilon \sim N(0,4x^2)$.  The underlying data generating process in (2.102) is $y_i = \alpha + x_i \beta + \varepsilon$, where $\alpha = 0.5$ and $\beta = 1.5$.  The objective is to plot the simulated sampling distribution of the OLS estimator applied to $B = 1000$ draws, each of size $n = 1000$.
+After creating a slightly more complex OLS function that returns standard errors, we'll create our simulated population.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 set.seed(42)
-OLS <- function(y,X) { solve(t(X) %*% X) %*% t(X) %*% y }
+OLS <- function(y,X) {
+  n <- nrow(X); k <- ncol(X)
+  b <- solve(t(X) %*% X) %*% t(X) %*% y; names(b) <- "Estimate"
+  e <- y - X %*% b
+  s2 <- t(e) %*% e / (n - k)
+  XpXinv <- solve(t(X) %*% X)
+  se <- sqrt(s2 * diag(XpXinv)); names(se) <- "Std. Error"
+  return(data.frame(b,se))
+}
 
 pop.n <- 1000000
 pop.x <- runif(pop.n, min=0, max=2000)
@@ -31,7 +38,7 @@ n <- 1000
 
 #+RESULTS:
 
-Now we'll pull 1000 observations from our population vectors. This is a little different from the way we conducted the simulation exercise last week, but it's the same general principle. With these, we can calculate the standard OLS parameter vector $[\ah \hspace{6pt} \bh]^{\prime}$ by noting that $\X$ is just the $x$ vector bound to a column of ones.  We will only examine $\hat{\beta}$ for this section, rather than both parameters.
+Now we'll pull 1000 observations at random from our population --- this is our sample. With these, we can calculate the standard OLS parameter vector $[\ah \hspace{6pt} \bh]^{\prime}$ by noting that $\X$ is just the $x$ vector bound to a column of ones.  We will only examine $\hat{\beta}$ for this section, rather than both parameters.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 indices <- sample(1:pop.n,n,replace=F)
@@ -39,14 +46,14 @@ x <- pop.x[indices]
 y <- pop.y[indices]
 X <- cbind(1, x) # add an intercept
 
-b <- OLS(y,X)
+b <- OLS(y,X)[ , 1]
 print(b[2])
 #+end_src
 
 #+RESULTS:
 : [1] 1.50003
 
-The =sample()= function samples randomly from a set of vector, here without replacement. Let's package this into a function, called =rnd.beta=, so that we can collect the OLS parameter for an arbitrary number of random samples.
+The =sample()= function samples randomly from a vector, here without replacement. We create =x= by using requesting a randomly sampled set of indices from =pop.x=. Let's package this into a function, called =rnd.beta=, so that we can collect the OLS parameter for an arbitrary number of random samples.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 rnd.beta <- function(i) {
@@ -54,7 +61,7 @@ rnd.beta <- function(i) {
   x <- pop.x[indices]
   y <- pop.y[indices]
   X <- cbind(1, x) # add an intercept
-  b <- OLS(y,X)
+  b <- OLS(y,X)[ , 1]
   return(b[2])
 }
 #+end_src
@@ -85,7 +92,7 @@ mean(beta.vec)
 : [1] 1.478133 1.493520 1.543434 1.501832 1.470017 1.507787
 : [1] 1.499734
 
-All right.  Looking good.  The average of the simulated sample is much closer to $\beta$ than any individual call of =rnd.beta=, suggesting that the distribution of the simulated parameters will be unbiased.  Now, let's create another, similar function that returns the WLS estimates.
+All right.  Looking good.  The average of the simulated sample is much closer to $\beta$ than almost any individual call of =rnd.beta=, suggesting that the distribution of the simulated parameters will be unbiased.  Now, let's create another, similar function that returns the WLS estimates.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 rnd.wls.beta <- function(i) {
@@ -95,7 +102,7 @@ rnd.wls.beta <- function(i) {
   C <- diag(1 / sqrt(0.5 * x))
   y.wt <- C %*% y
   X.wt <- C %*% cbind(1, x)
-  b.wt <- OLS(y.wt,X.wt)
+  b.wt <- OLS(y.wt,X.wt)[ , 1]
   return(b.wt[2])
 }
 wls.beta.vec <- sapply(1:B, rnd.wls.beta)
@@ -118,14 +125,14 @@ ggplot(data, aes(x=beta, fill=method)) + geom_density(alpha=0.2)
 [[file:inserts/hist.png]]
 
 As in the notes, WLS is clearly the more efficient estimator.
+\newpage
 
 * Returns to education example
 
-The purpose of this section is to estimate the returns to education using =R=.  There is nothing valid about the results found in this section; but the empirical application gives us a chance to explore categorical dummies and to use =ggplot2= package again.  First, we load the required libraries.
+The purpose of this part o fsection is to estimate the returns to education using =R=. There is nothing causal about the results found here; but the empirical application gives us a chance to explore categorical dummies and to use =ggplot2= package again.  First, we load the required libraries.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 library(foreign)
-library(ggplot2)
 library(xtable)
 #+end_src
 
@@ -153,7 +160,7 @@ ggplot(data, aes(x=wage)) + geom_histogram(colour="black", fill="#FF6666", alpha
 #+RESULTS:
 [[file:inserts/fig1.png]]
 
-Before we continue, I'll introduce the =%in%= operator, since we'll be using it shortly. The =%in%= operator generates a boolean vector[fn:: A boolean vector is a vector composed entirely of =TRUE= s and =FALSE= s.], depending on whether or not the element in the variable that preceeds is contained within the variable that follows it. That's a confusing explanation. To make this more clear, here's an example:
+Before we continue, I'll introduce the =%in%= operator, since we'll be using it shortly. The =%in%= operator generates a boolean vector[fn:: A boolean vector is a vector composed entirely of =TRUE= and/or =FALSE= values.], depending on whether or not the element in the variable that preceeds is contained within the variable that follows it. That's a confusing explanation. To make this more clear, here's an example:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 4:12 %in% 1:30
@@ -166,70 +173,80 @@ c("green","blue","red") %in% c("blue","green")
 : [1]  TRUE FALSE FALSE
 : [1]  TRUE  TRUE FALSE
 
-We can use =%in%= along with the =ifelse()= command to easily create dummy variables from variables that take on more than two values, like =educ=. Roughly following page 38 of the lecture notes, we create a rough measure of educational attainment from the =educ= variable.
+We can use =%in%= along with the =ifelse()= command to easily create dummy variables from variables that take on more than two values, like =educ=. We can now create a rough measure of educational attainment from the =educ= variable.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 e1 <- ifelse(data$educ %in% 1:12, 1, 0)
 e2 <- ifelse(data$educ %in% 13:14, 1, 0)
 e3 <- ifelse(data$educ %in% 15:16, 1, 0)
-e4 <- ifelse(data$educ %in% 17:18, 1, 0)
+e4 <- ifelse(data$educ %in% 17:999, 1, 0)
 #+end_src
 
 #+results:
 
 The categorical education variables sum to one, and the =lm()= function will force-drop one of the variables.
 
-#+begin_src R :results output :exports both :tangle yes :session
-coef(summary(m1 <- lm(wage ~ 1 + e1 + e2 + e3 + e4, data = data)))
+#+begin_src R :results output latex :exports both :tangle yes :session
+xtable(coef(summary(lm(wage ~ 1 + e1 + e2 + e3 + e4, data = data))))
 #+end_src
 
 #+RESULTS:
-:               Estimate Std. Error   t value      Pr(>|t|)
-: (Intercept) 1196.95876   38.93314 30.743953 7.969254e-144
-: e1          -350.46396   42.67867 -8.211689  7.239709e-16
-: e2          -229.97111   49.22796 -4.671555  3.429280e-06
-: e3           -90.50748   47.64240 -1.899726  5.777793e-02
+#+BEGIN_LaTeX
+% latex table generated in R 3.0.2 by xtable 1.7-1 package
+% Wed Feb 26 13:16:31 2014
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\
+  \hline
+(Intercept) & 1196.96 & 38.93 & 30.74 & 0.00 \\
+  e1 & -350.46 & 42.68 & -8.21 & 0.00 \\
+  e2 & -229.97 & 49.23 & -4.67 & 0.00 \\
+  e3 & -90.51 & 47.64 & -1.90 & 0.06 \\
+   \hline
+\end{tabular}
+\end{table}
+#+END_LaTeX
 
-Note that the intercept in this regression reflects the mean wage of the =e4= class. The other coefficients reflect the relative wages of the other three classes.
+I snuck in =xtable()= to format the output from =lm()=. =xtable()= outputs =R= data in a beautified \LaTeX{} table format, and it's sufficiently powerful to produce publication-quality tables[fn:: =stargazer= is an even more powerful package designed to create \LaTeX{} output.]. It works quite well for output from =lm()=, and we'll see soon that with some tweaks it will work for the output from our own =OLS()= function as well. \\
 
-Interpretation is a common challenge in dummy variables, particularly when we start including more complicated dummies or interaction terms. It's a good idea to think hard about what the coefficients from a regression represent. To sharpen your intuition in this regard, we'll use our own =OLS()= function to return the coefficients from a regression of wage on the dummy variables.
+Note that the intercept in this regression reflects the mean wage of the =e4= class. The other coefficients reflect the wages of the other three classes relative to =e4=. Interpretation is a common challenge when using dummy variables, particularly when we start including more complicated dummies or interaction terms. It's a good idea to think hard about what the coefficients from a regression represent. To sharpen your intuition in this regard, we'll use our own =OLS()= function to return the coefficients from a regression of wage on the dummy variables.
 
 #+begin_src R :results output :exports both :tangle yes :session
 X <- cbind(1,e1,e2,e3,e4)
 y <- data$wage
-b <- OLS(y,X)
+b <- OLS(y,X)[ , 1]
 #+end_src
 
 #+RESULTS:
-: Error in solve.default(t(X) %*% X) (from #1) :
+: Error in solve.default(t(X) %*% X) (from #3) :
 :   system is computationally singular: reciprocal condition number = 1.53843e-18
 
 Uh oh! What happened? =OLS()=, sadly, is not as smart as =lm()=, so it didn't automatically drop any of our dummy variables. Since the dummies sum to a column vector of ones, we violated A2: =X= does not have full column rank. We have a couple of options here: first, we can try dropping the intercept.
 
-#+begin_src R :results output :exports both :tangle yes :session
+#+begin_src R :results output graphics latex :exports both :tangle yes :session
 xtable(b_dropint <- OLS(y,X[ , 2:5]))
 #+end_src
 
 #+RESULTS:
-#+begin_example
+#+BEGIN_LaTeX
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
-% Wed Feb 26 11:56:09 2014
+% Wed Feb 26 13:16:55 2014
 \begin{table}[ht]
 \centering
-\begin{tabular}{rr}
+\begin{tabular}{rrr}
   \hline
- & x \\
+ & V1 & se \\
   \hline
-e1 & 846.49 \\
-  e2 & 966.99 \\
-  e3 & 1106.45 \\
-  e4 & 1196.96 \\
+e1 & 846.49 & 17.48 \\
+  e2 & 966.99 & 30.13 \\
+  e3 & 1106.45 & 27.46 \\
+  e4 & 1196.96 & 38.93 \\
    \hline
 \end{tabular}
 \end{table}
-#+end_example
-
-I snuck in =xtable()= to output this data. =xtable()= outputs =R= data in a beautified \LaTeX{} table format, and it's sufficiently powerful to produce publication-quality tables[fn:: =stargazer= is an even more powerful package designed to create \LaTeX{} output]. \\
+#+END_LaTeX
 
 We can show that the coefficients are just the average wage amongst each dummy group. Think of each dummy here as forming its own intercept. Since there are no other covariates, each captures the average wage for all of the observations in that group. We can also see that $b_4$ corresponds to the intercept from the =lm()= output, which is as we expect. It's also simple arithmatic to see that $b_1$, $b_2$, and $b_3$ in the =lm()= results correspond to the difference in the average wage between dummy group 4 and dummy groups 1, 2, and 3 respectively. \\
 
@@ -240,42 +257,62 @@ xtable(b_drop3 <- OLS(y,X[ , c(1,2,3,5)]))
 #+end_src
 
 #+RESULTS:
-: Error in xtable((b_drop3 <- OLS(y, X[, c(1, 2, 3, 5)]))) :
-:   could not find function "OLS"
+#+BEGIN_LaTeX
+% latex table generated in R 3.0.2 by xtable 1.7-1 package
+% Wed Feb 26 13:36:01 2014
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & b & se \\
+  \hline
+ & 1106.45 & 27.46 \\
+  e1 & -259.96 & 32.55 \\
+  e2 & -139.46 & 40.76 \\
+  e4 & 90.51 & 47.64 \\
+   \hline
+\end{tabular}
+\end{table}
+#+END_LaTeX
 
 We could similarly compute the differences represented here by calculating the difference in mean wage across groups. For example, comparing the mean wages of groups 3 and 2.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-mean(data[e4 == 1, c("wage")])
+mean3 <- mean(data[e3 == 1, c("wage")]); mean2 <- mean(data[e2 == 1, c("wage")]);
+cbind(mean3, mean2, mean3 - mean2)
 #+end_src
 
 #+RESULTS:
-: [1] 1196.959
-
-This is equivalent to adding the coefficient on =e4= to the intercept from the well-specified regression above.  Specifically:
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-b <- m2$coefficients
-b[["(Intercept)"]] + b[["e4"]]
-#+end_src
-
-#+RESULTS:
-: [1] 1196.959
+:         mean3    mean2
+: [1,] 1106.451 966.9877 139.4636
 
 This equality only holds because there are no other covariates in the regression.  If we condition on age, for example, then the simple addition does not yield an average wage.  For illustration, consider the previous regression with =age= and squared =age= as cofactors.  Note also the manner by which the =lm()= function accepts a nested function to specify squared =age= within the line:
 
-#+begin_src R :results output graphics :exports both :tangle yes :session
-coef(summary(lm(wage ~ 1 + e2 + e3 + e4 + age + I(age^2), data = data)))
+#+begin_src R :results output graphics latex :exports both :tangle yes :session
+wage <- data$wage; age <- data$age; age2 <- age^2; names(age2) <- "age^2"
+xtable(OLS(wage,cbind(1,e2,e3,e4,age,age2)))
 #+end_src
 
 #+RESULTS:
-:                 Estimate  Std. Error     t value     Pr(>|t|)
-: (Intercept) -148.0041478 1660.163718 -0.08915033 9.289817e-01
-: e2           142.0919504   34.603321  4.10630965 4.374401e-05
-: e3           276.4462130   32.327306  8.55147690 4.954754e-17
-: e4           329.3717601   42.427654  7.76313861 2.181854e-14
-: age           38.4978013  100.467589  0.38318628 7.016693e-01
-: I(age^2)      -0.2572671    1.508597 -0.17053405 8.646273e-01
+#+BEGIN_LaTeX
+% latex table generated in R 3.0.2 by xtable 1.7-1 package
+% Wed Feb 26 13:32:21 2014
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & b & se \\
+  \hline
+ & -148.00 & 1660.16 \\
+  e2 & 142.09 & 34.60 \\
+  e3 & 276.45 & 32.33 \\
+  e4 & 329.37 & 42.43 \\
+  age & 38.50 & 100.47 \\
+  age2 & -0.26 & 1.51 \\
+   \hline
+\end{tabular}
+\end{table}
+#+END_LaTeX
 
 It looks like age has a positive but diminishing effect on wage.  This makes sense, maybe, but the coefficients are not significantly different from zero.  Why might this be the case?  This is where some non-parametric graphing comes in handy.
 
@@ -288,7 +325,7 @@ It looks like age has a positive but diminishing effect on wage.  This makes sen
 #+RESULTS:
 [[file:inserts/fig2.png]]
 
-We use the =ggplot2= package instead of the base =R= plotting facilities.  The plots reveal a reasonable relationship between wage and age, but there is a significant amount of variation in wage, relative to the short time frame of age.
+We use the =ggplot2= package instead of the base =R= plotting facilities.  The plots reveal a reasonable relationship between wage and age, but there is a significant amount of variation in wage, relative to the short time frame of age. We can see this by adding the actual data to this graph.
 
 #+CAPTION: Smoothed line with points
 #+LABEL: fig:pts.
