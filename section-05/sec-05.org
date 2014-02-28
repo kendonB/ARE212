@@ -129,7 +129,7 @@ As in the notes, WLS is clearly the more efficient estimator.
 
 * Returns to education example
 
-The purpose of this part o fsection is to estimate the returns to education using =R=. There is nothing causal about the results found here; but the empirical application gives us a chance to explore categorical dummies and to use =ggplot2= package again.  First, we load the required libraries.
+The purpose of this part of section is to estimate the returns to education using =R=. There is nothing causal about the results found here; but the empirical application gives us a chance to explore categorical dummies and to use =ggplot2= package again.  First, we load the required libraries.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 library(foreign)

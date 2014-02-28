@@ -1,23 +1,37 @@
 
-n <- 1000
 set.seed(42)
-x <- runif(n, min=0, max=2000)
-eps <- rnorm(n, 0, sqrt((x/1000)^2))
-y <- 0.5 + x*1.5 + eps
+OLS <- function(y,X) {
+  n <- nrow(X); k <- ncol(X)
+  b <- solve(t(X) %*% X) %*% t(X) %*% y; names(b) <- "Estimate"
+  e <- y - X %*% b
+  s2 <- t(e) %*% e / (n - k)
+  XpXinv <- solve(t(X) %*% X)
+  se <- sqrt(s2 * diag(XpXinv)); names(se) <- "Std. Error"
+  return(data.frame(b,se))
+}
 
-X <- cbind(1, x)
-params <- solve(t(X) %*% X) %*% t(X) %*% y
-beta <- params[2]
-print(beta)
+pop.n <- 1000000
+pop.x <- runif(pop.n, min=0, max=2000)
+pop.eps <- rnorm(pop.n, 0, sqrt((4*pop.x)^2))
+pop.y <- 0.5 + pop.x*1.5 + pop.eps
+
+n <- 1000
+
+indices <- sample(1:pop.n,n,replace=F)
+x <- pop.x[indices]
+y <- pop.y[indices]
+X <- cbind(1, x) # add an intercept
+
+b <- OLS(y,X)[ , 1]
+print(b[2])
 
 rnd.beta <- function(i) {
-  x <- runif(n)
-  eps <- rnorm(n, 0, sqrt(x/10))
-  y <- 0.5 + x * 1.5 + eps
-  X <- cbind(1, x)
-  params <- solve(t(X) %*% X) %*% t(X) %*% y
-  beta <- params[2]
-  return(beta)
+  indices <- sample(1:pop.n,n,replace=F)
+  x <- pop.x[indices]
+  y <- pop.y[indices]
+  X <- cbind(1, x) # add an intercept
+  b <- OLS(y,X)[ , 1]
+  return(b[2])
 }
 
 rnd.beta()
@@ -29,26 +43,25 @@ head(beta.vec)
 mean(beta.vec)
 
 rnd.wls.beta <- function(i) {
-  x <- runif(n)
-  y <- 0.5 + x * 1.5 + rnorm(n, 0, sqrt(x / 10))
-  C <- diag(1 / sqrt(x / 10))
+  indices <- sample(1:pop.n,n,replace=F)
+  x <- pop.x[indices]
+  y <- pop.y[indices]
+  C <- diag(1 / sqrt(0.5 * x))
   y.wt <- C %*% y
   X.wt <- C %*% cbind(1, x)
-  param.wls <- solve(t(X.wt) %*% X.wt) %*% t(X.wt) %*% y.wt
-  beta <- param.wls[2]
-  return(beta)
+  b.wt <- OLS(y.wt,X.wt)[ , 1]
+  return(b.wt[2])
 }
 wls.beta.vec <- sapply(1:B, rnd.wls.beta)
 
-#png(filename="inserts/hist.png",height=400,width=700)
+png(filename="inserts/hist.png",height=400,width=700)
 library(ggplot2)
 labels <- c(rep("ols", B), rep("wls", B))
 data <- data.frame(beta=c(beta.vec, wls.beta.vec), method=labels)
 ggplot(data, aes(x=beta, fill=method)) + geom_density(alpha=0.2)
-#dev.off()
+dev.off()
 
 library(foreign)
-library(ggplot2)
 library(xtable)
 
 f <- "http://fmwww.bc.edu/ec-p/data/wooldridge/wage2.dta"
@@ -57,7 +70,7 @@ data <- data[ , c("wage", "educ", "age")]
 data <- na.omit(data)
 
 png(filename="inserts/fig1.png",height=400,width=800)
-hist(data$wage, xlab = "wage", main = "", col = "grey", border = "white")
+ggplot(data, aes(x=wage)) + geom_histogram(colour="black", fill="#FF6666", alpha=0.6)
 dev.off()
 
 4:12 %in% 1:30
@@ -67,30 +80,23 @@ c("green","blue","red") %in% c("blue","green")
 e1 <- ifelse(data$educ %in% 1:12, 1, 0)
 e2 <- ifelse(data$educ %in% 13:14, 1, 0)
 e3 <- ifelse(data$educ %in% 15:16, 1, 0)
-e4 <- ifelse(data$educ %in% 17:18, 1, 0)
+e4 <- ifelse(data$educ %in% 17:999, 1, 0)
 
-lm(wage ~ 1 + e1 + e2 + e3 + e4, data = data)
-coef(summary(m1 <- lm(wage ~ 1 + e1 + e2 + e3 + e4, data = data)))
+xtable(coef(summary(lm(wage ~ 1 + e1 + e2 + e3 + e4, data = data))))
 
-OLS <- function(y,X) {
-  return(solve(t(X) %*% X) %*% t(X) %*% y)
-}
 X <- cbind(1,e1,e2,e3,e4)
 y <- data$wage
-b <- OLS(y,X)
+b <- OLS(y,X)[ , 1]
 
-(b_dropint <- OLS(y,X[ , 2:5]))
+xtable(b_dropint <- OLS(y,X[ , 2:5]))
 
-(b_drop3 <- OLS(y,X[ , c(1,2,3,5)]))
+xtable(b_drop3 <- OLS(y,X[ , c(1,2,3,5)]))
 
-xtable(m2 <- lm(wage ~ 1 + e2 + e3 + e4, data = data))
+mean3 <- mean(data[e3 == 1, c("wage")]); mean2 <- mean(data[e2 == 1, c("wage")]);
+cbind(mean3, mean2, mean3 - mean2)
 
-mean(data[e4 == 1, c("wage")])
-
-b <- m2$coefficients
-b[["(Intercept)"]] + b[["e4"]]
-
-coef(summary(lm(wage ~ 1 + e2 + e3 + e4 + age + I(age^2), data = data)))
+wage <- data$wage; age <- data$age; age2 <- age^2; names(age2) <- "age^2"
+xtable(OLS(wage,cbind(1,e2,e3,e4,age,age2)))
 
 png(filename="inserts/fig2.png",height=400,width=800)
 (g <- ggplot(data, aes(x=age, y=wage)) + geom_smooth(method="loess", size=1.5))
