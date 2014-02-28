@@ -65,11 +65,12 @@
 #+LATEX: \newcommand{\ys}{{\bf y}^{*}}
 #+LATEX: \newcommand{\y}{{\bf y}}
 #+LATEX: \newcommand{\z}{{\bf z}}
-#+LATEX: \renewcommand{\C}{{\bf C}}
 #+LATEX: \renewcommand{\P}{{\bf P}}
 #+LATEX: \renewcommand{\and}{\hspace{8pt} \mbox{and} \hspace{8pt}}
 #+LATEX: \renewcommand{\b}{{\bf b}}
 #+LATEX: \renewcommand{\c}{{\bf c}}
 #+LATEX: \renewcommand{\r}{{\bf r}}
+#+LATEX: \providecommand\C{}
+#+LATEX: \renewcommand\C{\bf C}
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline
