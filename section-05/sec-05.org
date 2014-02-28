@@ -251,7 +251,9 @@ b <- OLS(y,X)[ , 1]
 : Error in solve.default(t(X) %*% X) (from #3) :
 :   system is computationally singular: reciprocal condition number = 1.53843e-18
 
-Uh oh! What happened? =OLS()=, sadly, is not as smart as =lm()=, so it didn't automatically drop any of our dummy variables. Since the dummies sum to a column vector of ones, we violated A2: =X= does not have full column rank. We have a couple of options here: first, we can try dropping the intercept.
+Uh oh! What happened? =OLS()=, sadly, is not as smart as =lm()=, so it didn't automatically drop any of our dummy variables. Since the dummies sum to a column vector of ones, we violated A2: =X= does not have full column rank. We have a couple of options here: first, we can try dropping the intercept. 
+
+\newpage
 
 #+begin_src R :results output graphics latex :exports both :tangle yes :session
 xtable(b_dropint <- OLS(y,X[ , 2:5]))
