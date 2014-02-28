@@ -1,0 +1,38 @@
+#+INCLUDE: ../orgpreamble.org
+
+*Interpreting dummy variables and interactions* \hfill
+*ARE212*: Section XX \\ \hline \bigskip
+
+Simple example: suppose you're trying to figure out the wage effect of being married, being left-handed, and being married and left-handed. You would would want to run the following model:
+
+$$ w_i = \alpha + \beta_1 D^1_i + \beta_2 D^2_i + \beta_3 D^1_i \times D^2_i + \varepsilon_i $$
+
+Where $w_i$ is your wage, $D^1_i = 1$ if the person is married, and $D^2_i = 1$ if the person is left-handed. The easiest way to think about the interpretation of your mode is by considering considering what happens to the model about when you set the dummy variables to 1 or 0. \\
+
+For example, suppose you wanted to get the average wage for un-married, right-handed people. This is the omitted category because $D^1_i = D^2_i = 0$. Plugging those two into our model gives that $w_i = \alpha$. So the average wage is just $\alpha$. \\
+
+Next suppose you were interested in the average wage for married ($D^1_i = 1$), right-handed people ($D^2_i = 0$). Now we get that $w_i = \alpha + \beta_1$. Similarly, the average wage for unmarried ($D^1_i = 0$), left-handed ($D^2_i = 1$) people is $w_i = \alpha + \beta_2$. \\
+
+Finally the average wage for married ($D^1_i = 1$), left-handed ($D^2_i = 1$) people is just the sum of all three: $w_i = \alpha + \beta_1 + \beta_2 + \beta_3$. \\
+
+In table form, this can be summarized as:
+
+| Description              | $D^1_i$ | $D^2_i$ | Average wage                          |
+|--------------------------+---------+---------+---------------------------------------|
+| Un-married, right-handed |       0 |       0 | $\alpha$                              |
+| Married, right-handed    |       1 |       0 | $\alpha + \beta_1$                    |
+| Unmarried, left-handed   |       0 |       1 | $\alpha + \beta_2$                    |
+| Married, left-handed     |       1 |       1 | $\alpha + \beta_1 + \beta_2 + \beta_3$ |
+
+*Interpretation*
+
+But what about interpreting the coefficients $\alpha$ and $\beta_j$ themselves? Following the discussion above, the following is hopefully logical:
+
+\begin{itemize}
+\item $\alpha$: The average wage for the omitted category (unmarried, right-handed)
+\item $\beta_1$: The difference in average wage for married vs. people who are not
+\item $\beta_2$: The difference in average wage for left-handed vs. people who are not
+\item $\beta_3$: The difference in average wage for married AND left-handed people vs. people who are not
+\end{itemize}
+
+The last one is the head-scratcher. The idea of the coefficients is that they're the effect of "turning on" the variable they're attached to. That doesn't have a lot of real-world meaning in some context --- it is difficult to "turn on" being left handed --- but it might be the easiest way to think about it.
