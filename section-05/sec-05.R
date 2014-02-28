@@ -3,9 +3,7 @@ set.seed(42)
 OLS <- function(y,X) {
   n <- nrow(X); k <- ncol(X)
   b <- solve(t(X) %*% X) %*% t(X) %*% y; names(b) <- "Estimate"
-  e <- y - X %*% b
-  s2 <- t(e) %*% e / (n - k)
-  XpXinv <- solve(t(X) %*% X)
+  e <- y - X %*% b; s2 <- t(e) %*% e / (n - k); XpXinv <- solve(t(X) %*% X)
   se <- sqrt(s2 * diag(XpXinv)); names(se) <- "Std. Error"
   return(data.frame(b,se))
 }
@@ -27,8 +25,7 @@ print(b[2])
 
 rnd.beta <- function(i) {
   indices <- sample(1:pop.n,n,replace=F)
-  x <- pop.x[indices]
-  y <- pop.y[indices]
+  x <- pop.x[indices];  y <- pop.y[indices]
   X <- cbind(1, x) # add an intercept
   b <- OLS(y,X)[ , 1]
   return(b[2])
@@ -54,7 +51,7 @@ rnd.wls.beta <- function(i) {
 }
 wls.beta.vec <- sapply(1:B, rnd.wls.beta)
 
-png(filename="inserts/hist.png",height=400,width=700)
+png(filename="inserts/hist.png",height=300,width=700)
 library(ggplot2)
 labels <- c(rep("ols", B), rep("wls", B))
 data <- data.frame(beta=c(beta.vec, wls.beta.vec), method=labels)
@@ -69,7 +66,7 @@ data <- read.dta(f)
 data <- data[ , c("wage", "educ", "age")]
 data <- na.omit(data)
 
-png(filename="inserts/fig1.png",height=400,width=800)
+png(filename="inserts/fig1.png",height=300,width=700)
 ggplot(data, aes(x=wage)) + geom_histogram(colour="black", fill="#FF6666", alpha=0.6)
 dev.off()
 
@@ -98,11 +95,11 @@ cbind(mean3, mean2, mean3 - mean2)
 wage <- data$wage; age <- data$age; age2 <- age^2; names(age2) <- "age^2"
 xtable(OLS(wage,cbind(1,e2,e3,e4,age,age2)))
 
-png(filename="inserts/fig2.png",height=400,width=800)
+png(filename="inserts/fig2.png",height=200,width=500)
 (g <- ggplot(data, aes(x=age, y=wage)) + geom_smooth(method="loess", size=1.5))
 dev.off()
 
-png(filename="inserts/fig3.png",height=400,width=800)
+png(filename="inserts/fig3.png",height=200,width=500)
 (g <- g + geom_point())
 dev.off()
 

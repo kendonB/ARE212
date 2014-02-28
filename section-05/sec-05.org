@@ -21,9 +21,7 @@ set.seed(42)
 OLS <- function(y,X) {
   n <- nrow(X); k <- ncol(X)
   b <- solve(t(X) %*% X) %*% t(X) %*% y; names(b) <- "Estimate"
-  e <- y - X %*% b
-  s2 <- t(e) %*% e / (n - k)
-  XpXinv <- solve(t(X) %*% X)
+  e <- y - X %*% b; s2 <- t(e) %*% e / (n - k); XpXinv <- solve(t(X) %*% X)
   se <- sqrt(s2 * diag(XpXinv)); names(se) <- "Std. Error"
   return(data.frame(b,se))
 }
@@ -58,8 +56,7 @@ The =sample()= function samples randomly from a vector, here without replacement
 #+begin_src R :results output graphics :exports both :tangle yes :session
 rnd.beta <- function(i) {
   indices <- sample(1:pop.n,n,replace=F)
-  x <- pop.x[indices]
-  y <- pop.y[indices]
+  x <- pop.x[indices];  y <- pop.y[indices]
   X <- cbind(1, x) # add an intercept
   b <- OLS(y,X)[ , 1]
   return(b[2])
@@ -114,7 +111,7 @@ We now have two collections of parameter estimates, one based on OLS and another
 
 #+CAPTION: Relative efficiency of WLS
 #+LABEL: fig:dens
-#+begin_src R :results output graphics :file inserts/hist.png :width 700 :height 400 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/hist.png :width 700 :height 300 :session :tangle yes :exports both
 library(ggplot2)
 labels <- c(rep("ols", B), rep("wls", B))
 data <- data.frame(beta=c(beta.vec, wls.beta.vec), method=labels)
@@ -135,7 +132,7 @@ $$ w_i = \alpha + \beta_1 D^1_i + \beta_2 D^2_i + \beta_3 D^1_i \times D^2_i + \
 
 Where $w_i$ is your wage, $D^1_i = 1$ if the person is married, and $D^2_i = 1$ if the person is left-handed. The easiest way to think about the interpretation of your mode is by considering what happens to the estimated model about when you set the dummy variables to 1 or 0. \\
 
-For example, suppose you were interested in the average wage for unmarried ($D^1_i = 0$), left-handed people ($D^2_i = 0$). The second and fourth terms in the RHS drop from the equation, giving that $w_i = \alpha + \beta_2 + \varepsilon_i$. Since we're interested in the average and since the error term is mean zero, we can infer that the average wage for this group is $\alpha + \beta_2$. We can do the same for other groups as follows:
+For example, suppose you were interested in the average wage for unmarried ($D^1_i = 0$), left-handed people ($D^2_i = 1$). The second and fourth terms in the RHS drop from the equation, giving that $w_i = \alpha + \beta_2 + \varepsilon_i$. Since we're interested in the average and since the error term is mean zero, we can infer that the average wage for this group is $\alpha + \beta_2$. We can do the same for other groups as follows:
 
 | Group         | $D^1_i$ | $D^2_i$ | Average wage                          |
 |--------------------------+---------+---------+---------------------------------------|
@@ -148,21 +145,16 @@ For example, suppose you were interested in the average wage for unmarried ($D^1
 
 But what about interpreting the $\beta_1$, $\beta_2$, and $\beta_3$ coefficients themselves? Perhaps the most intuitive way to think about them is that each one is the "effect" of turning on the associated dummy variable. Accordingly, the following is (hopefully) logical.
 
-\begin{itemize}
-\item $\alpha$: The average wage for the omitted category (unmarried, right-handed)
-\item $\beta_1$: The wage "effect" of being married
-\item $\beta_2$: The wage "effect" of being left-handed
-\item $\beta_3$: The wage "effect" of being *both* married and left-handed.
-\end{itemize}
+- $\alpha$: The average wage for the omitted category (unmarried, right-handed).
+- $\beta_1$: The wage "effect" of being married /for right-handed people/.
+- $\beta_2$: The wage "effect" of being left-handed /for unmarried people/.
+- $\beta_3$: The wage "effect" of being *both* married and left-handed.
 
-Of course, unless our data is from a randomized control trial in which we randomly assigned marriage and left-handedness to our subject population[fn:: Sounds like a fun experiment.], the coefficients we estimate aren't true effects. With a run-of-the-mill observational data set, the coefficients just represent the correlation between wage and the dummy variables. \\
+This is where my brain usually starts to hurt. If you just care about the wage "effect" of being married, then you're running the wrong regression, since this specification is designed to examine the heterogenous "effects". You could back out the average "effect" using the coefficients you have and the percentages of each population in your data, but it would be much easier to just run the specification without the interaction term. \\
 
-We're pretty much done here, but I'll leave you with this: suppose, in our observational dataset, that left-handed people are better paid and less likely to be married. Now suppose we run the following models:
+*Why did you put effect in quotes?*
 
-$$ w_i = \alpha + \beta_1 D^1_i + \beta_2 D^2_i + \varepsilon_i $$
-$$ w_i = \gamma + \delta_1 D^1_i + \mu_i $$
-
-Which is bigger? $\beta_1$ or $\delta_1$? What if our data is from the RCT?
+Unless our data is from a randomized control trial in which we randomly assigned marriage and left-handedness to our subject population[fn:: Sounds like a fun experiment.], the coefficients we estimate aren't true effects. With a run-of-the-mill observational data set, the coefficients just represent the correlation between wage and the dummy variables. \\
 * Returns to education example
 
 The purpose of this part of section is to estimate the returns to education using =R=. There is nothing causal about the results found here; but the empirical application gives us a chance to explore categorical dummies and to use =ggplot2= package again.  First, we load the required libraries.
@@ -189,7 +181,7 @@ A quick visualization reveals the distribution of wages in the data set:
 
 #+CAPTION: Wage histogram
 #+LABEL: fig:hist
-#+begin_src R :results output graphics :file inserts/fig1.png :width 800 :height 400 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig1.png :width 700 :height 300 :session :tangle yes :exports both
 ggplot(data, aes(x=wage)) + geom_histogram(colour="black", fill="#FF6666", alpha=0.6)
 #+end_src
 
@@ -247,7 +239,7 @@ xtable(coef(summary(lm(wage ~ 1 + e1 + e2 + e3 + e4, data = data))))
 
 I snuck in =xtable()= to format the output from =lm()=. =xtable()= outputs =R= data in a beautified \LaTeX{} table format, and it's sufficiently powerful to produce publication-quality tables[fn:: =stargazer= is an even more powerful package designed to create \LaTeX{} output.]. It works quite well for output from =lm()=, and we'll see soon that with some tweaks it will work for the output from our own =OLS()= function as well. \\
 
-Note that the intercept in this regression reflects the mean wage of the =e4= class. The other coefficients reflect the wages of the other three classes relative to =e4=. Interpretation is a common challenge when using dummy variables, particularly when we start including more complicated dummies or interaction terms. It's a good idea to think hard about what the coefficients from a regression represent. To sharpen your intuition in this regard, we'll use our own =OLS()= function to return the coefficients from a regression of wage on the dummy variables.
+Note that the intercept in this regression reflects the mean wage of the =e4= class. The other coefficients reflect the wages of the other three classes relative to =e4=. What if we run the same model using =OLS()=?
 
 #+begin_src R :results output :exports both :tangle yes :session
 X <- cbind(1,e1,e2,e3,e4)
@@ -320,7 +312,7 @@ cbind(mean3, mean2, mean3 - mean2)
 :         mean3    mean2
 : [1,] 1106.451 966.9877 139.4636
 
-This equality only holds because there are no other covariates in the regression.  If we condition on age, for example, then the simple addition does not yield an average wage.  For illustration, consider the previous regression with =age= and squared =age= as cofactors.  Note also the manner by which the =lm()= function accepts a nested function to specify squared =age= within the line:
+This equality only holds because there are no other covariates in the regression.  If we condition on age, for example, then the simple addition does not yield an average wage.  For illustration, consider the previous regression with =age= and squared =age= as cofactors.
 
 #+begin_src R :results output graphics latex :exports both :tangle yes :session
 wage <- data$wage; age <- data$age; age2 <- age^2; names(age2) <- "age^2"
@@ -348,13 +340,13 @@ xtable(OLS(wage,cbind(1,e2,e3,e4,age,age2)))
 \end{table}
 #+END_LaTeX
 
-\clearpage
-
 It looks like age has a positive but diminishing effect on wage.  This makes sense, maybe, but the coefficients are not significantly different from zero.  Why might this be the case?  This is where some non-parametric graphing comes in handy.
+
+\clearpage
 
 #+CAPTION: Smoothed line
 #+LABEL: fig:line
-#+begin_src R :results output graphics :file inserts/fig2.png :width 800 :height 400 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig2.png :width 500 :height 200 :session :tangle yes :exports both
 (g <- ggplot(data, aes(x=age, y=wage)) + geom_smooth(method="loess", size=1.5))
 #+end_src
 
@@ -365,15 +357,12 @@ We use the =ggplot2= package instead of the base =R= plotting facilities.  The p
 
 #+CAPTION: Smoothed line with points
 #+LABEL: fig:pts.
-#+begin_src R :results output graphics :file inserts/fig3.png :width 800 :height 400 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig3.png :width 500 :height 200 :session :tangle yes :exports both
 (g <- g + geom_point())
 #+end_src
 
 #+RESULTS:
 [[file:inserts/fig3.png]]
-
-
-\newpage
 
 * Puzzle (sort of)						   :noexport:
 
