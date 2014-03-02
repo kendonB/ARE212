@@ -1,9 +1,9 @@
 #+INCLUDE: ../orgpreamble.org
 
 *=ggplot2= and Maximum Likelihood* \hfill
-*ARE212*: Section 06 \\ \\
+*ARE212*: Section 06 \\ \hline \bigskip
 
-This section, we'll take another crack at =ggplot2= before spending the remainder of the time on Maximum Likelihood estimation.
+This section, we'll take another crack at =ggplot2= before spending the remainder of our time on Maximum Likelihood estimation.
 
 * The grammar of =ggplot2=
 Last week we demonstrated the use of =ggplot2= as an alternative to the =R= base graphics without really talking about how =ggplot2= works or why it might be a better graphing option. Today we'll attempt to fill that gap[fn:: Sources for this section: http://vita.had.co.nz/papers/layered-grammar.pdf and http://www.slideshare.net/AndrewZieffler/unit-02ggplot2.]. \\
@@ -38,7 +38,7 @@ The second required argument for =ggplot()= is the /aesthetic mapping/ of the pl
 #+RESULTS:
 : Error: No layers in plot
 
-*Layers/geometric shapes*
+*Layers/geometric shapes* \\
 Or not. Why are we getting an error? We've specified our data, and our aesthetics, but not our graphical layers (i.e. geometric shapes). Here, we'll add a layer of points:
 
 #+begin_src R :results output graphics :file inserts/fig3.png :width 600 :height 200 :session :tangle yes :exports bot
