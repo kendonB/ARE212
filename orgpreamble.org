@@ -54,6 +54,7 @@
 #+LATEX: \newcommand{\sigs}{\sigma^2}
 #+LATEX: \newcommand{\sn}[1]{\sum_{#1=1}^n}
 #+LATEX: \newcommand{\sumi}{\sum_{i=1}^n}
+#+LATEX: \newcommand{\thh}{{\bf{\hat{\theta}}}}
 #+LATEX: \newcommand{\uRsq}{{\bf R}_{\text{uc}}^{2}}
 #+LATEX: \newcommand{\var}[1]{\textcolor{red}{\mbox{\texttt{#1}}}}
 #+LATEX: \newcommand{\w}{{\bf w}}
@@ -70,6 +71,7 @@
 #+LATEX: \renewcommand{\b}{{\bf b}}
 #+LATEX: \renewcommand{\c}{{\bf c}}
 #+LATEX: \renewcommand{\r}{{\bf r}}
+#+LATEX: \renewcommand{\th}{{\bf{\theta}}}
 #+LATEX: \providecommand\C{}
 #+LATEX: \renewcommand\C{\bf C}
 #+LATEX: \setlength{\parindent}{0in}

@@ -1,4 +1,4 @@
-
+rm(list=ls())
 set.seed(42)
 OLS <- function(y,X) {
   n <- nrow(X); k <- ncol(X)
@@ -37,7 +37,7 @@ rnd.beta <- function(i) {
 rnd.beta()
 rnd.beta()
 
-B <- 1000
+B <- 500
 beta.vec <- sapply(1:B, rnd.beta)
 head(beta.vec)
 mean(beta.vec)
@@ -54,12 +54,12 @@ rnd.wls.beta <- function(i) {
 }
 wls.beta.vec <- sapply(1:B, rnd.wls.beta)
 
-png(filename="inserts/hist.png",height=400,width=700)
+#png(filename="inserts/hist.png",height=400,width=700)
 library(ggplot2)
 labels <- c(rep("ols", B), rep("wls", B))
 data <- data.frame(beta=c(beta.vec, wls.beta.vec), method=labels)
 ggplot(data, aes(x=beta, fill=method)) + geom_density(alpha=0.2)
-dev.off()
+#dev.off()
 
 library(foreign)
 library(xtable)
@@ -69,9 +69,9 @@ data <- read.dta(f)
 data <- data[ , c("wage", "educ", "age")]
 data <- na.omit(data)
 
-png(filename="inserts/fig1.png",height=400,width=800)
+#png(filename="inserts/fig1.png",height=400,width=800)
 ggplot(data, aes(x=wage)) + geom_histogram(colour="black", fill="#FF6666", alpha=0.6)
-dev.off()
+#dev.off()
 
 4:12 %in% 1:30
 c(5:7) %in% c(1,1,2,3,5,8,13)
@@ -98,13 +98,13 @@ cbind(mean3, mean2, mean3 - mean2)
 wage <- data$wage; age <- data$age; age2 <- age^2; names(age2) <- "age^2"
 xtable(OLS(wage,cbind(1,e2,e3,e4,age,age2)))
 
-png(filename="inserts/fig2.png",height=400,width=800)
+#png(filename="inserts/fig2.png",height=400,width=800)
 (g <- ggplot(data, aes(x=age, y=wage)) + geom_smooth(method="loess", size=1.5))
-dev.off()
+#dev.off()
 
-png(filename="inserts/fig3.png",height=400,width=800)
+#png(filename="inserts/fig3.png",height=400,width=800)
 (g <- g + geom_point())
-dev.off()
+#dev.off()
 
 n <- 36
 xtx <- n * matrix(c(1, 0.52, 0.52, 1), ncol = 2)
