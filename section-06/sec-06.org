@@ -100,7 +100,7 @@ head(x)
 #+RESULTS:
 : [1] 0 0 1 0 0 1
 
-Next, we'll use probability theory to define our likelihood function, which is just the joint probability of observing the particular sequence of $\x$ that we see, given that each flip is identically and independently distributed Bernoulli with parameter given some $\tp$. Remember, our goal is to choose $\tp$ to maximize the likelihood function.
+Next, we'll use probability theory to define our likelihood function, which is just the joint probability of observing the particular sequence of $\x$ that we see, given that each flip is identically and independently distributed Bernoulli given some (not necessarily accurate or optimally determined) $\tp$. Remember, our goal is to choose $\tp$ to maximize the likelihood function.
 
 $$ \text{L}(\tp}) = \prod_{i=1}^{1000} \tp^{x_i} (1-\tp)^{1-x_i} $$
 
