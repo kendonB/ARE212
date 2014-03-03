@@ -18,6 +18,7 @@ Plots in =ggplot2= are built by putting together separate component parts. The t
 There are more, but these are the important ones. We'll tackle each separately. \\
 
 *Data* \\
+
 The /data/ for =ggplot2= should always be packaged into a data frame. After loading the =ggplot2= library, we'll load the =R= iris dataset to demonstrate:
 
 #+begin_src R :results none :exports code :tangle yes :session
@@ -29,6 +30,7 @@ ggplot(data = iris, ... ) # not a real command
 The first argument we pass to =ggplot()= will be the data frame that we intend represent graphically. \\
 
 *Aesthetics*\\
+
 The second required argument for =ggplot()= is the /aesthetic mapping/ of the plot. You might think of aesthetics here as "things that you can see", such as the position of the data on the axes, the color, the shape, et cetera. We use this argument to map the data we have into the aesthetics that we're going to display. Now we can create and display the =ggplot2= object =g= using our data an aesthetics.
 
 #+begin_src R :results output :exports code :tangle yes :session
@@ -38,8 +40,11 @@ The second required argument for =ggplot()= is the /aesthetic mapping/ of the pl
 #+RESULTS:
 : Error: No layers in plot
 
+Or not. Why are we getting an error? Because we haven't specified any layers.
+
 *Layers/geometric shapes* \\
-Or not. Why are we getting an error? We've specified our data, and our aesthetics, but not our graphical layers (i.e. geometric shapes). Here, we'll add a layer of points:
+
+We've specified our data, and our aesthetics, but not our /graphical layers/ (i.e. geometric shapes). Here, we'll add a layer of points:
 
 #+begin_src R :results output graphics :file inserts/fig3.png :width 600 :height 200 :session :tangle yes :exports bot
 g + geom_point()
@@ -185,7 +190,7 @@ Now that we've got a little maximum likelihood experience under our belts, let's
 
 $$ \log L(\tilde{\b}, \tilde{\sigma}^2) = -\frac{n}{2} \log(2\pi) - \frac{n}{2} \log(\tilde{\sigma}^2) - \frac{1}{2\tilde{\sigma}^2} (\y - \X \b)'(\y - \X \b) $$
 
-Following Max's notes and solve for $\b$ and $\sigma^2$ analytically, we should find that $\b_{ML} = \b_{OLS} = (X'X)^{-1} X'y$ and that $\sigma^2 = \frac{\e'\e}{n}$. *Or*, we could think jointly estimate $\b$ and $\sigma^2$ using the =optim= command (which is similar to =optimize=, except that it is capable of optimizing over more than one dimension at once).
+Following Max's notes and solving for $\b$ and $\sigma^2$ analytically, we should find that $\b_{ML} = \b_{OLS} = (X'X)^{-1} X'y$ and that $\sigma^2 = \frac{\e'\e}{n}$. *Or*, we could think jointly estimate $\b$ and $\sigma^2$ using the =optim= command (which is similar to =optimize=, except that it is capable of optimizing over more than one dimension at once).
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 n <- 2000
