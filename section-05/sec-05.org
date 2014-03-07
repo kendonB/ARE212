@@ -13,7 +13,7 @@ In general, you guys did really well on the problem set. I've put the answer key
 This section will briefly outline two general concepts, GLS and =ggplot=. We will examine the characteristics of generalized least squares (GLS), and specifically
 the efficiency gains from a special case of GLS, weighted least squares (WLS). We will then recreate the graphs from Figures 2.6 and 2.7, roughly, in the notes using =ggplot2= a very popular graphing package in =R=. \\
 
-Let $x \sim U(0,2000)$ and $\varepsilon \sim N(0,400 \cdot \frac{1}{100} x_i^2)$, where $\sigma^2$ = 400 and $w_i(x_i) = \frac{1}{100} x^2$.[fn:: Careful readers will note that putting some constants into $\sigma^2$ and the constants in $w_i(x_i)$ is totally arbitrary, since different choices in this regard will result in weighting matrices =C= that differ only by a constant multiple. Since these are weight matrices, this will not change our result.]  The underlying data generating process in (2.102) is $y_i = \alpha + x_i \beta + \varepsilon_i$, where $\alpha = 0.5$ and $\beta = 1.5$.  The objective is to plot the simulated sampling distribution of the OLS estimator applied to $B = 1000$ draws, each of size $n = 1000$. After creating a slightly more complex OLS function that returns standard errors, we'll create our simulated population.
+Let $x \sim U(0,2000)$ and $\varepsilon \sim N(0,400 \cdot \frac{1}{100} x_i^2)$, where $\sigma^2$ = 400 and $w_i(x_i) = \frac{1}{100} x^2$.[fn:: Careful readers will note that putting some constants into $\sigma^2$ and other constants in $w_i(x_i)$ is totally arbitrary, since different choices in this regard will result in weighting matrices =C= that differ only by a constant multiple. Since these are weighting matrices, this will not change our result.]  The underlying data generating process in (2.102) is $y_i = \alpha + x_i \beta + \varepsilon_i$, where $\alpha = 0.5$ and $\beta = 1.5$.  The objective is to plot the simulated sampling distribution of the OLS estimator applied to $B = 1000$ draws, each of size $n = 1000$. After creating a slightly more complex OLS function that returns standard errors, we'll create our simulated population.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 set.seed(42)
@@ -29,13 +29,13 @@ pop.n <- 1000000
 sigma <- 400
 pop.x <- runif(pop.n, min = 0, max = 2000)
 pop.w <- (1/100) * pop.x^2
-pop.eps <- rnorm(pop.n, mean = 0, sd = sqrt(sigma * pop.w)) # we use the sqrt of the variance because we are passing the standard deviation
+pop.eps <- rnorm(pop.n, mean = 0, sd = sqrt(sigma * pop.w))
 pop.y <- 0.5 + pop.x*1.5 + pop.eps
 #+end_src
 
 #+RESULTS:
 
-Now we'll pull 1000 observations at random from our population --- this is our sample. With these, we can calculate the standard OLS parameter vector $[\ah \hspace{6pt} \bh]^{\prime}$ by noting that $\X$ is just the $x$ vector bound to a column of ones.  We will only examine $\hat{\beta}$ for this section, rather than both parameters.
+Note that since =rnorm()= takes the standard deviation as its third argument, so we pass it the root of the variance we want to generate. Now we'll pull 1000 observations at random from our population --- this is our sample. With these, we can calculate the standard OLS parameter vector $[\ah \hspace{6pt} \bh]^{\prime}$ by noting that $\X$ is just the $x$ vector bound to a column of ones.  We will only examine $\hat{\beta}$ for this section, rather than both parameters.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 n <- 1000
@@ -110,6 +110,7 @@ head(wls.beta.vec)
 #+RESULTS:
 : [1] 1.175240 1.569361 1.340202 2.207822 0.821469 1.822597
 
+\newpage
 We now have two collections of parameter estimates, one based on OLS and another based on WLS.  It is straightforward to plot two separate histograms using =R='s core histogram plotting function =hist()=. However, we can use this to introduce a more flexible, powerful graphing package called =ggplot2=.
 
 #+CAPTION: Relative efficiency of WLS

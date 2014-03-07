@@ -206,7 +206,7 @@ y <- X %*% b.true + eps
 #+begin_src R :results output graphics :exports both :tangle yes :session
 log.likelihood.optim <- function(theta) {
   sigma2 <- tail(theta, n = 1)
-  b <- theta[1:length(theta)-1] # equivalent here but less general: b <- theta[1:2]
+  b <- theta[1:length(theta)-1]
   e <- y - X %*% b
   output <- -n/2*log(2*pi) - n/2*log(sigma2) - 1/(2 * sigma2) * t(e) %*% e
   return(-output)
@@ -240,6 +240,8 @@ cbind(s2.OLS <- (t(e) %*% e) / (n - k), s2.ML <- (t(e) %*% e) / n)
 #+RESULTS:
 :          [,1]     [,2]
 : [1,] 1.016147 1.015131
+
+But not that different.
 
 * Another ML example - when intractable analytically		   :noexport:
 

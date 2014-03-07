@@ -10,9 +10,9 @@ OLS <- function(y,X) {
 
 pop.n <- 1000000
 sigma <- 400
-pop.w <- (1/100) * pop.x^2
 pop.x <- runif(pop.n, min = 0, max = 2000)
-pop.eps <- rnorm(pop.n, mean = 0, sd = sqrt(sigma * pop.w)) # we use the sqrt of the variance because we are passing the standard deviation
+pop.w <- (1/100) * pop.x^2
+pop.eps <- rnorm(pop.n, mean = 0, sd = sqrt(sigma * pop.w))
 pop.y <- 0.5 + pop.x*1.5 + pop.eps
 
 n <- 1000
@@ -51,7 +51,6 @@ rnd.wls.beta <- function(i) {
   b.wt <- OLS(y.wt,X.wt)[ , 1]
   return(b.wt[2])
 }
-set.seed(42)
 wls.beta.vec <- sapply(1:B, rnd.wls.beta)
 head(wls.beta.vec)
 
