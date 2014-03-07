@@ -9,12 +9,13 @@ OLS <- function(y,X) {
 }
 
 pop.n <- 1000000
-pop.x <- runif(pop.n, min=0, max=2000)
-pop.eps <- rnorm(pop.n, 0, sqrt((4*pop.x)^2))
+sigma <- 400
+pop.w <- (1/100) * pop.x^2
+pop.x <- runif(pop.n, min = 0, max = 2000)
+pop.eps <- rnorm(pop.n, mean = 0, sd = sqrt(sigma * pop.w)) # we use the sqrt of the variance because we are passing the standard deviation
 pop.y <- 0.5 + pop.x*1.5 + pop.eps
 
 n <- 1000
-
 indices <- sample(1:pop.n,n,replace=F)
 x <- pop.x[indices]
 y <- pop.y[indices]
@@ -43,13 +44,16 @@ rnd.wls.beta <- function(i) {
   indices <- sample(1:pop.n,n,replace=F)
   x <- pop.x[indices]
   y <- pop.y[indices]
-  C <- diag(1 / sqrt(0.5 * x))
+  w <- pop.w[indices]
+  C <- diag(1 / sqrt(w)) # equivalent to: C <- diag(10 / x)
   y.wt <- C %*% y
   X.wt <- C %*% cbind(1, x)
   b.wt <- OLS(y.wt,X.wt)[ , 1]
   return(b.wt[2])
 }
+set.seed(42)
 wls.beta.vec <- sapply(1:B, rnd.wls.beta)
+head(wls.beta.vec)
 
 png(filename="inserts/hist.png",height=300,width=700)
 library(ggplot2)

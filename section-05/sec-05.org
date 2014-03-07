@@ -13,8 +13,7 @@ In general, you guys did really well on the problem set. I've put the answer key
 This section will briefly outline two general concepts, GLS and =ggplot=. We will examine the characteristics of generalized least squares (GLS), and specifically
 the efficiency gains from a special case of GLS, weighted least squares (WLS). We will then recreate the graphs from Figures 2.6 and 2.7, roughly, in the notes using =ggplot2= a very popular graphing package in =R=. \\
 
-Let $x \sim U(0,2000)$ and $\varepsilon \sim N(0,4x^2)$.  The underlying data generating process in (2.102) is $y_i = \alpha + x_i \beta + \varepsilon$, where $\alpha = 0.5$ and $\beta = 1.5$.  The objective is to plot the simulated sampling distribution of the OLS estimator applied to $B = 1000$ draws, each of size $n = 1000$.
-After creating a slightly more complex OLS function that returns standard errors, we'll create our simulated population.
+Let $x \sim U(0,2000)$ and $\varepsilon \sim N(0,400 \cdot \frac{1}{100} x_i^2)$, where $\sigma^2$ = 400 and $w_i(x_i) = \frac{1}{100} x^2$.[fn:: Careful readers will note that putting some constants into $\sigma^2$ and the constants in $w_i(x_i)$ is totally arbitrary, since different choices in this regard will result in weighting matrices =C= that differ only by a constant multiple. Since these are weight matrices, this will not change our result.]  The underlying data generating process in (2.102) is $y_i = \alpha + x_i \beta + \varepsilon_i$, where $\alpha = 0.5$ and $\beta = 1.5$.  The objective is to plot the simulated sampling distribution of the OLS estimator applied to $B = 1000$ draws, each of size $n = 1000$. After creating a slightly more complex OLS function that returns standard errors, we'll create our simulated population.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 set.seed(42)
@@ -27,11 +26,11 @@ OLS <- function(y,X) {
 }
 
 pop.n <- 1000000
-pop.x <- runif(pop.n, min=0, max=2000)
-pop.eps <- rnorm(pop.n, 0, sqrt((4*pop.x)^2))
+sigma <- 400
+pop.x <- runif(pop.n, min = 0, max = 2000)
+pop.w <- (1/100) * pop.x^2
+pop.eps <- rnorm(pop.n, mean = 0, sd = sqrt(sigma * pop.w)) # we use the sqrt of the variance because we are passing the standard deviation
 pop.y <- 0.5 + pop.x*1.5 + pop.eps
-
-n <- 1000
 #+end_src
 
 #+RESULTS:
@@ -39,6 +38,7 @@ n <- 1000
 Now we'll pull 1000 observations at random from our population --- this is our sample. With these, we can calculate the standard OLS parameter vector $[\ah \hspace{6pt} \bh]^{\prime}$ by noting that $\X$ is just the $x$ vector bound to a column of ones.  We will only examine $\hat{\beta}$ for this section, rather than both parameters.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
+n <- 1000
 indices <- sample(1:pop.n,n,replace=F)
 x <- pop.x[indices]
 y <- pop.y[indices]
@@ -49,7 +49,7 @@ print(b[2])
 #+end_src
 
 #+RESULTS:
-: [1] 1.50003
+: [1] 1.557292
 
 The =sample()= function samples randomly from a vector, here without replacement. We create =x= by using requesting a randomly sampled set of indices from =pop.x=. Let's package this into a function, called =rnd.beta=, so that we can collect the OLS parameter for an arbitrary number of random samples.
 
@@ -73,8 +73,8 @@ rnd.beta()
 #+end_src
 
 #+RESULTS:
-: [1] 1.505056
-: [1] 1.506192
+: [1] 1.638114
+: [1] 1.438083
 
 We could do this in a =for= loop (like last time), but for pedagogical purposes and to be more =R=-ish, this time we'll use =sapply= to apply the function to a list of effective indices. Now replicating the process for $B$ draws is straightforward:
 
@@ -86,26 +86,29 @@ mean(beta.vec)
 #+end_src
 
 #+RESULTS:
-: [1] 1.478133 1.493520 1.543434 1.501832 1.470017 1.507787
-: [1] 1.499734
+: [1] 1.574734 1.536203 1.594345 1.437183 1.399252 1.348865
+: [1] 1.498432
 
-All right.  Looking good.  The average of the simulated sample is much closer to $\beta$ than almost any individual call of =rnd.beta=, suggesting that the distribution of the simulated parameters will be unbiased.  Now, let's create another, similar function that returns the WLS estimates.
+All right.  Looking good.  The average of the simulated sample is much closer to $\beta$ than almost any individual call of =rnd.beta=, suggesting that the distribution of the simulated parameters will be unbiased.  Now, let's create another, similar function that returns the WLS estimates. Note that we follow the notes exactly in creating =C=, which is a diagonal matrix with $\frac{1}{\sqrt(w_i(x_i))} = \frac{1}{\sqrt(\frac{1}{100} x_i^2)} = \frac{10}{x_i}$ on the diagonals.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
 rnd.wls.beta <- function(i) {
   indices <- sample(1:pop.n,n,replace=F)
   x <- pop.x[indices]
   y <- pop.y[indices]
-  C <- diag(1 / sqrt(0.5 * x))
+  w <- pop.w[indices]
+  C <- diag(1 / sqrt(w)) # equivalent to: C <- diag(10 / x)
   y.wt <- C %*% y
   X.wt <- C %*% cbind(1, x)
   b.wt <- OLS(y.wt,X.wt)[ , 1]
   return(b.wt[2])
 }
 wls.beta.vec <- sapply(1:B, rnd.wls.beta)
+head(wls.beta.vec)
 #+end_src
 
 #+RESULTS:
+: [1] 1.175240 1.569361 1.340202 2.207822 0.821469 1.822597
 
 We now have two collections of parameter estimates, one based on OLS and another based on WLS.  It is straightforward to plot two separate histograms using =R='s core histogram plotting function =hist()=. However, we can use this to introduce a more flexible, powerful graphing package called =ggplot2=.
 
@@ -221,7 +224,7 @@ xtable(coef(summary(lm(wage ~ 1 + e1 + e2 + e3 + e4, data = data))))
 #+RESULTS:
 #+BEGIN_LaTeX
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
-% Wed Feb 26 13:16:31 2014
+% Fri Mar 07 11:59:46 2014
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrrrr}
@@ -251,7 +254,7 @@ b <- OLS(y,X)[ , 1]
 : Error in solve.default(t(X) %*% X) (from #3) :
 :   system is computationally singular: reciprocal condition number = 1.53843e-18
 
-Uh oh! What happened? =OLS()=, sadly, is not as smart as =lm()=, so it didn't automatically drop any of our dummy variables. Since the dummies sum to a column vector of ones, we violated A2: =X= does not have full column rank. We have a couple of options here: first, we can try dropping the intercept. 
+Uh oh! What happened? =OLS()=, sadly, is not as smart as =lm()=, so it didn't automatically drop any of our dummy variables. Since the dummies sum to a column vector of ones, we violated A2: =X= does not have full column rank. We have a couple of options here: first, we can try dropping the intercept.
 
 \newpage
 
@@ -262,12 +265,12 @@ xtable(b_dropint <- OLS(y,X[ , 2:5]))
 #+RESULTS:
 #+BEGIN_LaTeX
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
-% Wed Feb 26 13:16:55 2014
+% Fri Mar 07 11:59:47 2014
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrr}
   \hline
- & V1 & se \\
+ & b & se \\
   \hline
 e1 & 846.49 & 17.48 \\
   e2 & 966.99 & 30.13 \\
@@ -287,7 +290,7 @@ xtable(b_drop3 <- OLS(y,X[ , c(1,2,3,5)]))
 #+RESULTS:
 #+BEGIN_LaTeX
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
-% Wed Feb 26 13:36:01 2014
+% Fri Mar 07 11:59:47 2014
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrr}
@@ -324,7 +327,7 @@ xtable(OLS(wage,cbind(1,e2,e3,e4,age,age2)))
 #+RESULTS:
 #+BEGIN_LaTeX
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
-% Wed Feb 26 13:32:21 2014
+% Fri Mar 07 11:59:47 2014
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrr}
