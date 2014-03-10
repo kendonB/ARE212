@@ -14,6 +14,8 @@
 #+LATEX: \newcommand{\A}{{\bf A}}
 #+LATEX: \newcommand{\Bp}{{\bf B}^{\prime}}
 #+LATEX: \newcommand{\B}{{\bf B}}
+#+LATEX: \newcommand{\D}{{\bf D}}
+#+LATEX: \newcommand{\Dp}{{\bf D}^{\prime}}
 #+LATEX: \newcommand{\In}{{\bf I}_n}
 #+LATEX: \newcommand{\I}{{\bf I}}
 #+LATEX: \newcommand{\Mp}{{\bf M}^{\prime}}
@@ -24,6 +26,7 @@
 #+LATEX: \newcommand{\Rbp}{{\bf R}^{\prime}}
 #+LATEX: \newcommand{\Rb}{{\bf R}}
 #+LATEX: \newcommand{\Rsq}{{\bf R}^{2}}
+#+LATEX: \newcommand{\Sigmab}{{\bf \Sigma}}
 #+LATEX: \newcommand{\V}{\mathbb{V}}
 #+LATEX: \newcommand{\W}{{\bf W}}
 #+LATEX: \newcommand{\Xp}{{\bf X}^{\prime}}
@@ -32,12 +35,15 @@
 #+LATEX: \newcommand{\X}{{\bf X}}
 #+LATEX: \newcommand{\Y}{{\bf Y}}
 #+LATEX: \newcommand{\Z}{{\bf Z}}
+#+LATEX: \newcommand{\ab}{{\bf a}}
 #+LATEX: \newcommand{\ah}{\hat{\alpha}}
 #+LATEX: \newcommand{\aRsq}{{\bf \overline{R}}^{2}}
+#+LATEX: \newcommand{\betab}{\boldsymbol{\beta}}
 #+LATEX: \newcommand{\bh}{\hat{\beta}}
 #+LATEX: \newcommand{\bp}{{\bf b}^{\prime}}
 #+LATEX: \newcommand{\bs}{{\bf b}^{*}}
 #+LATEX: \newcommand{\code}[1]{\texttt{#1}}
+#+LATEX: \renewcommand{\d}{{\bf d}}
 #+LATEX: \newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
 #+LATEX: \newcommand{\ep}{{\bf e}^\prime}
 #+LATEX: \newcommand{\e}{{\bf e}}
@@ -58,6 +64,7 @@
 #+LATEX: \newcommand{\tp}{\tilde{p}}
 #+LATEX: \newcommand{\uRsq}{{\bf R}_{\text{uc}}^{2}}
 #+LATEX: \newcommand{\var}[1]{\textcolor{red}{\mbox{\texttt{#1}}}}
+#+LATEX: \newcommand{\eps}{\boldsymbol{\varepsilon}}
 #+LATEX: \newcommand{\w}{{\bf w}}
 #+LATEX: \newcommand{\x}{{\bf x}}
 #+LATEX: \newcommand{\yhp}{\hat{{\bf y}}^{\prime}}

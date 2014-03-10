@@ -1,132 +1,221 @@
-#+AUTHOR:
-#+TITLE:
-#+OPTIONS:     toc:nil num:nil
-#+LATEX_HEADER: \usepackage{mathrsfs}
-#+LATEX_HEADER: \usepackage{graphicx}
-#+LATEX_HEADER: \usepackage{booktabs}
-#+LATEX_HEADER: \usepackage{dcolumn}
-#+LATEX_HEADER: \usepackage{subfigure}
-#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
-#+LATEX_HEADER: \RequirePackage{fancyvrb}
-#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
-#+LATEX: \newcommand{\Rb}{{\bf R}}
-#+LATEX: \newcommand{\Rbp}{{\bf R}^{\prime}}
-#+LATEX: \newcommand{\Rsq}{R^{2}}
-#+LATEX: \newcommand{\ep}{{\bf e}^\prime}
-#+LATEX: \renewcommand{\e}{{\bf e}}
-#+LATEX: \renewcommand{\bh}{\hat{\beta}}
-#+LATEX: \renewcommand{\ah}{\hat{\alpha}}
-#+LATEX: \renewcommand{\r}{{\bf r}}
-#+LATEX: \renewcommand{\bp}{{\bf b}^{\prime}}
-#+LATEX: \renewcommand{\bs}{{\bf b}^{*}}
-#+LATEX: \renewcommand{\I}{{\bf I}}
-#+LATEX: \renewcommand{\X}{{\bf X}}
-#+LATEX: \renewcommand{\M}{{\bf M}}
-#+LATEX: \renewcommand{\A}{{\bf A}}
-#+LATEX: \renewcommand{\B}{{\bf B}}
-#+LATEX: \renewcommand{\C}{{\bf C}}
-#+LATEX: \renewcommand{\P}{{\bf P}}
-#+LATEX: \renewcommand{\Xp}{{\bf X}^{\prime}}
-#+LATEX: \renewcommand{\Xsp}{{\bf X}^{*\prime}}
-#+LATEX: \renewcommand{\Xs}{{\bf X}^{*}}
-#+LATEX: \renewcommand{\Mp}{{\bf M}^{\prime}}
-#+LATEX: \renewcommand{\y}{{\bf y}}
-#+LATEX: \renewcommand{\ys}{{\bf y}^{*}}
-#+LATEX: \renewcommand{\yp}{{\bf y}^{\prime}}
-#+LATEX: \renewcommand{\ysp}{{\bf y}^{*\prime}}
-#+LATEX: \renewcommand{\yh}{\hat{{\bf y}}}
-#+LATEX: \renewcommand{\yhp}{\hat{{\bf y}}^{\prime}}
-#+LATEX: \renewcommand{\In}{{\bf I}_n}
-#+LATEX: \renewcommand{\sigs}{\sigma^{2}}
-#+LATEX: \setlength{\parindent}{0in}
-#+STARTUP: fninline
+#+INCLUDE: ../orgpreamble.org
 
-\textbf{Generalized Least Squares and} \texttt{ggplot} \hfill
-*ARE212*: Section 07 \\ \\
+*Non-standard standard errors* \hfill
+*ARE212*: Section 07 \\ \hline \bigskip
 
-* A review of loops, a loopy review
+This week we'll be talking about various methods of computing functions of standard errors. We'll begin by discussing how to compute the standard error of a sum of two coefficients, followed by the more complex standard error of the prediction. Finally, we'll show how to compute nonlinear functions of coefficients.
 
-There were many questions about =R= code on the midterm, and
-especially code that will traverse a sequence of indices.  There are
-many ways to loop over a sequence and iterate on a function --- and we
-do this a lot in ARE212 to examine the behavior of different
-estimators.  I used =sapply()= to iterate over a sequence.  There are
-other ways to do this.  Let's consider an equivalent for-loop.
+* Standard error of a linear combination of coefficients
+Let's return to section 5 to think about wages. Suppose we run the following model:
+$$ \text{wage}_i = \alpha + \beta_1 \text{EDUC}_i + \beta_2 \text{TENURE}_i + \varepsilon_i $$
 
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  res <- rep(NA, B)
-  for (i in seq(B)) {
-    res[i] <- rnd.wls.beta()
-  }
-  print(head(res))
-#+end_src
+We can run this model in =R= as follows (after, of course, setting up our OLS function):
 
-#+results:
-: [1] 1.489108 1.491555 1.511507 1.500539 1.499187 1.513985
+#+begin_src R :results output latex :exports both :tangle yes :session
+OLS <- function(y,X) {
+  n <- nrow(X); k <- ncol(X)
+  b <- solve(t(X) %*% X) %*% t(X) %*% y; names(b) <- "Estimate"
+  e <- y - X %*% b; s2 <- t(e) %*% e / (n - k); XpXinv <- solve(t(X) %*% X)
+  se <- sqrt(s2 * diag(XpXinv)); names(se) <- "Std. Error"
+  t <- b / se; names(t) <- "t"
+  p <- 2 * pt(-abs(t),n-k); names(t) <- "p"
+  return(data.frame(b, se, t, p))
+}
 
-This is fine.  It works.  You have to pay attention, however, to the
-expressed indices instead of using them for implicit increments; and
-you have to preallocate a results vector which also can get confusing
-over large, sprawling projects.  Also, there are more lines of code
-(LOC) which is often used as a metric for inefficiency.  \\
-
-Another thing that might help avoid loops is something called
-/vectorized operations/.  Instead of looping through indices, is there
-a way to formulate the problem in terms of element-wise operations?
-Suppose, for example, that I want to generate a binary vector that
-indicates whether the value in one variable exceeds the value in
-another.
-
-#+begin_src R :results output graphics :exports both :tangle yes :session
-  x <- rnorm(10); y <- rnorm(10)
-  (D <- ifelse(x > y, 1, 0))
+library(foreign)
+library(xtable)
+data <- read.dta("http://fmwww.bc.edu/ec-p/data/wooldridge/wage2.dta")
+data <- data[ , c("wage", "educ", "tenure")]
+data <- na.omit(data)
+y <- data$wage
+X <- cbind(1,data$educ,data$tenure)
+OLS.out <- OLS(y,X)
+xtable(OLS.out)
 #+end_src
 
 #+RESULTS:
-:  [1] 0 1 1 0 0 0 0 1 1 0
+#+BEGIN_LaTeX
+% latex table generated in R 3.0.3 by xtable 1.7-3 package
+% Sun Mar 09 23:53:47 2014
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & b & se & t & p \\
+  \hline
+1 & 53.52 & 79.56 & 0.67 & 0.50 \\
+  2 & 61.15 & 5.64 & 10.84 & 0.00 \\
+  3 & 11.18 & 2.44 & 4.58 & 0.00 \\
+   \hline
+\end{tabular}
+\end{table}
+#+END_LaTeX
 
-The function =ifelse()= operates on each individual element of the
-equal-length =x= and =y= vectors.  No looping necessary.  This comes
-up a lot; and you should definitely make use of (and document) this
-behavior when available.  This doesn't always work, however,
-especially when we are trying to generate a random vector.  Suppose we
-want to create a vector where the elements are pulled from different
-distributions, depending on the value of =D=.
+Great!
+
+But suppose the actual coefficients aren't what you actually care about. Maybe what you /really/ want to compute is the additional wage benefit[fn:: Here I ask you to make the appropriate suspension of disbelief w.r.t the causal nature of this model.] of three years of education and two years at a company. Let's call it $d = 3 b_1 + 2 b_2$. Kind of weird, but easy enough:
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-  factor(x <- ifelse(D == 1, runif(1), rnorm(1)))
+(d <- 3 * OLS.out[2,1] + 2 * OLS.out[3,1])
 #+end_src
 
 #+RESULTS:
-:  [1] 0.146645265993786   0.00228817900642753 0.00228817900642753
-:  [4] 0.146645265993786   0.146645265993786   0.146645265993786
-:  [7] 0.146645265993786   0.00228817900642753 0.00228817900642753
-: [10] 0.146645265993786
-: Levels: 0.00228817900642753 0.146645265993786
+: [1] 205.7979
 
-What happened?  There are only two values in this vector.  The random
-value was generated before the vectorized boolean check.  This is
-equivalent, then, to the code by which we generated =D= in the first
-place.  To fix this problem, we may have to apply the function to each
-value within the reference vector:
+However, this isn't really a meaningful answer without standard errors. How do we get those? If we were using =Stata=, the immediate answer is =lincom=. And in fact, there are canned functions in =R= that can do the same thing. But it's more interesting to do it by hand, and it gives us the opportunity to demonstrate three different ways of computing standard errors.
+
+** Analytical method
+The first way is the analytical method. Here, it's fairly straightforward to compute the variance of $d$ using the properties of the variance formula:
+\begin{align*}
+V(d) &= V(3 b_1 + 2 b_2) \\
+V(d) &= 9 V(b_1) + 4 V( b_2) + (3 \times 2) \text{ Cov}(b_1,b_2)\\
+\end{align*}
+Fortunately, we can easily get estimates for $V(b_1)$, $V(b_2)$, and $\text{Cov}(b_1,b_2)$ by computing the variance-covariance matrix of the coefficients: $V(\b) = s^2 (\X' X)^{-1}$. They will be the entries in (2,2), (3,3), and (2,3), respectively. To make this easier, we'll write a function that returns this matrix.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-  randme <- function(d) {
-    if (d == 1) {
-      r <- runif(1)
-    } else {
-      r <- rnorm(1, mean = 100, sd = 19)
-    }
-    return(r)
-  }
-
-  factor(x <- sapply(D, randme))
+vcov <- function(y, X)  {
+  n <- nrow(X); k <- ncol(X)
+  b <- solve(t(X) %*% X) %*% t(X) %*% y
+  e <- y - X %*% b
+  s2 <- t(e) %*% e / (n - k)
+  XpXinv <- solve(t(X) %*% X)
+  vcov <- s2[1,1] * XpXinv
+  return(vcov)
+}
+vcov <- vcov(y,X)
+var.b1 <- vcov[2,2]
+var.b2 <- vcov[3,3]
+cov.b1b2 <- vcov[2,3]
+(d.se <- sqrt(9 * var.b1 + 4 * var.b2 + 3*2*cov.b1b2))
 #+end_src
 
 #+RESULTS:
-:  [1] 0.545478682033718 97.0212761082557  0.589886064874008 0.781325699063018
-:  [5] 108.67800788386   0.868332070531324 54.3405163802937  0.810937537113205
-:  [9] 0.857683679787442 101.00935385884
-: 10 Levels: 0.545478682033718 0.589886064874008 ... 108.67800788386
+: [1] 17.69076
 
-:
+Great! We now know that our estimate of $d$ is 205.8 with a standard error of 17.7. We can verify this in =R= using the =estimable()= command in the =gmodels= package (you may have to install it).
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+library(gmodels)
+lm <- lm(data$wage ~ data$educ + data$tenure)
+hm <- c(0,3,2)
+estimable(lm, hm)
+#+end_src
+
+#+RESULTS:
+:         Estimate Std. Error  t value  DF Pr(>|t|)
+: (0 3 2) 205.7979   17.77496 11.57797 932        0
+
+** Delta method
+Let $\A(\betab) \equiv \frac{\partial \ab (\betab)}{\partial \betab'}$. From Max's notes, we know the following:
+$$ \sqrt{N}(\x_N - \betab) \xrightarrow{d} N(\bf{0}, \Sigmab) \Rightarrow \sqrt{N} (\ab (\x_N) - \ab (\betab)) \xrightarrow{d} N(\bf{0}, \A (\betab) \Sigma \A} (\betab)')$$
+
+This looks intimidating, but it's actually fairly straightforward to bend it to our setting. Let $\x_N \equiv \b$ and $\ab(\x_N) \equiv d(\betab)$.  This gives us that $\A \equiv \D(\betab) = [ 0 \hspace{5pt} 3\hspace{5pt} 2 ]}$.\\
+
+We know from the proof in section 4.2 of the lecture notes that $\sqrt{N}(\b - \betab) \xrightarrow{d} N(\bf{0}, \sigs (\X'\X)^{-1})$, so we immediately get that $V(d) \approx \D \sigs (\X'\X)^{-1} \D'$. So to approximate the variance of our linear combination of coefficients, $d$, all we have to do is pre- and post-multiply $\sigs (\X'\X)^{-1}$ by the gradient of $d$, $\D$. As usual, the standard error is just the square root of the variance. Putting it all together gives us our answer:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+D <- matrix(c(0,3,2), ncol = 3)
+(sqrt(D %*% vcov %*% t(D)))
+#+end_src
+
+#+RESULTS:
+:          [,1]
+: [1,] 17.77496
+
+Wow! It works! I'm as surprised as you are.
+
+** Bootstrapping the standard errors
+
+* Computing the standard error of the prediction
+The standard error the prediction is an important quantity for econometricians who are interested in forecasting. It answers the question "how much variation should I expect to see when I use the coefficients from OLS to predict other values of y?" Modern statistical software has built-routines to calculate the prediction and the standard error of the prediction, but it's useful to know the calculation is performed. In fact, since we're using linear models, the prediction is just another linear combination!
+
+Our model is
+$$ \y = \X \b + \eps $$
+We want to compute $V(e^0) = V(\hat{y}^0 - y^0)$, the variance of the error in prediction for a particular set of covariates $\x^0$.
+** Analytical
+First, we can calculate the variance analytically. This is similar in spirit to the analytical exercise above, but since we are working with more complex objects (coefficients, data, and disturbances), we'll use matrix notation. Still, everything that follows is just algebra and the use of the properties of the variance function.
+\begin{align*}
+V(\hat{y}^0 - y^0) & = V(\X^0 \b - \X^0 \betab - \eps^0) \\
+& = \sigs + V(\X^0 ( \b - \betab)) \\
+& = \sigs + V(\X^0 \b ) \\
+& = \sigs + \X^0 V(\b) \Xp^0 \\
+& = \sigs + \X^0 \sigs (\Xp \X)^{-1} \Xp^0 \\
+& = \sigs( 1 + \X^0 (\Xp \X)^{-1} \Xp^0 )
+\end{align*}
+
+Of course, using the $y^0$ and $\X^0$ is only to make the point that we are actually computing the standard error of the prediction for a single set of data $\X^0$. Practically, we can tell =R= to compute the standard errors for all of observations all at once. We'll demonstrate using the =iris= dataset built into =R= and attempt to predict sepal length from sepal width and petal width[fn:: Dammit Jim, I'm a doctor, not a botanist!].
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+iris.df <- iris
+y <- iris.df$Sepal.Length
+X <- cbind(1, iris.df$Sepal.Width, iris.df$Petal.Width)
+b <- OLS(y,X)[ ,1]
+head(pred.y <- X %*% b)
+#+end_src
+
+#+RESULTS:
+:          [,1]
+: [1,] 5.048507
+: [2,] 4.848972
+: [3,] 4.928786
+: [4,] 4.888879
+: [5,] 5.088414
+: [6,] 5.402561
+
+Getting the predictions for our data $\X$ is the easy part. Now we want to get some estimate of the standard error on these predictions. We'll do so using the formula we derived above:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+e <- y - X %*% b
+n <- nrow(X); k <- ncol(X)
+s2 <- t(e) %*% e / (n - k)
+XpXinv <- solve(t(X) %*% X)
+pred.se <- diag(sqrt(s2[1,1] * (1 + X %*% XpXinv %*% t(X))))
+head(pred.se)
+#+end_src
+
+#+RESULTS:
+: [1] 0.4556677 0.4558185 0.4552114 0.4554239 0.4561838 0.4583894
+
+To verify, we can use =lm()= and =predict()=:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+lm <- lm(Sepal.Length ~ Sepal.Width + Petal.Width, data = iris.df)
+predict.out <- predict(lm, se.fit = T)
+all.equal(as.vector(predict.out$fit),as.vector(pred.y))
+all.equal(as.vector(predict.out$se.fit),as.vector(pred.se))
+#+end_src
+
+#+RESULTS:
+: [1] TRUE
+: [1] "Mean relative difference: 6.394198"
+
+Something's not right. Let's investigate.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+head(predict.out$se.fit)
+head(pred.se)
+#+end_src
+
+#+RESULTS:
+: [1] 0.06446854 0.06552559 0.06116029 0.06272227 0.06802035 0.08151061
+: [1] 0.4556677 0.4558185 0.4552114 0.4554239 0.4561838 0.4583894
+
+Hm. That looks fishy.  I'll spare you the suspense --- =R= apparently has a different definition of the standard error of the prediction, and is returning the square root of $V(\hat{y}^0)$, rather than the square root of $V(\hat{y}^0 - y^0)$. This is why you should be careful with canned results! Anyway --- we can replicate what they have easily:
+#+begin_src R :results output graphics :exports both :tangle yes :session
+pred.se.2 <- diag(sqrt(s2[1,1] * (X %*% XpXinv %*% t(X))))
+all.equal(as.vector(predict.out$se.fit),as.vector(pred.se.2))
+#+end_src
+
+#+RESULTS:
+: Warning message:
+: In sqrt(s2[1, 1] * (X %*% XpXinv %*% t(X))) : NaNs produced
+: [1] TRUE
+
+Just pretend that warning message isn't there.
+
+** Delta method
+
+To use the delta method, we'll use that $V(\hat{y}^0 - y^0) =
+
+We'll do the same thing we did earlier to use the Delta method. This time, $\d (\betab, \eps) \equiv \X \betab + \eps$, so $\D(\betab, \eps) = [1 \hspace{5pt} \x_1 \hspace{5pt} \x_2 \hspace{5pt} 1]$, where $\x_1$ is our vector of sepal widths and $\x_2$ is our vector of petal widths.
+* Non-linear functions of coefficients

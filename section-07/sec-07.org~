@@ -1,0 +1,132 @@
+#+AUTHOR:
+#+TITLE:
+#+OPTIONS:     toc:nil num:nil
+#+LATEX_HEADER: \usepackage{mathrsfs}
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage{booktabs}
+#+LATEX_HEADER: \usepackage{dcolumn}
+#+LATEX_HEADER: \usepackage{subfigure}
+#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+#+LATEX: \newcommand{\Rb}{{\bf R}}
+#+LATEX: \newcommand{\Rbp}{{\bf R}^{\prime}}
+#+LATEX: \newcommand{\Rsq}{R^{2}}
+#+LATEX: \newcommand{\ep}{{\bf e}^\prime}
+#+LATEX: \renewcommand{\e}{{\bf e}}
+#+LATEX: \renewcommand{\bh}{\hat{\beta}}
+#+LATEX: \renewcommand{\ah}{\hat{\alpha}}
+#+LATEX: \renewcommand{\r}{{\bf r}}
+#+LATEX: \renewcommand{\bp}{{\bf b}^{\prime}}
+#+LATEX: \renewcommand{\bs}{{\bf b}^{*}}
+#+LATEX: \renewcommand{\I}{{\bf I}}
+#+LATEX: \renewcommand{\X}{{\bf X}}
+#+LATEX: \renewcommand{\M}{{\bf M}}
+#+LATEX: \renewcommand{\A}{{\bf A}}
+#+LATEX: \renewcommand{\B}{{\bf B}}
+#+LATEX: \renewcommand{\C}{{\bf C}}
+#+LATEX: \renewcommand{\P}{{\bf P}}
+#+LATEX: \renewcommand{\Xp}{{\bf X}^{\prime}}
+#+LATEX: \renewcommand{\Xsp}{{\bf X}^{*\prime}}
+#+LATEX: \renewcommand{\Xs}{{\bf X}^{*}}
+#+LATEX: \renewcommand{\Mp}{{\bf M}^{\prime}}
+#+LATEX: \renewcommand{\y}{{\bf y}}
+#+LATEX: \renewcommand{\ys}{{\bf y}^{*}}
+#+LATEX: \renewcommand{\yp}{{\bf y}^{\prime}}
+#+LATEX: \renewcommand{\ysp}{{\bf y}^{*\prime}}
+#+LATEX: \renewcommand{\yh}{\hat{{\bf y}}}
+#+LATEX: \renewcommand{\yhp}{\hat{{\bf y}}^{\prime}}
+#+LATEX: \renewcommand{\In}{{\bf I}_n}
+#+LATEX: \renewcommand{\sigs}{\sigma^{2}}
+#+LATEX: \setlength{\parindent}{0in}
+#+STARTUP: fninline
+
+\textbf{Generalized Least Squares and} \texttt{ggplot} \hfill
+*ARE212*: Section 07 \\ \\
+
+* A review of loops, a loopy review
+
+There were many questions about =R= code on the midterm, and
+especially code that will traverse a sequence of indices.  There are
+many ways to loop over a sequence and iterate on a function --- and we
+do this a lot in ARE212 to examine the behavior of different
+estimators.  I used =sapply()= to iterate over a sequence.  There are
+other ways to do this.  Let's consider an equivalent for-loop.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+  res <- rep(NA, B)
+  for (i in seq(B)) {
+    res[i] <- rnd.wls.beta()
+  }
+  print(head(res))
+#+end_src
+
+#+results:
+: [1] 1.489108 1.491555 1.511507 1.500539 1.499187 1.513985
+
+This is fine.  It works.  You have to pay attention, however, to the
+expressed indices instead of using them for implicit increments; and
+you have to preallocate a results vector which also can get confusing
+over large, sprawling projects.  Also, there are more lines of code
+(LOC) which is often used as a metric for inefficiency.  \\
+
+Another thing that might help avoid loops is something called
+/vectorized operations/.  Instead of looping through indices, is there
+a way to formulate the problem in terms of element-wise operations?
+Suppose, for example, that I want to generate a binary vector that
+indicates whether the value in one variable exceeds the value in
+another.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+  x <- rnorm(10); y <- rnorm(10)
+  (D <- ifelse(x > y, 1, 0))
+#+end_src
+
+#+RESULTS:
+:  [1] 0 1 1 0 0 0 0 1 1 0
+
+The function =ifelse()= operates on each individual element of the
+equal-length =x= and =y= vectors.  No looping necessary.  This comes
+up a lot; and you should definitely make use of (and document) this
+behavior when available.  This doesn't always work, however,
+especially when we are trying to generate a random vector.  Suppose we
+want to create a vector where the elements are pulled from different
+distributions, depending on the value of =D=.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+  factor(x <- ifelse(D == 1, runif(1), rnorm(1)))
+#+end_src
+
+#+RESULTS:
+:  [1] 0.146645265993786   0.00228817900642753 0.00228817900642753
+:  [4] 0.146645265993786   0.146645265993786   0.146645265993786
+:  [7] 0.146645265993786   0.00228817900642753 0.00228817900642753
+: [10] 0.146645265993786
+: Levels: 0.00228817900642753 0.146645265993786
+
+What happened?  There are only two values in this vector.  The random
+value was generated before the vectorized boolean check.  This is
+equivalent, then, to the code by which we generated =D= in the first
+place.  To fix this problem, we may have to apply the function to each
+value within the reference vector:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+  randme <- function(d) {
+    if (d == 1) {
+      r <- runif(1)
+    } else {
+      r <- rnorm(1, mean = 100, sd = 19)
+    }
+    return(r)
+  }
+
+  factor(x <- sapply(D, randme))
+#+end_src
+
+#+RESULTS:
+:  [1] 0.545478682033718 97.0212761082557  0.589886064874008 0.781325699063018
+:  [5] 108.67800788386   0.868332070531324 54.3405163802937  0.810937537113205
+:  [9] 0.857683679787442 101.00935385884
+: 10 Levels: 0.545478682033718 0.589886064874008 ... 108.67800788386
+
+:
