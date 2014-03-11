@@ -46,7 +46,7 @@ Or not. Why are we getting an error? Because we haven't specified any layers.
 
 We've specified our data, and our aesthetics, but not our /graphical layers/ (i.e. geometric shapes). Here, we'll add a layer of points:
 
-#+begin_src R :results output graphics :file inserts/fig3.png :width 600 :height 200 :session :tangle yes :exports bot
+#+begin_src R :results output graphics :file inserts/fig3.png :width 600 :height 200 :session :tangle yes :exports both
 g + geom_point()
 #+end_src
 

@@ -14,17 +14,20 @@ We can run this model in =R= as follows (after, of course, setting up our OLS fu
 #+begin_src R :results output latex :exports both :tangle yes :session
 OLS <- function(y,X) {
   n <- nrow(X); k <- ncol(X)
-  b <- solve(t(X) %*% X) %*% t(X) %*% y; names(b) <- "Estimate"
+  b <- solve(t(X) %*% X) %*% t(X) %*% y
   e <- y - X %*% b; s2 <- t(e) %*% e / (n - k); XpXinv <- solve(t(X) %*% X)
-  se <- sqrt(s2 * diag(XpXinv)); names(se) <- "Std. Error"
-  t <- b / se; names(t) <- "t"
-  p <- 2 * pt(-abs(t),n-k); names(t) <- "p"
-  return(data.frame(b, se, t, p))
+  se <- sqrt(s2 * diag(XpXinv))
+  t <- b / se
+  p <- 2 * pt(-abs(t),n-k)
+  output <- data.frame(b, se, t, p)
+  colnames(output) <- c("Estimate","Std. Error", "t statistic", "p-value")
+  return(output)
 }
 
 library(foreign)
 library(xtable)
-data <- read.dta("http://fmwww.bc.edu/ec-p/data/wooldridge/wage2.dta")
+#data <- read.dta("http://fmwww.bc.edu/ec-p/data/wooldridge/wage2.dta")
+data <- read.dta("wage2.dta")
 data <- data[ , c("wage", "educ", "tenure")]
 data <- na.omit(data)
 y <- data$wage
@@ -36,12 +39,12 @@ xtable(OLS.out)
 #+RESULTS:
 #+BEGIN_LaTeX
 % latex table generated in R 3.0.3 by xtable 1.7-3 package
-% Sun Mar 09 23:53:47 2014
+% Mon Mar 10 23:55:04 2014
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrrrr}
   \hline
- & b & se & t & p \\
+ & Estimate & Std. Error & t statistic & p-value \\
   \hline
 1 & 53.52 & 79.56 & 0.67 & 0.50 \\
   2 & 61.15 & 5.64 & 10.84 & 0.00 \\
@@ -73,16 +76,16 @@ V(d) &= 9 V(b_1) + 4 V( b_2) + (3 \times 2) \text{ Cov}(b_1,b_2)\\
 Fortunately, we can easily get estimates for $V(b_1)$, $V(b_2)$, and $\text{Cov}(b_1,b_2)$ by computing the variance-covariance matrix of the coefficients: $V(\b) = s^2 (\X' X)^{-1}$. They will be the entries in (2,2), (3,3), and (2,3), respectively. To make this easier, we'll write a function that returns this matrix.
 
 #+begin_src R :results output graphics :exports both :tangle yes :session
-vcov <- function(y, X)  {
+get.vcov <- function(y, X)  {
   n <- nrow(X); k <- ncol(X)
   b <- solve(t(X) %*% X) %*% t(X) %*% y
   e <- y - X %*% b
-  s2 <- t(e) %*% e / (n - k)
+  s2 <- as.vector(t(e) %*% e / (n - k))
   XpXinv <- solve(t(X) %*% X)
-  vcov <- s2[1,1] * XpXinv
+  vcov <- s2 * XpXinv
   return(vcov)
 }
-vcov <- vcov(y,X)
+vcov <- get.vcov(y,X)
 var.b1 <- vcov[2,2]
 var.b2 <- vcov[3,3]
 cov.b1b2 <- vcov[2,3]
@@ -167,9 +170,9 @@ Getting the predictions for our data $\X$ is the easy part. Now we want to get s
 #+begin_src R :results output graphics :exports both :tangle yes :session
 e <- y - X %*% b
 n <- nrow(X); k <- ncol(X)
-s2 <- t(e) %*% e / (n - k)
+s2 <- as.vector(t(e) %*% e / (n - k))
 XpXinv <- solve(t(X) %*% X)
-pred.se <- diag(sqrt(s2[1,1] * (1 + X %*% XpXinv %*% t(X))))
+pred.se <- diag(sqrt(s2 * (1 + X %*% XpXinv %*% t(X))))
 head(pred.se)
 #+end_src
 
@@ -202,20 +205,111 @@ head(pred.se)
 
 Hm. That looks fishy.  I'll spare you the suspense --- =R= apparently has a different definition of the standard error of the prediction, and is returning the square root of $V(\hat{y}^0)$, rather than the square root of $V(\hat{y}^0 - y^0)$. This is why you should be careful with canned results! Anyway --- we can replicate what they have easily:
 #+begin_src R :results output graphics :exports both :tangle yes :session
-pred.se.2 <- diag(sqrt(s2[1,1] * (X %*% XpXinv %*% t(X))))
+pred.se.2 <- sqrt(diag(s2 * (X %*% XpXinv %*% t(X))))
+head(pred.se.2)
 all.equal(as.vector(predict.out$se.fit),as.vector(pred.se.2))
 #+end_src
 
 #+RESULTS:
-: Warning message:
-: In sqrt(s2[1, 1] * (X %*% XpXinv %*% t(X))) : NaNs produced
+: [1] 0.06446854 0.06552559 0.06116029 0.06272227 0.06802035 0.08151061
 : [1] TRUE
 
-Just pretend that warning message isn't there.
+Whew. Mystery solved. Note that =predict()= /does/ know how to return the 95% prediction interval, and will do so if we set interval = "prediction".
 
 ** Delta method
+To use the delta method, we'll use that $V(\hat{y}^0 - y^0) = \sigs + V(\X^0 \b )$. Now we'll use the delta method to compute V(\X^0 \b). Let $\ab \equiv X^0 \b$ and $\A \equiv X^0$. This gives us the following familiar result:
+$$ V(\hat{y}^0 - y^0) = \sigs + \X^0 \sigs (\X'\X)^{-1} \Xp^0  = \sigs( 1 + \X^0 (\Xp \X)^{-1} \Xp^0 )$$
 
-To use the delta method, we'll use that $V(\hat{y}^0 - y^0) =
-
-We'll do the same thing we did earlier to use the Delta method. This time, $\d (\betab, \eps) \equiv \X \betab + \eps$, so $\D(\betab, \eps) = [1 \hspace{5pt} \x_1 \hspace{5pt} \x_2 \hspace{5pt} 1]$, where $\x_1$ is our vector of sepal widths and $\x_2$ is our vector of petal widths.
+In this case, the "approximation" provided by the delta method is really the true variance that we calculated earlier using our analytical method! This is because the delta method uses a first-order Taylor approximation, which is only an approximation when our function $\ab$ has second-order terms.
 * Non-linear functions of coefficients
+So far, we've only computed linear functions of coefficients. That's pretty cool, but suppose we're interested in some /non-linear/ function of the coefficients. How do we compute the standard errors? Let's take an example[fn:: Credit for this example goes to Dason Kurkiewicz, whose post at http://dasonk.github.io/r/2013/02/09/Using-the-delta-method/ inspired this section.]. \\
+
+Suppose we are running a quadratic regression model:
+$$y_i = \alpha + \beta_1 x_i + \beta_2 x_i^2 + \varepsilon_i$$
+
+First, we'll simulate some data.
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+set.seed(42)
+n <- 50
+x <- runif(n,0,8)
+x2 <- x^2
+eps <- rnorm(n,0,5)
+X <- cbind(1, x, x2)
+beta <- c(3, 8, -1)
+y <- X %*% beta + eps
+b <- OLS(y,X)[ ,1]
+#+end_src
+
+#+RESULTS:
+
+We'll graph this using a quadratic fit line. This is cheating, since normally we'd look at the scatterplot of our data, see the quadratic trend, and /then/ fit the line, but you get the idea.
+
+#+begin_src R :results output graphics :file inserts/fig1.png :width 600 :height 300 :session :tangle yes :exports both
+library(ggplot2)
+curve.df <- data.frame(y,x)
+(g <- ggplot(data = curve.df, aes(x=x, y=y)) + geom_point()
+      + geom_smooth(method="lm", formula = y ~ x + I(x^2)))
+#+end_src
+
+#+RESULTS:
+[[file:inserts/fig1.png]]
+
+This is great. We specified a quadratic model in our simulation and a quadratic line seems to fit!  But what we /really/ want to know is the value of $x$ for which the maximum of the line is reached. Computing this for a regression is easy enough: the maximum value will always occur at $x = \frac{-\beta_1}{2\beta_2}$. Let's plot this again, but this time we'll draw two vertical lines: one that shows the true $x$ that gives the maximum value (spoiler alert: it's $x_{max}=4$) and one that shows the one we can compute using the formula $x_{max} = \frac{-b_1}{2*b_2}$.
+
+#+begin_src R :results output graphics :file inserts/fig2.png :width 600 :height 300 :session :tangle yes :exports both
+true.xmax <- -beta[2] / (2 * beta[3])
+est.xmax <- -b[2] / (2 * b[3])
+(g<- g + geom_vline(xintercept = trueint, colour = "green", size=1)
+   + geom_vline(xintercept = estint, colour = "red", size=1))
+#+end_src
+
+#+RESULTS:
+[[file:inserts/fig2.png]]
+
+
+Due to the noise of the data, we haven't quite approximated the true maximum (although this is actually quite good for 50 observations with plenty of variance!). But what about the standard errors?
+
+** Analytically
+It is, in principle, possible to compute the standard errors of $x_{max} = -\frac{b_1}{2b_2}$ analytically. We can think of the components of our coefficient vector $\b$ as random variables themselves (otherwise how would we be getting their variances), so all $V(x_{max})$ is just the variance of the ratio of two random variables. But this is where I get off the train --- the formula is totally horrible[fn:: You really want to know? See "ON THE ARITHMETIC MEANS AND VARIANCES
+OF PRODUCTS AND RATIOS OF RANDOM VARIABLES" by Fred Fishman, 1971.]. No more will be said of it.
+
+** Delta method
+Forget using the delta method for sums of variables. Where it /really/ shines is in enabling lazy econometricians like myself easily calculate the standard errors of products and quotients (or worse!) of coefficients. As usual, we let $\ab(\beta) = x_{max}(\beta_1, \beta_2) = -\frac{\beta_1}{2 \beta_2}$, which gives that $\A = [-\frac{1}{\beta_2} \hspace{5pt} \frac{\beta_1}{\beta_2^2}]'$. This gives us our delta method approximation of $V(x_{max}) = \A V(\beta) \Ap = \sigs \A (\X'\X)^{-1} \Ap$. As usual, we'll replace the population parameters with their sample equivalents.
+
+Computationally, this is straightforward:
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+b1 <- b[2]; b2 <- b[3]
+A <- matrix(c(0, -1 / (2 * b2), b1 / (2* b2^2)), nrow = 1)
+vcov <- get.vcov(y,X)
+(se.xmax <- sqrt(A %*% vcov %*% t(A)))
+#+end_src
+
+#+RESULTS:
+:          [,1]
+: [1,] 0.191088
+
+Just to make sure we're doing this right, we'll compute the standard errors using the =deltamethod= function from the =msm= package (which you may need to install):
+
+#+begin_src R :results output graphics :exports both :tangle yes :session
+o <- lm(y ~ x + I(x^2))
+library(msm)
+(standerr <- deltamethod(~-x2/(2 * x3), coef(o), vcov(o)))
+#+end_src
+
+#+RESULTS:
+: [1] 0.191088
+
+*Kablammo!* For the coup de grace, we'll graph this again, this time with the 95% confidence intervals around our estimate. This is a good time to marvel at how nice it is to progressively build graphs in =ggplot2=.
+
+#+begin_src R :results output graphics :file inserts/fig3.png :width 600 :height 300 :session :tangle yes :exports both
+ci <- est.xmax + c(-1, 1) * qt(0.975, n-k) * se.xmax
+(g + geom_vline(xintercept = ci[1], colour = "red", size=1, linetype="dashed", alpha=0.5)
+   + geom_vline(xintercept = ci[2], colour = "red", size=1, linetype="dashed", alpha=0.5))
+#+end_src
+
+#+RESULTS:
+[[file:inserts/fig3.png]]
+
+*KAPOWEE!* The 95% confidence interval contains the true estimate! And we're done.
