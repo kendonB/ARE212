@@ -92,8 +92,8 @@ dev.off()
 png(filename="inserts/fig2.png",height=300,width=600)
 true.xmax <- -beta[2] / (2 * beta[3])
 est.xmax <- -b[2] / (2 * b[3])
-(g<- g + geom_vline(xintercept = trueint, colour = "green", size=1)
-   + geom_vline(xintercept = estint, colour = "red", size=1))
+(g<- g + geom_vline(xintercept = true.xmax, colour = "green", size=1)
+   + geom_vline(xintercept = est.xmax, colour = "red", size=1))
 dev.off()
 
 b1 <- b[2]; b2 <- b[3]

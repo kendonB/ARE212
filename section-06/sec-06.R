@@ -62,7 +62,7 @@ y <- X %*% b.true + eps
 
 log.likelihood.optim <- function(theta) {
   sigma2 <- tail(theta, n = 1)
-  b <- theta[1:nrow(b)]
+  b <- theta[1:length(theta)-1]
   e <- y - X %*% b
   output <- -n/2*log(2*pi) - n/2*log(sigma2) - 1/(2 * sigma2) * t(e) %*% e
   return(-output)
