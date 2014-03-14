@@ -61,7 +61,7 @@ pred.se <- diag(sqrt(s2 * (1 + X %*% XpXinv %*% t(X))))
 head(pred.se)
 
 lm <- lm(Sepal.Length ~ Sepal.Width + Petal.Width, data = iris.df)
-predict.out <- predict(lm, se.fit = T)
+predict.out <- predict(lm, se.fit = T, interval = "confidence")
 all.equal(as.vector(predict.out$fit),as.vector(pred.y))
 all.equal(as.vector(predict.out$se.fit),as.vector(pred.se))
 
@@ -71,6 +71,15 @@ head(pred.se)
 pred.se.2 <- sqrt(diag(s2 * (X %*% XpXinv %*% t(X))))
 head(pred.se.2)
 all.equal(as.vector(predict.out$se.fit),as.vector(pred.se.2))
+# now we can get the confidence interval and the prediction intervals
+t.thresh <- qt(0.975, 47)
+
+pred.int.low <- pred.y - pred.se * t.thresh
+pred.int.high <- pred.y + pred.se * t.thresh
+
+conf.int.low <- pred.y - pred.se.2 * t.thresh
+conf.int.high <- pred.y + pred.se.2 * t.thresh
+
 
 set.seed(42)
 n <- 50
