@@ -77,8 +77,6 @@ getb <- function(draw, pop.n, pop.y, pop.X) {
   indices <- sample(1:pop.n, n)
   y <- pop.y[indices]
   X <- pop.X[indices, ]
-  #XpXinv <- solve(t(X) %*% X)
-  #print(XpXinv)
   OLS.out <- OLS(y,X)  
   b <- OLS.out[ ,1]
   return(b)
