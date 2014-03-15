@@ -226,7 +226,7 @@ g3 <- make.plots(blist.3) + ggtitle("Bimodal gamma errors")
 
 Our function =makehist= returns a graph a histogram, smoothed density, and a normal curve with the same mean and standard deviation as the data, so we just run it 4 times to get our 4 graphs (one for each list of our estimated $b$ values). Next, we'll use the =gridExtra= package (which you may need to install) to display the graphs together, just as we did with our errors. Note that we use =gridExtra= and not the =facets= command as we did before just because =facets= wasn't displaying the normal distribution correctly. What we'd like to see is that our smoothed density function and histogram look roughly similar to the normal distribution. Cross your fingers!
 
-#+begin_src R :results output graphics :file inserts/fig2.png :width 800 :height 500 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig3.png :width 800 :height 500 :session :tangle yes :exports both
 library(gridExtra)
 grid.arrange(g0, g1, g2, g3, ncol = 2)
 #+end_src
