@@ -7,7 +7,7 @@ In this section we'll briefly clarify some concepts from last time, and then we'
 
 * The difference between prediction and confidence intervals
 
-Last week I punted on demonstrating the difference between prediction and confidence intervals. It turns out that we had already demonstrated the difference between the two of them, I just didn't label them correctly. To remind you, we had the following population model:
+Last week I punted on demonstrating the difference between prediction and confidence intervals. As it turns out, we mostly already showed the difference, but I didn't label them correctly. To remind you, we had the following population model:
 $$ \y = \X \b + \eps $$
 We computed that the variance of the /individual prediction/, $V(\hat{y}^0 - y^0)$ and the variance of the /mean prediction/, $V(\hat{y}^0)$, and showed they are different estimates[fn:: Simon Jackman has a nice, complete exploration of this topic here: http://jackman.stanford.edu/classes/350B/07/predictionforWeb.pdf.]:
 
@@ -65,7 +65,7 @@ predint.t <- cbind(pred.y - crit.t * pred.se, pred.y+ crit.t * pred.se)
 
 #+RESULTS:
 
-We could have also calculated and checked these using =predict()=. But they're right. Trust me. Now, let's graph these to see what we have!
+We could have also calculated and checked the intervals using =predict()=. But they're right. Trust me. Now we'll use =ggplot2='s =geom_ribbon()= function to plot them.
 
 #+begin_src R :results output graphics :file inserts/fig1.png :width 800 :height 500 :session :tangle yes :exports both
 draw.df <- data.frame(X[ ,2], y, pred.y, confint.t, predint.t)
@@ -80,15 +80,13 @@ library(ggplot2)
 #+RESULTS:
 [[file:inserts/fig1.png]]
 
-
-Of course... we could also have just looked at the two formulas and noted that $\sigs > 0$ to see that $V(\hat{y}^0 - y^0) > V(\hat{y}^0)$.
+The chartreuse (outer) area is the prediction interval, while the coral (inner) area is the confidence area. Clearly, the confidence interval is always a subset of the prediction interval. This is true in general. We can see this by looking at our formulas and noting that $\sigs > 0 \Rightarrow V(\hat{y}^0 - y^0) > V(\hat{y}^0)$.
 
 * Strict Exogeneity vs. Population orthogonality		   :noexport:
 
 I have a little bit of code for this... but I'm not sure if it's worth doing.
 
 * The glory of asymptopia
-
 Finally, the main event. In this section, we'll verify in code what we showed in section 4.2 in lecture. We'll demonstrate that, given linearity, population orthogonality, and our asymptotic full rank condition, no matter what distribution on the disturbances, the estimated $\b$ will be distributed normal as $N \rightarrow \infty$. \\
 
 We'll be doing another simulation exercise. Let's get started. First, we'll define our true population of interest, the size of sample for each draw, and the number of draws.
@@ -204,7 +202,7 @@ cbind(head(blist.0),head(blist.1),head(blist.2),head(blist.3))
 This looks pretty good so far. The odd columns are our point estimates for $\alpha$, the intercept, and the even columns are our estimates for $\beta_1$, the coefficient estimate. From now on we'll focus on $\beta_1$. We've generated a huge amount of these point estimates, but now we'd like to see if they're truly distributed normaly. To do this, we'll create a function that graphs each of them.
 
 #+begin_src R :results output :exports both :tangle yes :session
-make.plots <- function(blist) { # makehist returns a graph
+make.plots <- function(blist) {
   blist.df <- data.frame(blist)
   names(blist.df) <- c("alpha", "beta_1")
   estmean <- mean(blist.df$beta_1)
