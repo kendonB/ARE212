@@ -25,7 +25,7 @@ $$ y = \beta_1 G_1 + \beta_2 G_2 + \beta_3 G_3 + \varepsilon $$
 
 $G_i$ is a dummy variable for group $i$. We omit the intercept, so the covariates we get from OLS are the mean values for each group. To test equality across all three groups using an F test, we only need to set $\beta_1 = \beta_2$ and $\beta_1 = \beta_3$. This is two restrictions. More generally, you only need $j-1$ restrictions to test equality across $j$ coefficients.
 ** Standard errors!
-This is going to sound peevish, but many problem sets contained estimates without standard errors! Some of them weren't computable without using the delta method (which was not the focus of the problem set), but many of the neglected estimates were run-of-the-mill OLS coefficients, for which you probably know the standard error formula cold by now. Remember, coefficients without standard errors are very nearly meaningless.
+This is going to sound peevish, but many problem sets contained estimates without standard errors! Some of them weren't computable without using the delta method (which was not the focus of the problem set), but many of the neglected estimates were run-of-the-mill OLS coefficients, for which you should know the standard error formula cold by now. Remember, coefficients without standard errors are very nearly meaningless.
 * The difference between prediction and confidence intervals
 
 Last week I punted on demonstrating the difference between prediction and confidence intervals. As it turns out, we mostly already showed the difference, but I didn't label them correctly. To remind you, we had the following population model:
@@ -292,8 +292,8 @@ summary(pop.eps.4)
 #+end_src
 
 #+RESULTS:
-:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max.
-:      0.00      0.67      2.01     21.33      5.96 145700.00
+:     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+:      0.0      0.7      2.0     26.6      6.0 617400.0
 
 Well, that's totally freaky. What about $\b$?
 
