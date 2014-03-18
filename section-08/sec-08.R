@@ -1,4 +1,10 @@
 
+png(filename="inserts/fig0.png",height=500,width=800)
+library(ggplot2)
+library(GGally)
+ggpairs(iris, title = "Scatterplot matrix of variables in iris dataset")
+dev.off()
+
 OLS <- function(y,X) { b <- solve(t(X) %*% X) %*% t(X) %*% y }
 set.seed(42)
 n <- 200
@@ -82,7 +88,7 @@ blist.2 <- t(sapply(1:draws, getb, pop.n = pop.n, pop.y = pop.y.2, pop.X = pop.X
 blist.3 <- t(sapply(1:draws, getb, pop.n = pop.n, pop.y = pop.y.3, pop.X = pop.X))
 cbind(head(blist.0),head(blist.1),head(blist.2),head(blist.3))
 
-make.plots <- function(blist) { # makehist returns a graph
+make.plots <- function(blist) {
   blist.df <- data.frame(blist)
   names(blist.df) <- c("alpha", "beta_1")
   estmean <- mean(blist.df$beta_1)
@@ -99,7 +105,7 @@ g1 <- make.plots(blist.1) + ggtitle("Uniform errors")
 g2 <- make.plots(blist.2) + ggtitle("Poisson errors")
 g3 <- make.plots(blist.3) + ggtitle("Bimodal gamma errors")
 
-png(filename="inserts/fig2.png",height=500,width=800)
+png(filename="inserts/fig3.png",height=500,width=800)
 library(gridExtra)
 grid.arrange(g0, g1, g2, g3, ncol = 2)
 dev.off()
@@ -111,3 +117,11 @@ dev.off()
   shapiro.test(blist.1[ ,2])[1:2],
   shapiro.test(blist.2[ ,2])[1:2],
   shapiro.test(blist.3[ ,2])[1:2]))
+
+library(VGAM)
+pop.eps.4 <- rpareto(pop.n, location = 2, shape = 1) - 2
+
+png(filename="inserts/fig3.png",height=500,width=800)
+pareto.df <- data.frame(pop.eps.4)
+ggplot(data = pareto.df, aes(x = pop.eps.4)) + geom_histogram(aes(y=..density..))
+dev.off()

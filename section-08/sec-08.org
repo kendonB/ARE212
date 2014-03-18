@@ -3,8 +3,29 @@
 *Asymptopia is the best -topia* \hfill
 *ARE212*: Section 08 \\ \hline \bigskip
 
-In this section we'll briefly clarify some concepts from last time, and then we'll build up a simulation in =R= to show why living in asymptotic world is great.
+In this section we'll briefly clarify some concepts from last time, and then we'll build up a simulation in =R= to show why living in asymptotic world is great. With any remaining time we'll look into what happens when your errors have finite mean but infinite variance. First though, some brief notes on the problem set you all turned in Monday.
 
+* Problem set 2 retrospective
+** Disturbances vs. residuals
+Remember, we /never/ observe $\eps$, the vector of disturbances. We hope to approximate it with our residuals vector, $\e$. We /assume/ that $E[\eps|X] = 0$, but the fact that $E[\e|X] = 0$ is by construction of OLS. This is a subtle distinction, but an important one. The first is very difficult to prove with certainty, but the second is always true (as long as we have an intercept).
+** =pairs= and =ggpairs=
+Many of you constructed scatterplots of your data to find patterns. This is good. You can do this quite easily using either =pairs()= or =ggpairs()=. For example:
+#+begin_src R :results output graphics :file inserts/fig0.png :width 800 :height 500 :session :tangle yes :exports both
+library(ggplot2)
+library(GGally)
+ggpairs(iris, title = "Scatterplot matrix of variables in iris dataset")
+#+end_src
+
+#+RESULTS:
+[[file:inserts/fig0.png]]
+** =J= in an F-test
+Counting the number of restrictions, =J=, in an F-test, can be tricky. Suppose we are testing whether the mean $y$ values for group dummy variables are statistically different from each other in the following regression:
+
+$$ y = \beta_1 G_1 + \beta_2 G_2 + \beta_3 G_3 + \varepsilon $$
+
+$G_i$ is a dummy variable for group $i$. We omit the intercept, so the covariates we get from OLS are the mean values for each group. To test equality across all three groups using an F test, we only need to set $\beta_1 = \beta_2$ and $\beta_1 = \beta_3$. This is two restrictions. More generally, you only need $j-1$ restrictions to test equality across $j$ coefficients.
+** Standard errors!
+This is going to sound peevish, but many problem sets contained estimates without standard errors! Some of them weren't computable without using the delta method (which was not the focus of the problem set), but many of the neglected estimates were run-of-the-mill OLS coefficients, for which you probably know the standard error formula cold by now. Remember, coefficients without standard errors are very nearly meaningless.
 * The difference between prediction and confidence intervals
 
 Last week I punted on demonstrating the difference between prediction and confidence intervals. As it turns out, we mostly already showed the difference, but I didn't label them correctly. To remind you, we had the following population model:
@@ -81,10 +102,6 @@ library(ggplot2)
 [[file:inserts/fig1.png]]
 
 The chartreuse (outer) area is the prediction interval, while the coral (inner) area is the confidence area. Clearly, the confidence interval is always a subset of the prediction interval. This is true in general. We can see this by looking at our formulas and noting that $\sigs > 0 \Rightarrow V(\hat{y}^0 - y^0) > V(\hat{y}^0)$.
-
-* Strict Exogeneity vs. Population orthogonality		   :noexport:
-
-I have a little bit of code for this... but I'm not sure if it's worth doing.
 
 * The glory of asymptopia
 Finally, the main event. In this section, we'll verify in code what we showed in section 4.2 in lecture. We'll demonstrate that, given linearity, population orthogonality, and our asymptotic full rank condition, no matter what distribution on the disturbances, the estimated $\b$ will be distributed normal as $N \rightarrow \infty$. \\
@@ -261,3 +278,47 @@ Great! The null is that the distribution is distributed normal, so we fail to re
 : p.value   0.127683  0.4682959 0.3581798 0.7879152
 
 Great! We fail to reject the null for all three distributions, so we can feel some confidence that our coefficients are truly distributed normal! All is well in asymptopia!
+
+* Pareto distribution?
+What about a probability distribution with finite mean, infinite variance? For the record, this violates our assumptions. For fun, let's add some zeroes to =pop.n=, =n=, and =draws=.
+#+begin_src R :results output :exports both :tangle yes :session
+library(VGAM)
+pop.n <- 100000
+n <- 5000
+draws <- 10000
+pop.X <- cbind(1, runif(pop.n,0,20))
+pop.eps.4 <- rpareto(pop.n, location = 2, shape = 1) - 2
+summary(pop.eps.4)
+#+end_src
+
+#+RESULTS:
+:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max.
+:      0.00      0.67      2.01     21.33      5.96 145700.00
+
+Well, that's totally freaky. What about $\b$?
+
+#+begin_src R :results output :exports both :tangle yes :session
+pop.y.4 <- pop.X %*% beta + pop.eps.4
+blist.4 <- t(sapply(1:draws, getb, pop.n = pop.n, pop.y = pop.y.4, pop.X = pop.X))
+summary(blist.4)
+#+end_src
+
+#+RESULTS:
+:        V1               V2
+:  Min.   :-15.32   Min.   :-4.582
+:  1st Qu.: 17.32   1st Qu.: 1.633
+:  Median : 21.24   Median : 2.026
+:  Mean   : 25.02   Mean   : 2.028
+:  3rd Qu.: 26.84   3rd Qu.: 2.411
+:  Max.   :129.29   Max.   : 9.162
+
+A bit more reasonable. Does it look normal?
+
+#+begin_src R :results output graphics :file inserts/fig4.png :width 800 :height 500 :session :tangle yes :exports both
+(g3 <- make.plots(blist.4) + ggtitle("Pareto errors"))
+#+end_src
+
+#+RESULTS:
+[[file:inserts/fig4.png]]
+
+I could run this more, but I don't think it's going to become normal.
