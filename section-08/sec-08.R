@@ -119,9 +119,17 @@ dev.off()
   shapiro.test(blist.3[ ,2])[1:2]))
 
 library(VGAM)
+pop.n <- 100000
+n <- 5000
+draws <- 10000
+pop.X <- cbind(1, runif(pop.n,0,20))
 pop.eps.4 <- rpareto(pop.n, location = 2, shape = 1) - 2
+summary(pop.eps.4)
 
-png(filename="inserts/fig3.png",height=500,width=800)
-pareto.df <- data.frame(pop.eps.4)
-ggplot(data = pareto.df, aes(x = pop.eps.4)) + geom_histogram(aes(y=..density..))
+pop.y.4 <- pop.X %*% beta + pop.eps.4
+blist.4 <- t(sapply(1:draws, getb, pop.n = pop.n, pop.y = pop.y.4, pop.X = pop.X))
+summary(blist.4)
+
+png(filename="inserts/fig4.png",height=500,width=800)
+(g3 <- make.plots(blist.4) + ggtitle("Pareto errors"))
 dev.off()

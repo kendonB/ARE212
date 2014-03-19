@@ -148,9 +148,11 @@ This isn't strictly necessary, but it makes our lives easier down the road. Now 
 
 #+begin_src R :results output :exports both :tangle yes :session
 pop.eps <- c(pop.eps.0, pop.eps.1, pop.eps.2, pop.eps.3)
-pop.eps.type <- c(rep("Normal",pop.n), rep("Uniform", pop.n), rep("Poisson", pop.n), rep("Bimodal Gamma", pop.n))
+pop.eps.type <- c(rep("Normal",pop.n), rep("Uniform", pop.n),
+                 rep("Poisson", pop.n), rep("Bimodal Gamma", pop.n))
 class(pop.eps.type)
-pop.eps.type <- factor(pop.eps.type, levels = c("Normal", "Uniform", "Poisson", "Bimodal Gamma"))
+pop.eps.type <- factor(pop.eps.type, levels = c("Normal", "Uniform",
+                                                "Poisson", "Bimodal Gamma"))
 levels(pop.eps.type)
 class(pop.eps.type)
 pop.eps.df <- data.frame(pop.eps, pop.eps.type)
@@ -164,7 +166,9 @@ pop.eps.df <- data.frame(pop.eps, pop.eps.type)
 Now that we've set all of this up, why not see what these crazy errors look like?
 
 #+begin_src R :results output graphics :file inserts/fig2.png :width 800 :height 500 :session :tangle yes :exports both
-(g <- ggplot(data = pop.eps.df, aes(x = pop.eps)) + geom_histogram(aes(y=..density..)) + facet_wrap( ~ pop.eps.type, ncol=2, scales = "free"))
+(g <- ggplot(data = pop.eps.df, aes(x = pop.eps)) +
+        geom_histogram(aes(y=..density..)) +
+        facet_wrap( ~ pop.eps.type, ncol=2, scales = "free"))
 #+end_src
 
 #+RESULTS:
@@ -227,7 +231,8 @@ make.plots <- function(blist) {
   g <- ggplot(data = blist.df, aes(x = beta_1)) +
    geom_histogram(aes(y=..density..), fill="blue", colour="white", alpha=0.3) +
    geom_density(colour = "black", size = 1, linetype = "dashed") +
-   stat_function(geom="line", fun=dnorm, arg=list(mean = estmean, sd = estsd), colour = "red", size = 1, linetype = "dashed")
+   stat_function(geom="line", fun=dnorm, arg=list(mean = estmean, sd = estsd),
+     colour = "red", size = 1, linetype = "dashed")
   return(g)
 }
 
@@ -292,7 +297,7 @@ summary(pop.eps.4)
 #+end_src
 
 #+RESULTS:
-:     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+:     Min.  1st Qu.   Median     Mean  3rd Qu.     Max.
 :      0.0      0.7      2.0     26.6      6.0 617400.0
 
 Well, that's totally freaky. What about $\b$?
@@ -320,5 +325,3 @@ A bit more reasonable. Does it look normal?
 
 #+RESULTS:
 [[file:inserts/fig4.png]]
-
-I could run this more, but I don't think it's going to become normal.
