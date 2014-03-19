@@ -285,7 +285,7 @@ Great! The null is that the distribution is distributed normal, so we fail to re
 Great! We fail to reject the null for all three distributions, so we can feel some confidence that our coefficients are truly distributed normal! All is well in asymptopia!
 
 * Pareto distribution?
-What about a probability distribution with finite mean, infinite variance? For the record, this violates our assumptions. For fun, let's add some zeroes to =pop.n=, =n=, and =draws=.
+What about a probability distribution with finite mean, infinite variance[fn:: This is apparently not a purely "academic" question. Somebody even wrote a dissertation on it! See: http://lib.dr.iastate.edu/cgi/viewcontent.cgi?article=2742&context=etd.]? For the record, this violates our assumptions[fn:: Per the paper above, OLS is particularly unsuited since it, you know, squares the errors. Least absolute deviations (LAD) is apparently better, according to the paper above.]. For fun, let's add some zeroes to =pop.n=, =n=, and =draws=.
 #+begin_src R :results output :exports both :tangle yes :session
 library(VGAM)
 pop.n <- 100000
