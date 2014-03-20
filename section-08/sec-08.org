@@ -6,11 +6,9 @@
 In this section we'll briefly clarify some concepts from last time, and then we'll build up a simulation in =R= to show why living in asymptotic world is great. With any remaining time we'll look into what happens when your errors have finite mean but infinite variance. First though, some brief notes on the problem set you all turned in Monday.
 
 * Problem set 2 retrospective
-** Disturbances vs. residuals
-Remember, we /never/ observe $\eps$, the vector of disturbances. We hope to approximate it with our residuals vector, $\e$. We /assume/ that $E[\eps|X] = 0$, but the fact that $E[\e|X] = 0$ is by construction of OLS. This is a subtle distinction, but an important one. The first is very difficult to prove with certainty, but the second is always true (as long as we have an intercept).
 ** =pairs= and =ggpairs=
 Many of you constructed scatterplots of your data to find patterns. This is good. You can do this quite easily using either =pairs()= or =ggpairs()=. For example:
-#+begin_src R :results output graphics :file inserts/fig0.png :width 800 :height 500 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig0.png :width 700 :height 400 :session :tangle yes :exports both
 library(ggplot2)
 library(GGally)
 ggpairs(iris, title = "Scatterplot matrix of variables in iris dataset")
@@ -18,6 +16,8 @@ ggpairs(iris, title = "Scatterplot matrix of variables in iris dataset")
 
 #+RESULTS:
 [[file:inserts/fig0.png]]
+** Disturbances vs. residuals
+Remember, we /never/ observe $\eps$, the vector of disturbances. We hope to approximate it with our residuals vector, $\e$. We /assume/ that $E[\eps|X] = 0$, but the fact that $E[\e|X] = 0$ is by construction of OLS. This is a subtle distinction, but an important one. The first is very difficult to prove with certainty, but the second is always true (as long as we have an intercept).
 ** =J= in an F-test
 Counting the number of restrictions, =J=, in an F-test, can be tricky. Suppose we are testing whether the mean $y$ values for group dummy variables are statistically different from each other in the following regression:
 
@@ -64,7 +64,7 @@ s2 <- as.vector(t(e) %*% e / (n - k))
 XpXinv <- solve(t(X) %*% X)
 pred.se <- sqrt(diag(s2 * (1 + X %*% XpXinv %*% t(X))))
 conf.se <- sqrt(diag(s2 * (0 + X %*% XpXinv %*% t(X))))
-(cbind(head(pred.se), head(conf.se)))
+(cbind(head(pred.se, n = 3), head(conf.se, n = 3)))
 #+end_src
 
 #+RESULTS:
@@ -88,7 +88,7 @@ predint.t <- cbind(pred.y - crit.t * pred.se, pred.y+ crit.t * pred.se)
 
 We could have also calculated and checked the intervals using =predict()=. But they're right. Trust me. Now we'll use =ggplot2='s =geom_ribbon()= function to plot them.
 
-#+begin_src R :results output graphics :file inserts/fig1.png :width 800 :height 500 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig1.png :width 600 :height 300 :session :tangle yes :exports both
 draw.df <- data.frame(X[ ,2], y, pred.y, confint.t, predint.t)
 names(draw.df) <- c("x", "y", "pred.y","conf.low","conf.high","pred.low","pred.high")
 library(ggplot2)
@@ -103,7 +103,7 @@ library(ggplot2)
 
 The chartreuse (outer) area is the prediction interval, while the coral (inner) area is the confidence area. Clearly, the confidence interval is always a subset of the prediction interval. This is true in general. We can see this by looking at our formulas and noting that $\sigs > 0 \Rightarrow V(\hat{y}^0 - y^0) > V(\hat{y}^0)$.
 
-* The glory of asymptopia
+* Abnormal errors, asymptotically
 Finally, the main event. In this section, we'll verify in code what we showed in section 4.2 in lecture. We'll demonstrate that, given linearity, population orthogonality, and our asymptotic full rank condition, no matter what distribution on the disturbances, the estimated $\b$ will be distributed normal as $N \rightarrow \infty$. \\
 
 We'll be doing another simulation exercise. Let's get started. First, we'll define our true population of interest, the size of sample for each draw, and the number of draws.
@@ -120,17 +120,17 @@ pop.X <- cbind(1, runif(pop.n,0,20))
 Next we want to define some errors. To make it interesting, we'll do this whole exercise with four different sets of errors. The sets will be distributed normal, uniform, poisson, and finally a crazy bimodal gamma distribution that I made up. This is going to be awesome.
 
 #+begin_src R :results output :exports both :tangle yes :session
-bimodalDistFunc <- function (n, cpct, mu1, mu2, sig1, sig2) {
+bimodalDistFunc <- function (n, weight) {
   d0 <- rgamma(n, 1) + 3
   d1 <- rgamma(n, 1)
-  flag <- rbinom(n, size = 1, prob = cpct)
+  flag <- rbinom(n, size = 1, prob = weight)
   d <- d1 * (1 - flag) + d0 * flag
 }
 
 pop.eps.0 <- rnorm(pop.n)
 pop.eps.1 <- runif(pop.n, -5, 5)
 pop.eps.2 <- rpois(pop.n, 1) - 1
-pop.eps.3 <- bimodalDistFunc(n=pop.n, cpct = 0.7, mu1 = 2, mu2 = 10, sig1 = 1, sig2 = 2) - 3.1
+pop.eps.3 <- bimodalDistFunc(n = pop.n, weight = 0.7) - 3.1
 #+end_src
 
 #+RESULTS:
@@ -149,10 +149,10 @@ This isn't strictly necessary, but it makes our lives easier down the road. Now 
 #+begin_src R :results output :exports both :tangle yes :session
 pop.eps <- c(pop.eps.0, pop.eps.1, pop.eps.2, pop.eps.3)
 pop.eps.type <- c(rep("Normal",pop.n), rep("Uniform", pop.n),
-                 rep("Poisson", pop.n), rep("Bimodal Gamma", pop.n))
+  rep("Poisson", pop.n), rep("Bimodal Gamma", pop.n))
 class(pop.eps.type)
 pop.eps.type <- factor(pop.eps.type, levels = c("Normal", "Uniform",
-                                                "Poisson", "Bimodal Gamma"))
+  "Poisson", "Bimodal Gamma"))
 levels(pop.eps.type)
 class(pop.eps.type)
 pop.eps.df <- data.frame(pop.eps, pop.eps.type)
@@ -165,10 +165,10 @@ pop.eps.df <- data.frame(pop.eps, pop.eps.type)
 
 Now that we've set all of this up, why not see what these crazy errors look like?
 
-#+begin_src R :results output graphics :file inserts/fig2.png :width 800 :height 500 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig2.png :width 700 :height 400 :session :tangle yes :exports both
 (g <- ggplot(data = pop.eps.df, aes(x = pop.eps)) +
-        geom_histogram(aes(y=..density..)) +
-        facet_wrap( ~ pop.eps.type, ncol=2, scales = "free"))
+  geom_histogram(aes(y=..density..)) +
+  facet_wrap( ~ pop.eps.type, ncol=2, scales = "free"))
 #+end_src
 
 #+RESULTS:
@@ -246,7 +246,7 @@ g3 <- make.plots(blist.3) + ggtitle("Bimodal gamma errors")
 
 Our function =makehist= returns a graph a histogram, smoothed density, and a normal curve with the same mean and standard deviation as the data, so we just run it 4 times to get our 4 graphs (one for each list of our estimated $b$ values). Next, we'll use the =gridExtra= package (which you may need to install) to display the graphs together, just as we did with our errors. Note that we use =gridExtra= and not the =facets= command as we did before just because =facets= wasn't displaying the normal distribution correctly. What we'd like to see is that our smoothed density function and histogram look roughly similar to the normal distribution. Cross your fingers!
 
-#+begin_src R :results output graphics :file inserts/fig3.png :width 800 :height 500 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig3.png :width 700 :height 400 :session :tangle yes :exports both
 library(gridExtra)
 grid.arrange(g0, g1, g2, g3, ncol = 2)
 #+end_src
@@ -256,10 +256,10 @@ grid.arrange(g0, g1, g2, g3, ncol = 2)
 
 Hey, these actually look pretty good! But this isn't a rigorous test. There are actually statistical methods available to test whether a distribution is normal or not. We'll use one called the Shapiro-Wilk's test of normality. Unfortunately, the computation of Shapiro-Wilk's is a bit complicated, so we'll be leaning on a canned command here to perform it. There are other, simpler, tests (like Kolmogorov-Smirnov), but I like Shapiro-Wilk's because it's meant specifically for normal distributions. \\
 
-First, we'll verify that the test works by testing it against a normal distribution and a non-normal distribution.
+First, we'll verify that the test works by testing it against a normal distribution and a non-normal distribution. The command =shapiro.test()= returns a number of objects, but we'll focus on the p-value.
 
 #+begin_src R :results output :exports both :tangle yes :session
-(cbind(shapiro.test(rnorm(draws))[1:2], shapiro.test(rpois(draws,10))[1:2]))
+(cbind(shapiro.test(rnorm(draws))[2], shapiro.test(rpois(draws,10))[2]))
 #+end_src
 
 #+RESULTS:
@@ -271,10 +271,10 @@ Great! The null is that the distribution is distributed normal, so we fail to re
 
 #+begin_src R :results output :exports both :tangle yes :session
 (cbind(
-  shapiro.test(blist.0[ ,2])[1:2],
-  shapiro.test(blist.1[ ,2])[1:2],
-  shapiro.test(blist.2[ ,2])[1:2],
-  shapiro.test(blist.3[ ,2])[1:2]))
+  shapiro.test(blist.0[ ,2])[2],
+  shapiro.test(blist.1[ ,2])[2],
+  shapiro.test(blist.2[ ,2])[2],
+  shapiro.test(blist.3[ ,2])[2]))
 #+end_src
 
 #+RESULTS:
@@ -288,6 +288,7 @@ Great! We fail to reject the null for all three distributions, so we can feel so
 What about a probability distribution with finite mean, infinite variance[fn:: This is apparently not a purely "academic" question. Somebody even wrote a dissertation on it! See: http://lib.dr.iastate.edu/cgi/viewcontent.cgi?article=2742&context=etd.]? For the record, this violates our assumptions[fn:: Per the paper above, OLS is particularly unsuited since it, you know, squares the errors. Least absolute deviations (LAD) is apparently better, according to the paper above.]. For fun, let's add some zeroes to =pop.n=, =n=, and =draws=.
 #+begin_src R :results output :exports both :tangle yes :session
 library(VGAM)
+set.seed(42)
 pop.n <- 100000
 n <- 5000
 draws <- 10000
@@ -300,7 +301,7 @@ summary(pop.eps.4)
 :     Min.  1st Qu.   Median     Mean  3rd Qu.     Max.
 :      0.0      0.7      2.0     26.6      6.0 617400.0
 
-Well, that's totally freaky. What about $\b$?
+That maximum value is a little frightening. What about $\b$?
 
 #+begin_src R :results output :exports both :tangle yes :session
 pop.y.4 <- pop.X %*% beta + pop.eps.4
@@ -319,7 +320,7 @@ summary(blist.4)
 
 A bit more reasonable. Does it look normal?
 
-#+begin_src R :results output graphics :file inserts/fig4.png :width 800 :height 500 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig4.png :width 600 :height 300 :session :tangle yes :exports both
 (g3 <- make.plots(blist.4) + ggtitle("Pareto errors"))
 #+end_src
 
