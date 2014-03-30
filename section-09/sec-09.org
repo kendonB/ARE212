@@ -14,7 +14,7 @@ where $i$ represents an individual, $s$ their state, and $t$ is some time period
 * Loading the data
 To measure our dependent variable, an individual's belief in climate change, we'll use a series of Pew Surveys[fn:: Available from http://www.people-press.org/question-search/.] that asked randomly selected individuals a series of questions about their beliefs in global warming. We'll be primarily interested in their answer to the following:
 
-/From what you¡¯ve read and heard, is there solid evidence that the average temperature on earth has been getting warmer over the past few decades, or not?/
+/From what you've read and heard, is there solid evidence that the average temperature on earth has been getting warmer over the past few decades, or not?/
 
 When I did this project, I actually loaded in data from 8 surveys. We'll focus on just two, one from November 2011 and the other from October 2012. After downloading them from the appropriate spot on the Pew website[fn:: Surprisingly non-trivial, but this isn't a course on navigating websites so I'll skip over that.], we load the October 2012 data into =R=.
 
@@ -258,10 +258,11 @@ The first two arguments are our two date frames, =by= specifies a vector of vari
 * A neat graph
 What can we do with this dataset? Let's do a little plotting, to start. We haven't worked with factor (categorical) variables much before, so this is a good opportunity to practice graphing them. What if we want to see the proportion of responses by state? Again, we'll load and use =ggplot2=.
 
-#+begin_src R :results output graphics :file inserts/fig1.png :width 700 :height 400 :session :tangle yes :exports both
+#+begin_src R :results output graphics :file inserts/fig1.png :width 800 :height 600 :session :tangle yes :exports both
 library(ggplot2)
 merged.df$q1f <- factor(merged.df$q1f, levels = c("Yes", "Mixed", "No", "Don't know"))
-ggplot(merged.df, aes(x = state, fill = q1f)) + geom_bar(position = "fill") + coord_flip() + theme(axis.text.y=element_text(size=rel(0.8)))
+ggplot(merged.df, aes(x = state, fill = q1f)) + geom_bar(position = "fill") +
+  coord_flip() + theme(axis.text.y=element_text(size=rel(0.8)))
 #+end_src
 
 #+RESULTS:
@@ -278,10 +279,10 @@ Second, what is the appropriate level of observation for our regression? The nat
 
 Since we haven't learned about logistic regression (the solution to having a binary dependent variable) or clustering, the easiest option is to run OLS on the average response by state-year. Once again, we'll use the =aggregate= command.
 
-
 #+begin_src R :results output :exports both :tangle yes :session
 merged.df$q1b <- ifelse(merged.df$q1f == "Yes", 1, 0)
-bystate.df <- aggregate(cbind(merged.df$q1b,merged.df$emp), by = list(merged.df$year, merged.df$state), FUN = mean)
+bystate.df <- aggregate(cbind(merged.df$q1b,merged.df$emp), 
+  by = list(merged.df$year, merged.df$state), FUN = mean)
 names(bystate.df) <- c("year","state","yes","emp")
 tail(bystate.df)
 #+end_src
