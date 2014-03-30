@@ -40,7 +40,7 @@ levels(nov11.df$q1f)
 levels(oct12.df$q1f)
 
 # Crap. This is a dumb problem. Can we fix it easily? Yes.
-levels(oct12.df$q1f) <- levels(nov11.df$q1f)
+levels(oct12.df$q1f) <- levels(nov11.df$q1f) <- c("Don't know","Mixed","No","Yes")
 # hooray! we need to be careful, though - relies on these being in the right order
 
 # now - let's put it together
@@ -69,12 +69,64 @@ names(data.df)[names(data.df) == "int_date.date"] <- "int.date"
 # reorder variables
 data.df <- data.df[c(5,1:4)]
 
-# now suppose we want to include some covariates in our regression
-# how about per capita income by state-year?
-# this was originally an XLS file, and there are ways to load these, but they
-# often require external dependencies like Perl or Java and I don't want to waste 
-# class time for downloading
-# so i convert to csv and party on wayne
+# now we want to get oil and gas employment
+# I cheat a bit here and ijust import the finished file
+# the original was a bunch of excel sheets.
+# imagine hours of work - and we have it. let's party on, wayne
 
-# TODO - installing fucking EXCEL so i can convert the xls i have to csv... in meantime
-# build up tutorial to this point.
+# we don't want to get caught up in mtm variation, we just want the year
+# so let's collapse
+
+oilgas.df <- read.table("oilgas_emp.csv", header = T, sep = ",")
+oilgas.yearly <- aggregate(oilgas.df$N, by = list(oilgas.df$year, oilgas.df$state), FUN = mean)
+names(oilgas.yearly) <- c("year", "state", "emp")
+
+#pary on, garth
+
+# cool. let's merge this. 
+# we want to merge on state and. first, observe that the state is in caps in the yearly dataset.
+# easiest to fix in our data file
+data.df$state <- toupper(data.df$state)
+
+# also need to extract a year variable from our date. n 
+# there are a few ways to do this. here is one.
+data.df$year <- as.numeric(format(data.df$int.date, "%Y"))
+
+# cool - let's merge this in!
+# conveniently, we've named the variables identidically in both data frames so merging is easy.
+# but we don't have to do this - stata does require
+
+merged.df <- merge(data.df, oilgas.yearly, by = c("year", "state"), all.x = T)
+
+library(ggplot2)
+levels(merged.df$q1f)
+merged.df$q1f <- factor(merged.df$q1f, levels = c("Yes", "Mixed", "No", "Don't know"))
+ggplot(merged.df, aes(x = state, fill = q1f)) + geom_bar(position = "fill") + coord_flip() + theme(axis.text.y=element_text(size=rel(0.8))) 
+
+
+# regressions
+
+# code as 1 or 0
+merged.df$q1b <- ifelse(merged.df$q1f == "Yes", 1, 0)
+
+bystate.df <- aggregate(cbind(merged.df$q1b,merged.df$emp), by = list(merged.df$year, merged.df$state), FUN = mean)
+names(bystate.df) <- c("year","state","yes","emp")
+bystate.df <- bystate.df[!is.na(bystate.df$emp), ]
+
+OLS <- function(y,X) {
+  n <- nrow(X); k <- ncol(X)
+  b <- solve(t(X) %*% X) %*% t(X) %*% y
+  e <- y - X %*% b; s2 <- t(e) %*% e / (n - k); XpXinv <- solve(t(X) %*% X)
+  se <- sqrt(s2 * diag(XpXinv))
+  t <- b / se
+  p <- 2 * pt(-abs(t),n-k)
+  output <- data.frame(b, se, t, p)
+  colnames(output) <- c("Estimate","Std. Error", "t statistic", "p-value")
+  return(output)
+}
+
+y <- bystate.df$yes
+X <- cbind(1, bystate.df$emp)
+
+output <- OLS(y,X)
+output
