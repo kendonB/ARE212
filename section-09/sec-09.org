@@ -1,366 +1,211 @@
-S#+AUTHOR:     
-#+TITLE:      
-#+OPTIONS:     toc:nil num:nil 
-#+LATEX_HEADER: \usepackage{mathrsfs}
-#+LATEX_HEADER: \usepackage{graphicx}
-#+LATEX_HEADER: \usepackage{booktabs}
-#+LATEX_HEADER: \usepackage{dcolumn}
-#+LATEX_HEADER: \usepackage{subfigure}
-#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
-#+LATEX_HEADER: \RequirePackage{fancyvrb}
-#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+#+INCLUDE: ../orgpreamble.org
 
-#+LATEX: \renewcommand{\E}{\mathbb{E}}
-#+LATEX: \renewcommand{\V}{\mathbb{V}}
-#+LATEX: \renewcommand{\P}{{\bf P}}
-#+LATEX: \renewcommand{\x}{{\bf x}}
-#+LATEX: \renewcommand{\In}{\mathbb{I}_N}
-#+LATEX: \renewcommand{\I}{\mathbb{I}}
-#+LATEX: \renewcommand{\It}{\mathbb{I}_T}
-#+LATEX: \renewcommand{\Int}{\mathbb{I}_{NT}}
-#+LATEX: \renewcommand{\iN}{\iota}
-#+LATEX: \renewcommand{\iT}{\kappa}
-#+LATEX: \renewcommand{\eit}{\epsilon_{it}}
-#+LATEX: \renewcommand{\lt}{\lambda_{t}}
-#+LATEX: \renewcommand{\uit}{u_{it}}
-#+LATEX: \renewcommand{\u}{{\bf u}}
-#+LATEX: \renewcommand{\c}{{\bf c}}
-#+LATEX: \renewcommand{\X}{{\bf X}}
-#+LATEX: \renewcommand{\Zt}{{\bf Z}_2}
-#+LATEX: \renewcommand{\Ztp}{{\bf Z}_2^{\prime}}
-#+LATEX: \renewcommand{\Zo}{{\bf Z}_1}
-#+LATEX: \renewcommand{\Zop}{{\bf Z}_1^{\prime}}
-#+LATEX: \renewcommand{\Q}{{\bf Q}}
-#+LATEX: \renewcommand{\Qp}{{\bf Q^{\prime}}}
-#+LATEX: \renewcommand{\A}{{\bf A}}
-#+LATEX: \renewcommand{\Xp}{{\bf X^{\prime}}}
-#+LATEX: \renewcommand{\Ap}{{\bf A^{\prime}}}
-#+LATEX: \renewcommand{\y}{{\bf y}}
-#+LATEX: \renewcommand{\eps}{{\bf \epsilon}}
-#+LATEX: \newcommand{\sss}{$s^2$ }
-#+LATEX: \newcommand{\R}{\texttt{R} }
-#+LATEX: \newcommand{\ep}{{\bf e}^\prime}
-#+LATEX: \newcommand{\e}{{\bf e}}
-#+LATEX: \newcommand{\Rs}{R^2}
-#+LATEX: \newcommand{\yp}{{\bf y}^\prime}
-#+LATEX: \newcommand{\y}{{\bf y}}
-#+LATEX: \newcommand{\J}{{\bf J}}
-#+LATEX: \newcommand{\Z}{{\bf Z}}
-#+LATEX: \newcommand{\Zp}{{\bf Z}^{\prime}}
-#+LATEX: \renewcommand{\P}{{\bf P}}
-#+LATEX: \renewcommand{\Pp}{{\bf P}^{\prime}}
-#+LATEX: \newcommand{\Zin}{(\Zp\Z)^{-1}}
-#+LATEX: \newcommand{\sigs}{\sigma^2}
-#+LATEX: \renewcommand{\with}{\hspace{8pt}\mbox{with}\hspace{6pt}}
+*The dirty business of data cleaning* \hfill
+*ARE212*: Section 09 \\ \hline \bigskip
 
-#+LATEX: \setlength{\parindent}{0in}
-#+STARTUP: fninline
+This section will explore some of the real-world issues involved with performing econometric analyses. In the real world, data is messy. It comes in weird formats, has unusual representation for missing values, and contains errors of every kind imaginable. The process of turning messy, poorly structured data into cleaned data ready for analysis is called *data cleaning*, and while it may not seem important now, you can believe me when I tell you that you will spend a healthy proportion of your post-coursework time in graduate school cleaning data. The purpose of this section is to ease your introduction into that process by providing you with a few basic tools here. \\
 
-\textbf{Instrumental Variables}  \hfill
-*ARE212*: Section 08 \\ \\
+To illustrate, we'll work through a real-life research question that I developed some time ago. We'll be investigating whether individuals' belief in climate change is affected by changes in their states' reliance on carbon-intensive industry. Our goal is to construct a dataset in which we can run following regression:
 
-The first part of these section notes is a variation on Max
-Auffhammer's final exam for ARE212 in 2011.  If you don't like this
-treatment of IV estimation, then blame him.  Actually, I like this
-pattern: if you don't like something I do, then blame Max.  He is
-probably at fault.  I am faultless.  Consider the following data
-generating process:
-\begin{equation}
-y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \beta_3 x_{3i} + \eta_i \with \eta_i \sim N(0,1)
-\end{equation} and $\beta = [1 \hspace{4pt} 2 \hspace{4pt} \mbox{-}4
-\hspace{4pt} 1]^{\prime}$. Assume that the covariance matrix of the
-covariates, an additional instrument, and the idiosyncratic error
-($x_{1i}$, $x_{2i}$, $x_{3i}$, $z_{i}$, and $\eta_i$) is defined to be
-$$
-\Sigma = \left[  
-\begin{array}{ccccc}
-1 & 0 & \rho_{13} & 0 & 0 \\
-0 & 1 & \rho_{23} & \rho_{2z} & 0 \\
-\rho_{13} & \rho_{23} & 1 & 0 & 0 \\
-0 & \rho_{2z} & 0 & 1 & 0 \\
-0 & 0 & 0 & 0 & 1
-\end{array}
-\right]
-$$
+$$ \text{CC Belief}_{ist} = \alpha + \text{Oil/Gas Employment}_{st} + \text{Covariates}_{st} + \varepsilon_{ist} $$
 
-where each variable is assumed to have zero mean for simplicity. Note
-that $\Sigma$ is consistent with $\eta_i$ being independently and
-identically distributed with constant variance.  We will explore the
-properties of IV (e.g., weak instruments and the exclusion
-restriction) via Monte Carlo simulation. \\
+where $i$ represents an individual, $s$ their state, and $t$ is some time period.
+* Loading the data
+To measure our dependent variable, an individual's belief in climate change, we'll use a series of Pew Surveys[fn:: Available from http://www.people-press.org/question-search/.] that asked randomly selected individuals a series of questions about their beliefs in global warming. We'll be primarily interested in their answer to the following:
 
-The first step, then, is to figure out how to generate random data
-with the appropriate covariance.  For this, a useful function is
-=rmvn.chol=, which returns a random $n \times k$ multivariate normal
-matrix $\X$, based on the supplied covariance matrix =vcov.mat=.  In
-general, $\X = \Q + \mu^{\prime}$, where $\Qp\Q = \Sigma$ and $\mu$ is a
-vector of means for each of the $k$ columns of $\X$.  We have assumed
-away $\mu = {\bf 0}$ and so the problem becomes a simple application
-of matrix decomposition.
+/From what you¡¯ve read and heard, is there solid evidence that the average temperature on earth has been getting warmer over the past few decades, or not?/
 
-#+BEGIN_SRC R :results none :exports code :session :tangle yes
-rmvn.chol <- function(n, vcov.mat) {
-  k <- ncol(vcov.mat)
-  Q <- chol(vcov.mat)
-  Z <- matrix(rnorm(k*n), nrow=n, ncol=k)
-  return(Z %*% Q)
-}
-#+END_SRC
+When I did this project, I actually loaded in data from 8 surveys. We'll focus on just two, one from November 2011 and the other from October 2012. After downloading them from the appropriate spot on the Pew website[fn:: Surprisingly non-trivial, but this isn't a course on navigating websites so I'll skip over that.], we load the October 2012 data into =R=.
+
+#+begin_src R :results output :exports both :tangle yes :session
+rm(list = ls())
+oct12.df <- read.table("EarlyOct12 public.csv", header = T, sep = ",")
+head(names(oct12.df))
+#+end_src
+
+#+RESULTS:
+: [1] "X"        "psraid"   "sample"   "int_date" "fcall"    "attempt"
+
+Since we only care about a small subset of the variables reported on in the survey, we'll keep those and drop the rest. We can do by requesting either certain column numbers or certain variable names; here, we'll use variable names. Since the variable names aren't very informative, we'll need the documentation to figure out what is what. I used =Early Oct12 que.public.docx= to figure out that we want questions 61, 62, and 63.
+
+#+begin_src R :results output :exports both :tangle yes :session
+oct12.df <- oct12.df[c("int_date","state","q61","q62","q63")]
+head(oct12.df, n = 1)
+#+end_src
+
+#+RESULTS:
+:   int_date         state q61                  q62
+: 1   100412 Massachusetts Yes Very serious problem
+:                                                                                          q63
+: 1 Yes, scientists generally agree that the earth is getting warmer because of human activity
+
+* Finding errors
+Great! We've got some data. When loading any new dataset, however, we should be wary of errors. In this case, we have very lengthy question answers. We might be worried that these long character strings are encoded with typos for some observations. To look into this, wWe'll want to code these long character strings as factor variables, which we covered last time. Factorizing variables has the added benefit of reducing memory usage and making analysis easier. Win-win-win!
+
+#+begin_src R :results output :exports both :tangle yes :session
+oct12.df$q1f <- factor(oct12.df$q61)
+oct12.df$q2f <- factor(oct12.df$q62)
+oct12.df$q3f <- factor(oct12.df$q63)
+#+end_src
 
 #+RESULTS:
 
-It will be handy to have a simple function to generate $\Sigma$ with
-three arguments representing the three non-zero correlations across
-the covariates and the instrument.  
+We can examine the levels of the different factors using the =levels= command. The levels of a factor variable are just the number of different values this variable assumes in the data.
 
-#+BEGIN_SRC R :results none :exports code :session :tangle yes
-vcov.fn <- function(rho.13, rho.23, rho.2z) {
-  mat <- diag(5)
-  mat[3,1] <- rho.13; mat[1,3] <- rho.13
-  mat[2,3] <- rho.23; mat[3,2] <- rho.23
-  mat[2,4] <- rho.2z; mat[4,2] <- rho.2z
-  return(mat)
-}
-#+END_SRC
+#+begin_src R :results output :exports both :tangle yes :session
+levels(oct12.df$q1f)
+#+end_src
+
+#+RESULTS:
+: [1] "(VOL.) Don't know/Refused"  "(VOL.) Mixd/some evidence"
+: [3] "(VOL.) Mixed/some evidence" "No"
+: [5] "Yes"
+
+Uh oh! It looks like =q1f= has an error somewhere --- something was misentered[fn:: In fairness to the Pew people, I created this error. Their data is unusually clean.] and now we have two redundant factors. An easy way to fix this is to fix the original character variable, =q61=, and then make it into a factor again.
+
+#+begin_src R :results output :exports both :tangle yes :session
+badindices <- which(oct12.df$q61 == c("(VOL.) Mixd/some evidence"))
+oct12.df$q61[badindices] <- "(VOL.) Mixed/some evidence"
+#+end_src
 
 #+RESULTS:
 
-The result is a way to generate the random data according to the
-specified data generating process.  The following generates the
-covariance matrix and a random multivariate normal matrix with 500
-observations, printing $\Sigma$ for reference:
+This is a good time to talk about the =which= command, which I just used. =which= gives the =TRUE= indices of a logical object, letting us locate the errors. In this case, there is only one, and we can fix it by setting the correct string. Is it fixed?
 
-#+BEGIN_SRC R :results output :exports both :tangle yes :session
-(vcov <- vcov.fn(rho.13 = 0, rho.23 = 0.5, rho.2z = 0.5))
-X <- rmvn.chol(500, vcov)
-#+END_SRC
+#+begin_src R :results output :exports both :tangle yes :session
+oct12.df$q1f <- factor(oct12.df$q61)
+levels(oct12.df$q1f)
+#+end_src
 
 #+RESULTS:
-:      [,1] [,2] [,3] [,4] [,5]
-: [1,]    1  0.0  0.0  0.0    0
-: [2,]    0  1.0  0.5  0.5    0
-: [3,]    0  0.5  1.0  0.0    0
-: [4,]    0  0.5  0.0  1.0    0
-: [5,]    0  0.0  0.0  0.0    1
+: [1] "(VOL.) Don't know/Refused"  "(VOL.) Mixed/some evidence"
+: [3] "No"                         "Yes"
 
-A quick check to ensure that the variance of each variable is 1, as
-specified by $\Sigma$.  There will be some variation around the true
-variance, but even with 500 observations, it's clear that we are
-approaching the true variance:
+It's fixed! Now let's load November 2011 survey data and format it similarly.
 
-#+BEGIN_SRC R :results output :exports both :tangle yes :session
-  apply(X, 2, function(i){var(i)})
-#+END_SRC
-
-#+RESULTS:
-: [1] 1.0477399 0.9788629 0.9149402 0.9786712 0.9383588
-
-* Calculate bias in $\beta$ and it's standard error
-
-We will now write a couple of functions to help examine the bias of
-the parameter vector and it's standard error, using an array of
-estimation techniques, including OLS, 2SLS, and estimation by proxy
-variable.  First, let's put together a very simple function to
-calculate the parameter vector and it's standard error for both direct
-regression and two-stage least squares, when a first-stage covariate
-matrix is provided.  
-
-#+BEGIN_SRC R :results none :exports code :session :tangle yes
-ols.results <- function(y, X, first = FALSE) {
-  Xt <- t(X)
-  xtxi <- solve(Xt %*% X)
-  beta <- xtxi %*% Xt %*% y
-
-  if (first == FALSE) {
-    e <- y - X %*% beta
-  } else {
-    e <- y - first %*% beta
-  }
-
-  s2 <- (t(e) %*% e) / (nrow(X) - ncol(X))
-  se <- sqrt(diag(xtxi) * s2)
-  return(cbind(beta, se))
-}
-#+END_SRC
+#+begin_src R :results output :exports both :tangle yes :session
+nov11.df <- read.table("Nov11 public.csv", header = T, sep = ",")
+#+end_src
 
 #+RESULTS:
 
-Now comes the serious stuff, specifically, the code that is written
-specifically to examine IV estimation in this example.  Suppose that
-we do not observe $x_{3i}$.  The composite error is then $x_{3i} +
-\eta_i$, and we estimate the parameter vector by regressing $y_i$ on
-$x_{1i}$ and $x_{2i}$.  If $\rho_{13} = \rho_{23} = 0$, then there is
-no problem: OLS will yield consistent estimates, since the regression
-utilizes only exogenous variation.  If, however, the covariates are
-correlated with the composite error, the OLS estimates will be
-biased.\\
+But we have to be careful here, since the numbers of the relevant questions have changed. We again turn to the documentation. This is why you should always save documentation when you download data! Don't wait to get it later. You'll forget where it is.
 
-The function =est.bias= returns the simulated bias in the parameter
-estimates and standard errors from a Monte Carlo simulation with $B =
-10,000$ repetitions.  The arguments are =vcov= which is the
-variance-covariance matrix generated by =vcov.fn=; =n= which specifies
-the number of observations for each iteration, defaulted at 500; =B=
-is the number of iterations in the MC simulation, defaulted at 10,000;
-=two.stage= is a boolean argument indicating whether the simulation
-should employ two-stage least squares with $z_i$ as the instrument for
-$x_{3i}$, defaulted to =FALSE=.  The default behavior, then, is to run
-a simulation where $x_{3i}$ is left out of the OLS regression,
-relegated to the error term.
-
-#+BEGIN_SRC R  :exports code :tangle yes
-est.bias <- function(vcov, n = 500, B = 10000, two.stage = FALSE) {
-  true.beta <- c(1, 2, -4, 1)
-  res.beta <- mat.or.vec(3,B); res.se <- mat.or.vec(3,B)
-
-  for (i in 1:B) {
-    data <- rmvn.chol(n, vcov)
-
-    X <- cbind(1, data[,1:3]); eta <- data[,5]
-    y <- X %*% true.beta + eta
-    full.ols <- ols.results(y, X)
-
-    if (two.stage == TRUE) {
-      endog <- data[,2]
-      first  <- cbind(1, data[,c(1,4)])
-      predict <- first %*% solve(t(first) %*% first) %*% t(first) %*% endog
-      exog <- cbind(1, data[,1], predict)
-      limited.ols <- ols.results(y, exog, first=first)
-    } else {
-      exog <- cbind(1, data[,1:2])
-      limited.ols <- ols.results(y, exog)
-    }
-
-    res.beta[ , i] <- limited.ols[ , 1] - true.beta[1:3]
-    res.se[ , i]   <- limited.ols[ , 2] - full.ols[1:3, 2]
-  }
-
-  results <- cbind(rowMeans(res.beta), rowMeans(res.se))
-  colnames(results) <- c("beta bias", "se chg")
-  print(results)
-}
-#+END_SRC
+#+begin_src R :results output :exports both :tangle yes :session
+nov11.df <- nov11.df[c("int_date","state","q65", "q66", "q67")]
+nov11.df$q1f <- factor(nov11.df$q65)
+nov11.df$q2f <- factor(nov11.df$q66)
+nov11.df$q3f <- factor(nov11.df$q67)
+#+end_src
 
 #+RESULTS:
 
-We can check =est.bias= by first setting $\rho_{13} = \rho_{23} = 0$
-and ensuring that the bias is very low with $n=500$ and $B = 10,000$.
-The following MC simulation sets $\Sigma = \I_5$ and runs the
-following regression $10,000$ times:
-\begin{equation}
-\label{eq:sim}
-y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \epsilon_i \with
-\epsilon_i = x_{3i} + \eta_i \ens
-\end{equation}
+Notice that I've conviently named the factor variables to match =oct12.df=. This is not by accident, since we ultimate want to join the two data frames together. But first, we need to check the levels of our factor variables again. Are they the same?
 
-#+BEGIN_SRC R :exports code :tangle yes
-vcov <- vcov.fn(rho.13 = 0, rho.23 = 0, rho.2z = 0)
-est.bias(vcov)
-#+END_SRC
+#+begin_src R :results output :exports both :tangle yes :session
+all(levels(nov11.df$q1f) == levels(oct12.df$q1f))
+levels(nov11.df$q1f)
+levels(oct12.df$q1f)
+#+end_src
+
+#+RESULTS:
+: [1] FALSE
+: [1] "Don’t know/Refused (VOL.)"  "Mixed/some evidence (VOL.)"
+: [3] "No"                         "Yes"
+: [1] "(VOL.) Don't know/Refused"  "(VOL.) Mixed/some evidence"
+: [3] "No"                         "Yes"
+
+Crap, they don't match. This is a dumb problem. Fortunately, since they're in the same order, it's easy to fix.
+
+#+begin_src R :results output :exports both :tangle yes :session
+levels(nov11.df$q1f) <- levels(oct12.df$q1f)
+#+end_src
+
+#+RESULTS:
+
+Now, let's put these data frames together! We'll use =rbind=.
+
+#+begin_src R :results output :exports both :tangle yes :session
+data.df <- rbind(nov11.df, oct12.df)
+#+end_src
+
+#+RESULTS:
+: Error in match.names(clabs, names(xi)) :
+:   names do not match previous names
+
+Crap again. The names don't match because the question numbers don't match. But, we set the factor variables names so that they *would* match! Since the factor variables contain all of the information in the character variables, let's only use the well-named factor variables.
+
+#+begin_src R :results output :exports both :tangle yes :session
+data.df <- rbind(nov11.df[, c(1, 2, 6, 7, 8)], oct12.df[, c(1, 2, 6, 7, 8)])
+head(data.df, n = 3)
+#+end_src
+
+#+RESULTS:
+:   int_date        state                        q1f  q2f              q3f
+: 1   110911     Michigan                         No <NA> Somewhat serious
+: 2   110911 Pennsylvania (VOL.) Mixed/some evidence <NA>     Very serious
+: 3   110911     Maryland  (VOL.) Don't know/Refused <NA>     Very serious
+
+* Dealing with dates
+Great! We've got a dataset. We have the date of the interview, the state of the respondent, and their answers to the survey questions. Let's take a closer look at our =int_date= variable. What kind of variable is it?
+
+#+begin_src R :results output :exports both :tangle yes :session
+class(data.df$int_date)
+#+end_src
+
+#+RESULTS:
+: [1] "integer"
+
+It's an integer. This is okay, but it's not ideal. Often, we'll want to use a particular type of variable to store dates --- this is often more efficient, memory-wise, and it enables us to use a wide variety of date-specific functions. To turn =int_date= into a date variable, we'll first turn it into a character string and then use the function =as.Date= to convert it to a date that =R= will recognize.
+
+#+begin_src R :results output :exports both :tangle yes :session
+data.df$int_date.str <- as.character(data.df$int_date)
+data.df$int_date.date <- as.Date(data.df$int_date.str, format = "%y%d%m")
+class(data.df$int_date.date)
+#+end_src
+
+#+RESULTS:
+: [1] "Date"
+
+That's it! We now have a functioning date variable. This is useful for many reasons. In particular, we can now use this to determine on what day of the week the survey occured.
+
+#+begin_src R :results output :exports both :tangle yes :session
+dow <- weekdays(data.df$int_date.date)
+head(dow)
+#+end_src
+
+#+RESULTS:
+: [1] "Wednesday" "Wednesday" "Wednesday" "Wednesday" "Saturday"  "Monday"
 
 
-#+BEGIN_EXAMPLE
-         beta bias     se chg
-[1,]  3.025788e-05 0.01850461
-[2,]  7.504312e-05 0.01853065
-[3,] -2.155886e-04 0.01853233
-#+END_EXAMPLE
+* Dropping, renaming, and reording variables
 
-The parameter estimates seem fairly consistent.  The simulated bias is
-negligible.  The standard errors in the simulation are somewhat
-larger, however, simply because there is more variation in the
-composite error term.  Now suppose that $\rho_{23} = \rho_{2z} = 0.5$,
-so that $\E[\eps_i|x_{1i}, x_{2i}] \neq 0$.  The coefficient $\beta_2$
-is biased upwards by 0.5 in the simulation below (the magnitude of the
-correlation and parameter bias are not generally the same).
+Often while cleaning, we'll end up with extraneous variables that we created in the process of making other variables. We could just leave them be, but if we're working with a lot of data or if we are just a tiny bit obsessive about not letting our environment get flooded with objects[fn:: Guilty!] we might want to clean it up every now and again. We also often want to rename and reorder variables within a data frame. Fortunately, =R= makes all of this easy. First, we'll drop our extraneous string and integer variables from our data frame. Then, we'll rename the awkwardly entitled =data.df$int_date.date= to just =data.df$int_date=. Finally, we'll reorder our data with the date at the beginning.
 
-#+BEGIN_SRC R :exports code :tangle yes
-vcov <- vcov.fn(rho.13 = 0, rho.23 = 0.5, rho.2z = 0.5)
-est.bias(vcov)
-#+END_SRC
+#+begin_src R :results output :exports both :tangle yes :session
+data.df$int_date.str <- data.df$int_date <- NULL
+names(data.df)[names(data.df) == "int_date.date"] <- "int.date"
+data.df <- data.df[c(5,1:4)]
+#+end_src
 
-#+BEGIN_EXAMPLE
-         beta bias      se chg
-[1,] -9.313589e-05 0.014414161
-[2,] -3.125962e-04 0.014437845
-[3,]  5.000045e-01 0.007484851
-#+END_EXAMPLE
+#+RESULTS:
 
-No biggie.  We have a suitable instrument, by design, that we can use
-to cordon off exogenous variation for estimation.  Note that $Cov(z_i,
-\eps_i) = 0$ since $z_i$ is uncorrelated with the full, composite
-error, but that $Cov(z_i, x_{2i}) = 0.5 \neq 0$, satisfying both
-properties of a suitable instrument.  We can now get a consistent
-estimate for $\beta$:
+* Melting and reshaping data
 
-#+BEGIN_SRC R :exports code :tangle yes
-est.bias(vcov, two.stage=TRUE)
-#+END_SRC
+* Initial graphs
+** Multiple histograms, boxplots
 
-#+BEGIN_EXAMPLE
-         beta bias    se chg
-[1,]  0.0006683202 0.1239639
-[2,] -0.0005169007 0.1240761
-[3,] -0.0042907956 0.2877558
-#+END_EXAMPLE
+* What else?
+Cleaning data is almost always an adventure, since every project will present different and entirely unique challenges. At first, the cleaning process will seem interminably long and tedious, but you'll become faster over time. You'll develop habits of research that enable to get you to your end goal as quickly as possible. I couldn't possibly cover everything you'll need to know to clean your next dataset, but I hope to have laid at least a bit of a blueprint. In my own research, I've found it valuable to spend some time thinking about exactly what regression I want to run so that I always have an idea of where I'm headed. It's important to keep the goal in mind when cleaning so that you don't run down too many rabbit holes before you're even sure if the project is worth pursuing. If it's not mission critical for the basic question that you want to ask, make a note to yourself, move on, and return to it later. \\
 
-Note, however, that the standard errors are much higher.  We can prove
-that, in general, the variance of the IV estimator is larger than the
-variance of an OLS estimator.  Let $\Z$ be a matrix of instruments and
-$\P = \Z\Zin\Zp$.  Then the IV estimator is $\hat{\beta}_{iv} = (\Xp
-\P \X)^{-1}\Xp \P \y$.  The projection matrix $\P$ is symmetric and
-idempotent, as is the residual maker $(\In - \P)$.  Note that for any
-$\X$ and any symmetric, idempotent matrix, the following fact is true:
-\begin{equation}
-\Xp\P\X = \Xp\P\P\X = \Xp\Pp\P\X = (\P\X)^{\prime}(\P\X) \geq 0 
-\label{eq:proj}
-\end{equation}
-Note also that $\V(\hat{\beta}_{ols}) = \sigs(\Xp\X)^{-1}$ and $\V(\hat{\beta}_{iv}) = \sigs(\Xp\P\X)^{-1}$. It suffices to show that $\Xp\X \geq \Xp\P\X$ to complete the proof.  It follows from Equation (\ref{eq:proj}) that:
-$$ \Xp(\In-\P)\X \geq 0 \Rightarrow \Xp\X - \Xp\P\X \geq 0 \Rightarrow
-\Xp\X \geq \Xp\P\X,$$ thus proving that $\V(\hat{\beta}_{iv}) \geq
-\V(\hat{\beta}_{ols})$.  The intuition is a bit more clear.  The IV
-estimator restricts the use of covariation between $\y$ and $\X$ to
-/only/ exogenous variation.  The resulting estimator relies on less
-estimating variation to work with, and is therefore subject to greater
-variance.\\
+But yet --- it is always frustrating. I suggest some zen meditation.
 
-Instrumental variables are by no means a cure-all, however --- far
-from it.  First of all, an argument must be made for the exclusion
-restriction, that indeed the instrument is uncorrelated with the
-composite error term.  There is no way to check this empirically.
-Second, even if the exclusion restriction holds, the instrument must
-be highly correlated with the covariates.  Otherwise, we run into the
-problem of weak instruments, which is a /big/ problem, as illustrated
-below.  The set up is exactly the same, except that $\rho_{2z} =
-0.01$.  Technically, both properties of a suitable instrument are
-satisfied, but the instrumental projection of $x_{2i}$ leaves very
-little variation to work with.  The result is a crazy amount of
-variance, yielding an almost certainly biased estimate of $\beta$.
-The first simulation shows the standard bias induced by a violation of
-strict exogeneity:
+* Future sections
+Since only four sections remain after this one, I want to solicit your feedback on what you'd like to learn in the remaining section. At present, my plan is to do the following: \\
 
-#+BEGIN_SRC R :exports code :tangle yes
-vcov <- vcov.fn(rho.13 = 0, rho.23 = 0.5, rho.2z = 0.01)
-est.bias(vcov)
-#+END_SRC
+*Section 10*: Instrumental Variables \\
+*Section 11*: Web scraping in =R= \\
+*Section 12*: Spatial analysis \\
+*Section 13*: Using and analyzing satellite imagery \\
 
-#+BEGIN_EXAMPLE
-         beta bias      se chg
-[1,] -5.845659e-06 0.014421682
-[2,]  9.731249e-05 0.014443940
-[3,]  5.000803e-01 0.007497558
-#+END_EXAMPLE
-
-The second simulation displays the results of trying to correct the
-endogeneity with a weak instrument.  Not good.  Way worse.
-
-#+BEGIN_SRC R :exports code :tangle yes
-est.bias(vcov, two.stage = TRUE)
-#+END_SRC
-
-#+BEGIN_EXAMPLE
-       beta bias     se chg
-[1,]  0.18013841   982.6684
-[2,] -0.02440537   745.3372
-[3,]  2.06182132 13433.0801
-#+END_EXAMPLE
-
+I'm not married to this itinerary, however. You should note that only section 10 will be directly pertinent to what Max is covering in lecture --- the others are topics I've included due to personal interest. If there is a strong desire to cover other topics (or to do a general review section), I'm happy to change this plan.

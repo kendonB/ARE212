@@ -9,4 +9,7 @@
 	- Collaborating on code
 		- Dropbox
 		- Github?
-- show that a crazy distribution on the errors still leads to ASYMPTOTICALLY normal estimates
+- simulate omitted variable bias
+- inclusion of irrelevant variables
+- heteroskedastic errors?
+- Are white or FGLS errors usually bigger or smaller?
