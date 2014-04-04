@@ -3,18 +3,18 @@
 *The dirty business of data cleaning* \hfill
 *ARE212*: Section 09 \\ \hline \bigskip
 
-This section will explore some of the real-world issues involved with performing econometric analyses. In the real world, data is messy. It comes in weird formats, has unusual representation for missing values, and contains errors of every kind imaginable. The process of turning messy, poorly structured data into cleaned data ready for analysis is called *data cleaning*, and while it may not seem important now, you can believe me when I tell you that you will spend a healthy proportion of your post-coursework time in graduate school cleaning data. The purpose of this section is to ease your introduction into that process by providing you with a few basic tools here. \\
+In the real world, data is messy. The process of turning messy, poorly structured data into cleaned data ready for analysis is called *data cleaning*. Those of us who aren't yet fancy enough to hire research assistants can expect to do a great deal of this in the initial stages of research. It can be frustrating, so to ease your introduction into that process by providing you with a few basic tools here. \\
 
-To illustrate, we'll work through a real-life research question that I developed some time ago. We'll be investigating whether individuals' belief in climate change is affected by changes in their states' reliance on carbon-intensive industry. Our goal is to construct a dataset in which we can run following regression:
+To illustrate, we'll work through a real-life research question that I developed some time ago. We'll be investigating whether state-level belief in climate change is affected by changes in the presence of carbon-intensive industries. Our goal is to construct a dataset in which we can run following regression:
 
-$$ \text{CC Belief}_{ist} = \alpha + \text{Oil/Gas Employment}_{st} + \text{Covariates}_{st} + \varepsilon_{ist} $$
+$$ \text{CC Belief}_{st} = \alpha + \text{Oil/Gas Employment}_{st} + \varepsilon_{st} $$
 
 where $i$ represents an individual, $s$ their state, and $t$ is some time period. Actually, we'll end up running a somewhat different regression, but this gives you an idea of where we're headed.
 
 * Loading the data
-To measure our dependent variable, an individual's belief in climate change, we'll use a series of Pew Surveys[fn:: Available from http://www.people-press.org/question-search/.] that asked randomly selected individuals a series of questions about their beliefs in global warming. We'll be primarily interested in their answer to the following:
+To measure our dependent variable, belief in climate change, we'll use a series of Pew Surveys[fn:: Available from http://www.people-press.org/question-search/.] that asked randomly selected individuals a series of questions about their beliefs in global warming. We'll be primarily interested in their answer to the following: \\
 
-/From what you've read and heard, is there solid evidence that the average temperature on earth has been getting warmer over the past few decades, or not?/
+/From what you've read and heard, is there solid evidence that the average temperature on earth has been getting warmer over the past few decades, or not?/ \\
 
 When I did this project, I actually loaded in data from 8 surveys. We'll focus on just two, one from November 2011 and the other from October 2012. After downloading them from the appropriate spot on the Pew website[fn:: Surprisingly non-trivial, but this isn't a course on navigating websites so I'll skip over that.], we load the October 2012 data into =R=.
 
@@ -27,7 +27,7 @@ head(names(oct12.df))
 #+RESULTS:
 : [1] "X"        "psraid"   "sample"   "int_date" "fcall"    "attempt"
 
-Since we only care about a small subset of the variables reported on in the survey, we'll keep those and drop the rest. We can do by requesting either certain column numbers or certain variable names; here, we'll use variable names. Since the variable names aren't very informative, we'll need the documentation to figure out what is what. I used =Early Oct12 que.public.docx= to figure out that we want question 61.
+Since we only care about a small subset of the variables reported on in the survey, we'll keep those and drop the rest. This is done by requesting either certain column numbers or certain variable names; here, we'll use variable names. Since the variable names aren't very informative, we'll need the documentation.
 
 #+begin_src R :results output :exports both :tangle yes :session
 oct12.df <- oct12.df[c("int_date","state","q61")]
@@ -39,7 +39,7 @@ head(oct12.df, n = 1)
 : 1   100412 Massachusetts Yes
 
 * Finding errors
-Great! We've got some data. When loading any new dataset, however, we should be wary of errors. In this case, we have very lengthy question answers. We might be worried that these long character strings are encoded with typos for some observations. To look into this, wWe'll want to code these long character strings as factor variables, which we covered last time. Factorizing variables has the added benefit of reducing memory usage and making analysis easier. Win-win-win!
+Great! We've got some data. When loading any new dataset, however, we should be wary of errors. In this case, we have very lengthy question answers. We might be worried that these long character strings are encoded with typos for some observations. One way to look into this is to code these long character strings as factor variables, which we covered last time. Factorizing variables has the added benefit of reducing memory usage and making analysis easier. Win-win-win!
 
 #+begin_src R :results output :exports both :tangle yes :session
 oct12.df$q1f <- factor(oct12.df$q61)
@@ -58,7 +58,7 @@ levels(oct12.df$q1f)
 : [3] "(VOL.) Mixed/some evidence" "No"
 : [5] "Yes"
 
-Uh oh! It looks like =q1f= has an error somewhere --- something was misentered[fn:: In fairness to the Pew people, I created this error. Their data is unusually clean.] and now we have two redundant factors. An easy way to fix this is to fix the original character variable, =q61=, and then make it into a factor again.
+Uh oh! It looks like =q1f= has an error somewhere --- something was misentered[fn:: In fairness to the Pew people, I created this error. Their data is unusually clean.] and now we have two redundant factors. An easy way to fix this is to change the original character variable, =q61=, and then make it into a factor again.
 
 #+begin_src R :results output :exports both :tangle yes :session
 badindices <- which(oct12.df$q61 == c("(VOL.) Mixd/some evidence"))
@@ -118,7 +118,7 @@ levels(nov11.df$q1f) <- levels(oct12.df$q1f) <- c("Don't know","Mixed","No","Yes
 
 #+RESULTS:
 
-Now, let's put these data frames together! We'll use =rbind=.
+Note that we also simplied the factor levels. Now, let's put these data frames together! We'll use =rbind=.
 
 #+begin_src R :results output :exports both :tangle yes :session
 data.df <- rbind(nov11.df, oct12.df)
@@ -128,7 +128,7 @@ data.df <- rbind(nov11.df, oct12.df)
 : Error in match.names(clabs, names(xi)) :
 :   names do not match previous names
 
-Crap again. The names don't match because the question numbers don't match. But, we set the factor variables names so that they *would* match! Since the factor variables contain all of the information in the character variables, let's only use the well-named factor variables.
+Crap again. The names don't match because the original question variable names don't match. But, we set the factor variables names so that they *would* match! Since the factor variables contain all of the information in the character variables, let's only use the well-named factor variables.
 
 #+begin_src R :results output :exports both :tangle yes :session
 data.df <- rbind(nov11.df[, c(1, 2, 4)], oct12.df[, c(1, 2, 4)])
@@ -142,7 +142,7 @@ head(data.df, n = 3)
 : 3   110911     Maryland Don't know
 
 * Dealing with dates
-Great! We've got a dataset. We have the date of the interview, the state of the respondent, and their answers to the survey questions. Let's take a closer look at our =int_date= variable. What kind of variable is it?
+Great! Getting there. We have the date of the interview, the state of the respondent, and their answers to the survey questions. Let's take a closer look at our =int_date= variable. What kind of variable is it?
 
 #+begin_src R :results output :exports both :tangle yes :session
 class(data.df$int_date)
@@ -281,7 +281,7 @@ Since we haven't learned about logistic regression (the solution to having a bin
 
 #+begin_src R :results output :exports both :tangle yes :session
 merged.df$q1b <- ifelse(merged.df$q1f == "Yes", 1, 0)
-bystate.df <- aggregate(cbind(merged.df$q1b,merged.df$emp), 
+bystate.df <- aggregate(cbind(merged.df$q1b,merged.df$emp),
   by = list(merged.df$year, merged.df$state), FUN = mean)
 names(bystate.df) <- c("year","state","yes","emp")
 tail(bystate.df)
