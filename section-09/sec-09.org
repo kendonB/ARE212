@@ -9,14 +9,14 @@ To illustrate, we'll work through a real-life research question that I developed
 
 $$ \text{CC Belief}_{st} = \alpha + \text{Oil/Gas Employment}_{st} + \varepsilon_{st} $$
 
-where $i$ represents an individual, $s$ their state, and $t$ is some time period. Actually, we'll end up running a somewhat different regression, but this gives you an idea of where we're headed.
+where $s$ represents the state, and $t$ is some time period.
 
 * Loading the data
 To measure our dependent variable, belief in climate change, we'll use a series of Pew Surveys[fn:: Available from http://www.people-press.org/question-search/.] that asked randomly selected individuals a series of questions about their beliefs in global warming. We'll be primarily interested in their answer to the following: \\
 
 /From what you've read and heard, is there solid evidence that the average temperature on earth has been getting warmer over the past few decades, or not?/ \\
 
-When I did this project, I actually loaded in data from 8 surveys. We'll focus on just two, one from November 2011 and the other from October 2012. After downloading them from the appropriate spot on the Pew website[fn:: Surprisingly non-trivial, but this isn't a course on navigating websites so I'll skip over that.], we load the October 2012 data into =R=.
+When I did this project, I actually loaded in data from eight surveys. We'll focus on just two, one from November 2011 and the other from October 2012. After downloading them from the appropriate spot on the Pew website[fn:: Surprisingly non-trivial, but this isn't a course on navigating websites so I'll skip over that.], we load the October 2012 data into =R=.
 
 #+begin_src R :results output :exports both :tangle yes :session
 rm(list = ls())
@@ -39,7 +39,7 @@ head(oct12.df, n = 1)
 : 1   100412 Massachusetts Yes
 
 * Finding errors
-Great! We've got some data. When loading any new dataset, however, we should be wary of errors. In this case, we have very lengthy question answers. We might be worried that these long character strings are encoded with typos for some observations. One way to look into this is to code these long character strings as factor variables, which we covered last time. Factorizing variables has the added benefit of reducing memory usage and making analysis easier. Win-win-win!
+Great! We've got some data. When loading any new dataset, however, we should be wary of errors. In this case, we have very lengthy question answers. We might be worried that these long character strings are encoded with typos for some observations. One way to look into this is to code these long character strings as factor variables, which we covered last time. This allows us to see all of the unique values the variable takes. It also has the added benefit of reducing memory usage and making analysis easier. Win-win-win!
 
 #+begin_src R :results output :exports both :tangle yes :session
 oct12.df$q1f <- factor(oct12.df$q61)
@@ -174,7 +174,9 @@ head(dow)
 
 * Dropping, renaming, and reording variables
 
-Often while cleaning, we'll end up with extraneous variables that we created in the process of making other variables. We could just leave them be, but if we're working with a lot of data or if we are just a tiny bit obsessive about not letting our environment get flooded with objects[fn:: Guilty!] we might want to clean it up every now and again. We also often want to rename and reorder variables within a data frame. Fortunately, =R= makes all of this easy. First, we'll drop our extraneous string and integer variables from our data frame. Then, we'll rename the awkwardly entitled =data.df$int_date.date= to just =data.df$int_date=. Finally, we'll reorder our data with the date at the beginning.
+Often while cleaning, we'll end up with extraneous variables that we created in the process of making other variables. We could just leave them be, but if we're working with a lot of data or if we are just a tiny bit obsessive about not letting our environment get flooded with objects[fn:: Guilty!] we might want to clean it up every now and again. There are many ways to drop variables, some of which we've already covered. Passing the value =NULL= to a variable is another. \\
+
+Also, we often want to rename and reorder variables within a data frame. Fortunately, =R= makes all of this easy. First, we'll drop our extraneous string and integer variables from our data frame. Then, we'll rename the awkwardly entitled =data.df$int_date.date= to just =data.df$int_date=. Finally, we'll reorder our data with the date at the beginning.
 
 #+begin_src R :results output :exports both :tangle yes :session
 data.df$int_date.str <- data.df$int_date <- NULL
@@ -193,7 +195,7 @@ head(data.df)
 : 6 2011-11-14      Florida        Yes
 
 * Collapsing data
-We've got our dependent variables --- in fact, we have a few of them. Now we want state employment by year we can get these from the Bureau of Labor Statistics. The ones I found are actually a set of excel files that require some additional formatting to use in our setting. However, to save time and sanity[fn:: Importing excel files in =R= is actually non-trivial and requires either Perl, Java, or an OS-specific package. None of these are easy to present in section, so I'll omit them now. See the following link for help on importing excel files: http://tinyurl.com/m9pbz8v.], I've skipped some setps here and created =oilgas_emp.csv=, which we'll import now. Party on, Wayne.
+We've got our dependent variables --- in fact, we have a few of them. Now we want state employment by year we can get these from the Bureau of Labor Statistics. The ones I found are actually a set of excel files that require some additional formatting to use in our setting. However, to save time and sanity[fn:: Importing excel files in =R= is actually non-trivial and requires either Perl, Java, or an OS-specific package. None of these are easy to present in section, so I'll omit them now. See the following link for help on importing excel files: http://tinyurl.com/m9pbz8v.], I've skipped some steps here and created =oilgas_emp.csv=, which we'll import now. Party on, Wayne.
 
 #+begin_src R :results output :exports both :tangle yes :session
 oilgas.df <- read.table("oilgas_emp.csv", header = T, sep = ",")
@@ -341,7 +343,7 @@ Well, we didn't find anything. Darn. Of course, there are some really huge probl
 * What else?
 Cleaning data is almost always an adventure, since every project will present different and entirely unique challenges. At first, the cleaning process will seem interminably long and tedious, but you'll become faster over time. You'll develop habits of research that enable to get you to your end goal as quickly as possible. I couldn't possibly cover everything you'll need to know to clean your next dataset, but I hope to have laid at least a bit of a blueprint. In my own research, I've found it valuable to spend some time thinking about exactly what regression I want to run so that I always have an idea of where I'm headed. It's important to keep the goal in mind when cleaning so that you don't run down too many rabbit holes before you're even sure if the project is worth pursuing. If it's not mission critical for the basic question that you want to ask, make a note to yourself, move on, and return to it later.
 * Future sections
-Since only four sections remain after this one, I want to solicit your feedback on what you'd like to learn in the remaining section. At present, my plan is to do the following: \\
+Since only four sections remain after this one, I want to solicit your feedback on what you'd like to learn in the remaining sections. At present, my plan is to do the following: \\
 
 *Section 10*: Instrumental Variables \\
 *Section 11*: Web scraping in =R= \\

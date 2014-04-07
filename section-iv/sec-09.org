@@ -1,6 +1,6 @@
-S#+AUTHOR:     
-#+TITLE:      
-#+OPTIONS:     toc:nil num:nil 
+S#+AUTHOR:
+#+TITLE:
+#+OPTIONS:     toc:nil num:nil
 #+LATEX_HEADER: \usepackage{mathrsfs}
 #+LATEX_HEADER: \usepackage{graphicx}
 #+LATEX_HEADER: \usepackage{booktabs}
@@ -56,8 +56,12 @@ S#+AUTHOR:
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline
 
-\textbf{Instrumental Variables}  \hfill
+*Omitted variables bias and instrumental variables*  \hfill
 *ARE212*: Section 08 \\ \\
+
+- Do OMB simulation, show how to sign the bias. Talk about wat it means to bound results.
+
+TODO: SIMULATION SHOULD TALK ABOUT GAMMA AND DELTA - WE CAN ACTUALLY SEE THEM!
 
 The first part of these section notes is a variation on Max
 Auffhammer's final exam for ARE212 in 2011.  If you don't like this
@@ -72,7 +76,7 @@ y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \beta_3 x_{3i} + \eta_i \with 
 covariates, an additional instrument, and the idiosyncratic error
 ($x_{1i}$, $x_{2i}$, $x_{3i}$, $z_{i}$, and $\eta_i$) is defined to be
 $$
-\Sigma = \left[  
+\Sigma = \left[
 \begin{array}{ccccc}
 1 & 0 & \rho_{13} & 0 & 0 \\
 0 & 1 & \rho_{23} & \rho_{2z} & 0 \\
@@ -111,7 +115,7 @@ rmvn.chol <- function(n, vcov.mat) {
 
 It will be handy to have a simple function to generate $\Sigma$ with
 three arguments representing the three non-zero correlations across
-the covariates and the instrument.  
+the covariates and the instrument.
 
 #+BEGIN_SRC R :results none :exports code :session :tangle yes
 vcov.fn <- function(rho.13, rho.23, rho.2z) {
@@ -163,7 +167,7 @@ estimation techniques, including OLS, 2SLS, and estimation by proxy
 variable.  First, let's put together a very simple function to
 calculate the parameter vector and it's standard error for both direct
 regression and two-stage least squares, when a first-stage covariate
-matrix is provided.  
+matrix is provided.
 
 #+BEGIN_SRC R :results none :exports code :session :tangle yes
 ols.results <- function(y, X, first = FALSE) {
@@ -311,7 +315,7 @@ $\P = \Z\Zin\Zp$.  Then the IV estimator is $\hat{\beta}_{iv} = (\Xp
 idempotent, as is the residual maker $(\In - \P)$.  Note that for any
 $\X$ and any symmetric, idempotent matrix, the following fact is true:
 \begin{equation}
-\Xp\P\X = \Xp\P\P\X = \Xp\Pp\P\X = (\P\X)^{\prime}(\P\X) \geq 0 
+\Xp\P\X = \Xp\P\P\X = \Xp\Pp\P\X = (\P\X)^{\prime}(\P\X) \geq 0
 \label{eq:proj}
 \end{equation}
 Note also that $\V(\hat{\beta}_{ols}) = \sigs(\Xp\X)^{-1}$ and $\V(\hat{\beta}_{iv}) = \sigs(\Xp\P\X)^{-1}$. It suffices to show that $\Xp\X \geq \Xp\P\X$ to complete the proof.  It follows from Equation (\ref{eq:proj}) that:
