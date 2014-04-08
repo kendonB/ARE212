@@ -14,35 +14,36 @@ vcov.fn <- function(rho.13, rho.23, rho.2z) {
   return(mat)
 }
 
+set.seed(42)
 (vcov <- vcov.fn(rho.13 = 0, rho.23 = 0.5, rho.2z = 0.5))
 X <- rmvn.chol(500, vcov)
 
-apply(X, 2, function(i){var(i)})
+options(digits = 2)
+(vcov.data <- var(X))
 
 ols.results <- function(y, X, first = FALSE) {
-  Xt <- t(X)
-  xtxi <- solve(Xt %*% X)
-  beta <- xtxi %*% Xt %*% y
+  XpXinv <- solve(t(X) %*% X)
+  b.first <- XpXinv %*% t(X) %*% y
 
-  if (class(first) == "logical") {
-    e <- y - X %*% beta
+  if (first == FALSE) {
+    e <- y - X %*% b.first
   } else {
-    e <- y - first %*% beta
+    e <- y - first %*% b.first
   }
 
   s2 <- (t(e) %*% e) / (nrow(X) - ncol(X))
-  se <- sqrt(diag(xtxi) * s2)
-  return(cbind(beta, se))
+  se <- sqrt(diag(XpXinv) * s2)
+  return(list(b = b, se = se))
 }
 
 est.bias <- function(vcov, n = 500, B = 10000, two.stage = FALSE) {
-  true.beta <- c(1, 2, -4, 1)
+  true.beta <- c(1, 4, -4, 3)
   res.beta <- mat.or.vec(3,B); res.se <- mat.or.vec(3,B)
 
   for (i in 1:B) {
     data <- rmvn.chol(n, vcov)
 
-    X <- cbipnd(1, data[,1:3]); eta <- data[,5]
+    X <- cbind(1, data[,1:3]); eta <- data[,5]
     y <- X %*% true.beta + eta
     full.ols <- ols.results(y, X)
 
@@ -67,9 +68,9 @@ est.bias <- function(vcov, n = 500, B = 10000, two.stage = FALSE) {
 }
 
 vcov <- vcov.fn(rho.13 = 0, rho.23 = 0, rho.2z = 0)
-est.bias(vcov, B = 100)
+est.bias(vcov)
 
-vcov <- vcov.fn(rho.13 = 0, rho.23 = 0.5, rho.2z = 0.5)
+vcov <- vcov.fn(rho.13 = 0, rho.23 = 0.2, rho.2z = 0.5)
 est.bias(vcov)
 
 est.bias(vcov, two.stage=TRUE)
