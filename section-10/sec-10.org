@@ -6,10 +6,9 @@
 In this section we'll use simulated data to study the linked concepts of omitted variables bias and instrumental variables. But first, we'll go over a few notes from the last problem set.
 
 * Problem set 3 retrospective
-In general, the class did well on the last problem set. There were errors here and there but most had to do with simple coding issues, not errors in comprehension of the material. If you find that your answers don't match those on the answer key, consider checking your final results with a friend, ideally one you didn't work with --- the probability of you both making identical mistakes is much smaller than the probability of you making a mistake on your own!
-
+In general, the class did well on the last problem set. There were errors, but most had to do with simple coding issues, not errors in comprehension of the material. If you find that your answers don't match those on the answer key, consider checking your final results with someone else, ideally one you didn't work with --- the probability of you both making identical mistakes is much smaller than the probability of you making a mistake on your own!
 ** Summarizing data with graphs
-There are many, many ways to view and slice your data. In general, the more the better. Of course, I don't want to see all of them on your problem set, but in true research you want to have a full quiver of different ways to graph your dataset. Here are two small coding examples that will make graphing your data easier. First, we'll "melt" our data so that it is in long, rather than wide format.
+There are many, many ways to view and slice your data. In general, the more the better. Of course, I don't want to see all of them on your problem set, but when doing research you want to have a full quiver of different ways to graph your data before you start running regressions. Here are two small coding examples that will make graphing your data easier. First, we'll "melt" our data so that it is in long, rather than wide format.
 
 #+begin_src R :results output :exports both :tangle yes :session
 library(reshape)
@@ -33,7 +32,7 @@ histdraw.df[c(1:2,1000:1001,3000:3001), ]
 : 3000  married  1.000000
 : 3001  married  1.000000
 
-Normally, we would need to tell =melt= which of our variables are "id" variables and which are "measured" variables. Here we call all of our variables measured, giving us the preferred format for running =ggplot()=.
+We would need to tell =melt= which of our variables are "id" variables and which are "measured" variables. Here we call all of our variables measured, giving us the preferred format for running =ggplot()=.
 
 #+begin_src R :results output graphics :file inserts/fig1.png :width 800 :height 600 :session :tangle yes :exports both
 library(ggplot2)
@@ -44,6 +43,8 @@ ggplot(data = histdraw.df, aes(x = value)) +
 
 #+RESULTS:
 [[file:inserts/fig1.png]]
+
+** Advanced =ggpairs=
 
 You are all familiar with =ggpairs()=, but you may not know that it is capable of far more than just simple scatterplots. In fact, =ggpairs()= is pretty smart --- if you pass it factor variables, for example, it will treat them as discrete rather than continuous and graph appropriately. You can also easily customize what appears in the upper and lower sections of the graph.
 
@@ -89,7 +90,7 @@ Now, onto the good stuff!
 
 \newpage
 * Simulating omitted variables bias
-This part of these section notes is a variation on Max Auffhammer's final exam for ARE212 in 2011. In short, our goal is to generate a framework where we can simulate bias, and then examine possible solutions to that bias.
+This part of these section notes is a variation on Max Auffhammer's final exam for ARE212 in 2011. In short, our goal is to generate a framework where we can simulate bias, and then examine possible solutions to that bias. \\
 
 Consider the following data generating process:
 \begin{equation}
@@ -109,7 +110,7 @@ and $\beta = [1 \hspace{4pt} 2 \hspace{4pt} \mbox{-}4 \hspace{4pt} 3]^{\prime}$.
 \end{align*}
 where each variable is assumed to have zero mean for simplicity. Note that $\Sigma$ is consistent with $\eta_i$ being independently and identically distributed with constant variance.  We will explore the properties of IV (e.g., weak instruments and the exclusion restriction) via Monte Carlo simulation. \\
 
-The first step, then, is to figure out how to generate random data with the appropriate covariance. For this, we'll write the useful function is =rmvn.chol=, which returns a random $n \times k$ multivariate normal matrix $\X$, based on the supplied covariance matrix =vcov.mat=. We'll need to use the fact that premultiplying an $n \times k$ matrix filled with draws from a standard normal distribution with the Cholesky decomposition of \Sigma (i.e. \Q, where \Qp \Q = \Sigma) will give us the matrix we want[fn:: I'm not going to prove this, but I'm more than willing to wave my hands at it. To start, note that the Cholesky decomposition is the linear algebra equivalent of taking a square root.].
+The first step, then, is to figure out how to generate random data with the appropriate covariance. For this, we'll write the utility function =rmvn.chol=, which returns a random $n \times k$ multivariate normal matrix $\X$, based on the supplied covariance matrix =vcov.mat=. We'll need to use the fact that premultiplying an $n \times k$ matrix filled with draws from a standard normal distribution with the Cholesky decomposition of \Sigma (i.e. \Q, where \Qp \Q = \Sigma) will give us the matrix we want[fn:: I'm not going to prove this, but I'm more than willing to wave my hands at it. To start, note that the Cholesky decomposition is the linear algebra equivalent of taking a square root.].
 
 #+begin_src R :results output :exports both :tangle yes :session
 rmvn.chol <- function(n, vcov.mat) {
@@ -152,7 +153,7 @@ X <- rmvn.chol(500, vcov)
 : [4,]    0  0.5  0.0  1.0    0
 : [5,]    0  0.0  0.0  0.0    1
 
-Now we also want to see that the estimated variance covariance matrix of =X= does, in fact, mirror the \Sigma matrix we specified:
+We also want to see that the estimated variance covariance matrix of =X= does, in fact, mirror the \Sigma matrix we specified:
 
 #+begin_src R :results output :exports both :tangle yes :session
 (vcov.data <- var(X))
@@ -168,7 +169,7 @@ Now we also want to see that the estimated variance covariance matrix of =X= doe
 
 * Estimate and fix bias with instrumental variables
 
-We will now write a couple of functions to help examine the bias of the parameter vector and its standard error, using an array of estimation techniques, including OLS, 2SLS, and estimation by proxy variable.  First, let's put together a very simple function to calculate the parameter vector and its standard error for both direct regression and two-stage least squares, when a first-stage covariate matrix is provided.
+We will now write a couple functions to help examine the bias of the parameter vector and its standard error using OLS and 2SLS.  First, let's put together a very simple function to calculate the parameter vector and its standard error for both direct regression and two-stage least squares, when a first-stage covariate matrix is provided.
 
 #+begin_src R :results output :exports both :tangle yes :session
 ols.results <- function(y, X, first = FALSE) {
@@ -191,7 +192,7 @@ ols.results <- function(y, X, first = FALSE) {
 
 We'll use the =first= flag later, to calculate the correct residuals for IV/2SLS[fn:: See Max's notes for a refresher on this. In short --- we don't want to use the predicted values of the endogenous variable to calculate the residuals; failing to correct here would give us the wrong standard errors.].
 
-Now comes the serious stuff, specifically, the code that is written specifically to examine IV estimation in this example.  Suppose that we do not observe $x_{3i}$.  The composite error is then $x_{3i} + \eta_i$, and we estimate the parameter vector by regressing $y_i$ on $x_{1i}$ and $x_{2i}$.  If the omitted variable is uncorrelated with the covariaties, i.e. $\rho_{13} = \rho_{23} = 0$, then there is no problem: OLS will yield consistent estimates, since the regression utilizes only exogenous variation.  If, however, the covariates are correlated with the composite error, the OLS estimates will be biased.\\
+Now comes the serious stuff, specifically, the code that is written to examine IV estimation in this example.  Suppose that we do not observe $x_{3i}$.  The composite error is then $x_{3i} + \eta_i$, and we estimate the parameter vector by regressing $y_i$ on $x_{1i}$ and $x_{2i}$.  If the omitted variable is uncorrelated with the covariaties, i.e. $\rho_{13} = \rho_{23} = 0$, then there is no problem: OLS will yield consistent estimates, since the regression utilizes only exogenous variation.  If, however, the covariates are correlated with the composite error, the OLS estimates will be biased.\\
 
 The function =est.bias= returns the simulated bias in the parameter estimates and standard errors from a Monte Carlo simulation with $B = 10,000$ repetitions.  The arguments are =vcov= which is the variance-covariance matrix generated by =vcov.fn=; =n= which specifies the number of observations for each iteration, defaulted at 500; =B= is the number of iterations in the MC simulation, defaulted at 10,000; =two.stage= is a boolean argument indicating whether the simulation should employ two-stage least squares with $z_i$ as the instrument for $x_{3i}$, defaulted to =FALSE=.  The default behavior, then, is to run a simulation where $x_{3i}$ is left out of the OLS regression, relegated to the error term.
 
@@ -230,7 +231,7 @@ est.bias <- function(vcov, n = 500, B = 10000, two.stage = FALSE) {
 
 #+RESULTS:
 
-A couple notes on this code. First, =full.ols= is our model /if we were able to observe $x_{3i}$/. It is our basis of comparison for this exercise, but wouldn't be estimatable under normal conditions. Second, let's take a slightly closer look at the =if-else= statement in the middle of this code. If the flag =two.stage= has been set to =TRUE=, then =est.bias= performs 2SLS. First, it regresses the endogenous variable ($x_{2i}$) on the exogenous variables (the covariate $x_{1i}$ and the instrument $z_i$). Then, it regresses $y_i$ on the exogenous variable $x_{2i}$ and the (also exogenous) predicted values for $x_{2i}$. That's it! \\
+A couple notes on this code. First, =full.ols= is our model /if we were able to observe $x_{3i}$/. It is our basis of comparison for this exercise, but wouldn't be estimable under normal conditions. Second, let's take a slightly closer look at the =if-else= statement in the middle of this code. If the flag =two.stage= has been set to =TRUE=, then =est.bias= performs 2SLS. First, it regresses the endogenous variable ($x_{2i}$) on the exogenous variables (the covariate $x_{1i}$ and the instrument $z_i$). Then, it regresses $y_i$ on the exogenous variable $x_{2i}$ and the (also exogenous) predicted values for $x_{2i}$. That's it! \\
 
 We can check =est.bias= by first setting $\rho_{13} = \rho_{23} = 0$ and ensuring that the bias is very low with $n=500$ and $B = 10,000$. The following MC simulation sets $\Sigma = \I_5$ and runs the following regression $10,000$ times:
 
@@ -275,7 +276,7 @@ est.bias(vcov, two.stage=TRUE)
 
 #+RESULTS:
 
-Note, however, that the standard errors are much higher.  We can prove that, in general, the variance of the IV estimator is larger than the variance of an OLS estimator.  Let $\Z$ be a matrix of instruments and $\P = \Z\Zin\Zp$.  Then the IV estimator is $\hat{\beta}_{iv} = (\Xp \P \X)^{-1}\Xp \P \y$.  The projection matrix $\P$ is symmetric and idempotent, as is the residual maker $\M = (\In - \P)$.  Note that for any $\X$ and any symmetric, idempotent matrix $\W$, we have the following use linear algebra fact: [fn:: This is because of another useful linear algebra fact: any idempotent and symmetric matrix is positive semi-definite.]:
+Note, however, that the standard errors are much higher. We can prove that, in general, the variance of the IV estimator is larger than the variance of an OLS estimator.  Let $\Z$ be a matrix of instruments and $\P = \Z\Zin\Zp$. Using equation (6.14) from the lecture notes, we have the IV estimator is $\hat{\beta}_{iv} = (\Xp \P \X)^{-1}\Xp \P \y$.  The projection matrix $\P$ is symmetric and idempotent, as is the residual maker $\M = (\In - \P)$. Note that for any $\X$ and any symmetric, idempotent matrix $\W$, we have the following use linear algebra fact: [fn:: This is because of another useful linear algebra fact: any idempotent and symmetric matrix is positive semi-definite.]:
 
 \begin{equation}
 \Xp\W\X = \Xp\W\W\X = \Xp\Wp\W\X = (\W\X)^{\prime}(\W\X) \geq \mathbf{0}
