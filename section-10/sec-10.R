@@ -42,7 +42,7 @@ rmvn.chol <- function(n, vcov.mat) {
   k <- ncol(vcov.mat)
   Q <- chol(vcov.mat)
   Z <- matrix(rnorm(k*n), nrow=n, ncol=k)
-  return(Z %*% Q)
+  return(Q %*% Z)
 }
 
 vcov.fn <- function(rho.13, rho.23, rho.2z) {

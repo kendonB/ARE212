@@ -14,6 +14,7 @@
 #+LATEX: \newcommand{\A}{{\bf A}}
 #+LATEX: \newcommand{\Bp}{{\bf B}^{\prime}}
 #+LATEX: \newcommand{\B}{{\bf B}}
+#+LATEX: \newcommand{\Cp}{{\bf C}^{\prime}}
 #+LATEX: \newcommand{\D}{{\bf D}}
 #+LATEX: \newcommand{\Dp}{{\bf D}^{\prime}}
 #+LATEX: \newcommand{\E}{\mathbb{E}}
@@ -83,8 +84,8 @@
 #+LATEX: \renewcommand{\c}{{\bf c}}
 #+LATEX: \renewcommand{\r}{{\bf r}}
 #+LATEX: \renewcommand{\th}{{\bf{\theta}}}
-#+LATEX: \providecommand\C{}
-#+LATEX: \renewcommand\C{\bf C}
+#+LATEX: \providecommand{\C}{}
+#+LATEX: \renewcommand{\C}{\bf C}
 #+LATEX: \newcommand{\with}{\hspace{8pt}\mbox{with}\hspace{6pt}}
 #+LATEX: \newcommand{\Pp}{{\bf P}^{\prime}}
 #+LATEX: \newcommand{\Zin}{(\Zp\Z)^{-1}}
