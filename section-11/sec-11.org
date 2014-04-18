@@ -6,7 +6,6 @@
 The purpose of this section is to showcase the ability to scrape and process web data using =R=.
 
 * Last section
-But first, let's take another crack
 ** Simulate data with a given variance-covariance matrix
 Let's take another crack at this. Let $\Sigma$ be our $k \times k$ given covariance matrix. We want to generate data $\X$ from some hypothetical population $\P$ s.t. $V(\P) = \Sigma$ and $V(\X) \approx \Sigma$. \\
 
