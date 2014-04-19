@@ -8,8 +8,8 @@ options(show.error.messages = FALSE)
 token <- "characters"
 nameslist <- list()
 i <- 1
-
-while (is.character(token) == TRUE & i < 2) {
+time <- proc.time()
+while (is.character(token) == TRUE & i < 100000) {
   baseurl <- "http://oai.crossref.org/OAIHandler?verb=ListSets"
   if (token == "characters") {
     tok.follow <- NULL
@@ -20,8 +20,11 @@ while (is.character(token) == TRUE & i < 2) {
   query <- paste(baseurl, tok.follow, sep = "")
 
   xml.query <- xmlParse(getURL(query))
+  xml.query
   set.res <- xmlToList(xml.query)
+  set.res
   names <- as.character(sapply(set.res[["ListSets"]], function(x) x[["setName"]]))
+  names
   nameslist[[token]] <- names
 
   if (class(try(set.res[["request"]][[".attrs"]][["resumptionToken"]])) == "try-error") {
@@ -32,18 +35,21 @@ while (is.character(token) == TRUE & i < 2) {
   }
   i <- i + 1
 }
+(proc.time() - time)
 
 allnames <- do.call(c, nameslist)
 length(allnames)
 head(allnames)
 
-econtitles <- as.character(allnames[str_detect(allnames, "^[Ee]conomic|\\s[Ee]conomic")])
+econtitles <- allnames[str_detect(allnames, "^[Ee]conom|\\s[Ee]conom")]
+econtitles2 <- allnames[str_detect(allnames, "[Ee]conomic|\\s[Ee]conomic")]
 length(econtitles)
+length(econtitles2)
 
 sample(econtitles, 10)
 
 countJournals <- function(regex) {
-  titles <- as.character(allnames[str_detect(allnames, regex)])
+  titles <- allnames[str_detect(allnames, regex)]
   return(length(titles))
 }
 
@@ -55,4 +61,5 @@ regx = c("^[Ee]conomic|\\s[Ee]conomic", "^[Bb]usiness|\\s[Bb]usiness",
 subj.df <- data.frame(subject = subj, regex = regx)
 
 subj.df[["count"]] <- sapply(as.character(subj.df[["regex"]]), countJournals)
-(g <- ggplot(data = subj.df, aes(x = subject, y = count)) + geom_bar())
+library(ggplot2)
+(g <- ggplot(data = subj.df, aes(x = subject, y = count)) + geom_bar(stat = "identity"))

@@ -1,0 +1,11 @@
+library(maps)
+library(fields)
+library(maptools)
+library(RCurl)
+library(RJSONIO)
+library(CartoDB)
+
+install.packages("maps","fields","maptools","RCurl","RJSONIO")
+
+Set working directory to location of "CartoDB_1.4.tar.gz"
+install.packages("CartoDB_1.4.tar.gz", repos=NULL, type="source")
