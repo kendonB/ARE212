@@ -19,12 +19,6 @@ V(\P) &= \Sigma \\
 \end{align*}
 
 Which is exactly what we did in code last week.
-** $R^2$ in IV/2SLS
-You already know that $R^2$ values are not to be trusted. What about $R^2$ values in an IV/2SLS regression? Even worse! Why? We know that
-$$R^2_{OLS} = 1 - \frac{\text{SSR}}{\text{SST}} = 1 - \frac{\sum_i (y_i - \x_i \b_{OLS})^2}{\sum_i (y_i - \bar{y})^2}$$
-To calculate the $R^2_{2SLS}$, we simply substitute $\b_{2SLS}$ for $\b_{OLS}$ in the above equation. We do not, however, substitute in $\z_i$ for $\x_i$, so the numerator is not our residuals from the second-stage regression (which we know to be incorrect, as Max covered in lecture). Because we don't make that substitution, we no longer have the guarantee that SSR $<$ SST[fn:: Another way to say this is that the residuals we calculate here do not come from a model that nests the constant-only model of y.]. \\
-
-Even worse, the $R^2_{2SLS}$ is even less useful than the $R^2_{OLS}$ because $V(\y) = V(\X \b_{2SLS} + \varepsilon) = V(\X\B) + V(\varepsilon) + 2\text{Cov}(\X \b, \varepsilon)$, so our $R^2_{2SLS}$, which is supposed to describe $1 - \frac{V(\varepsilon)}{V(\y)}$, no longer has any meaning.
 * Web scraping
 The purpose of this section is to showcase the ability to scrape and process web data using =R=.  The section notes draw heavily from a [[http://schamberlain.github.com/2012/08/get-ecoevo-journal-titles/][post]] on a great blog by Pascal Mickelson and Scott Chamberlain, two biologists and experienced =R= users.\\
 
