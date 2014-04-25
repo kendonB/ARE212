@@ -89,6 +89,7 @@
 #+LATEX: \newcommand{\with}{\hspace{8pt}\mbox{with}\hspace{6pt}}
 #+LATEX: \newcommand{\Pp}{{\bf P}^{\prime}}
 #+LATEX: \newcommand{\Zin}{(\Zp\Z)^{-1}}
+#+LATEX: \newcommand{\tred}[1]{\textcolor{red}{\mbox{\texttt{#1}}}}
 #+LATEX: \setlength{\parindent}{0in}
 #+STARTUP: fninline
 

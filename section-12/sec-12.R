@@ -1,12 +1,12 @@
 
-#png(filename="inserts/us-mkts.png",height=400,width=800)
+png(filename="inserts/us-mkts.png",height=400,width=800)
 library(maps)
 data <- read.csv("farmers-mkts.csv", header = TRUE)
 map("state", interior = FALSE)
 title("Farmers' markets")
 map("state", boundary = FALSE, col = "gray", add = TRUE)
 points(data$x, data$y, cex = 0.2, col = "blue")
-#dev.off()
+dev.off()
 
 statelist <- c("New Mexico", "Colorado", "Arizona", "Utah")
 state.data <- data[is.element(data$State, statelist), ]
@@ -37,15 +37,15 @@ X[1:6, c("Honey", "Jams", "Poultry")]
 
 dum.dist <- dist(X, method = "binary")
 
-#png(filename="inserts/dend.png",height=600,width=600)
+png(filename="inserts/dend.png",height=600,width=600)
 hclust.res <- hclust(dum.dist)
 plot(cut(as.dendrogram(hclust.res), h = 0)$upper, leaflab = "none")
-#dev.off()
+dev.off()
 
 cl <- cutree(hclust.res, k = 5)
 head(cl)
 
-#png(filename="inserts/zoom.png",height=600,width=600)
+png(filename="inserts/zoom.png",height=600,width=600)
 assignColor <- function(cl.idx) {
   col.codes <- c("#FF8000", "#0080FF", "#FFBF00", "#FF4000")
   return(col.codes[cl.idx])
@@ -56,7 +56,7 @@ map("state", interior = FALSE,
 map("state", boundary = FALSE, col="gray", add = TRUE,
     xlim = c(-117, -101), ylim = c(28, 43))
 points(state.data$x, state.data$y, cex = 1, pch = 20, col = assignColor(cl))
-#dev.off()
+dev.off()
 
 library(maptools)
 
@@ -72,26 +72,25 @@ dist.NM <- apply(coords, 1, FUN = segDistance)
 dist.NM <- dist.NM * ifelse(state.data[["State"]] == "New Mexico", -1, 1)
 head(dist.NM)
 
-#png(filename="inserts/disc.png",height=400,width=900)
+png(filename="inserts/disc.png",height=400,width=900)
 sel.cl <- cl < 5
 plot(dist.NM[sel.cl], cl[sel.cl], pch = 20, col = "blue",
   xlab = "Distance to New Mexico border (in degrees)",
   ylab = "Cluster category", yaxt = "n")
 abline(v = 0, lty = 3, col = "red")
 axis(2, at = 1:4)
-#dev.off()
+dev.off()
 
+library(RCurl)
+library(RJSONIO)
 convertCoords <- function(coord.collection) {
   apply(coord.collection, 1, function(x) { paste(x[2], x[1], sep = ",") })
 }
 
-http://maps.googleapis.com/maps/api/elevation/json?locations=39.7391536,-104.9847034|39.7391536,-104.9847034&sensor=false
-
-library(RCurl)
-getElevation <- function(coord.collection) {
+getElevation <- function(coord.strings) {
   base.url <- "http://maps.googleapis.com/maps/api/elevation/json?locations="
   params <- "&sensor=false"
-  coord.str <- paste(convertCoords(coord.collection), collapse = "|")
+  coord.str <- paste(convertCoords(coord.strings), collapse = "|")
   query <- paste(base.url, coord.str, params, sep="")
   gotten <- getURL(query)
 
@@ -105,13 +104,16 @@ getElevation <- function(coord.collection) {
   return(res)
 }
 
+testmatrix <- matrix(c(-122.27,37.83,-157.49,1.87), nrow = 2, byrow = T)
+convertCoords(testmatrix)
+getElevation(testmatrix)
+
 partition <- function(df, each = 10) {
   s <- seq(ceiling(nrow(df) / each))
-  res <- split(df, rep(s, each = each))
+  suppressWarnings(res <- split(df, rep(s, each = each)))
   return(res)
 }
 
-# this is super complex 
 elev.split <- lapply(partition(as.data.frame(coords)), getElevation)
 elevation <- unlist(elev.split)
 
