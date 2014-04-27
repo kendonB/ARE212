@@ -1,16 +1,17 @@
-
-png(filename="inserts/us-mkts.png",height=400,width=800)
+rm(list = ls())
+#png(filename="inserts/us-mkts.png",height=400,width=800)
 library(maps)
 data <- read.csv("farmers-mkts.csv", header = TRUE)
 map("state", interior = FALSE)
 title("Farmers' markets")
 map("state", boundary = FALSE, col = "gray", add = TRUE)
-points(data$x, data$y, cex = 0.2, col = "blue")
-dev.off()
+#points(data$x, data$y, cex = 0.2, col = "blue")
+#dev.off()
 
 statelist <- c("New Mexico", "Colorado", "Arizona", "Utah")
 state.data <- data[is.element(data$State, statelist), ]
 state.data <- state.data[state.data$x < -80,]
+points(state.data$x, state.data$y, cex = 0.2, col = "blue")
 dim(state.data)
 names(state.data)
 
@@ -28,8 +29,9 @@ nearestneighbor <- apply(gc.dist.mtx, 2, which.min)
 head(nearestneighbor)
 
 n <- nrow(gc.dist.mtx)
-nearestneighbor <- apply(gc.dist.mtx + diag(999999, n, n), 2, which.min)
+nearestneighbor <- apply(gc.dist.mtx + diag(NA, n, n), 2, which.min)
 head(nearestneighbor)
+cbind(state.data[ , 1], state.data[nearestneighbor, 1])
 
 X <- state.data[, 8:ncol(state.data)]
 X <- apply(X, 2, function(col) { ifelse(col == "Y", 1, 0) })
@@ -37,17 +39,17 @@ X[1:6, c("Honey", "Jams", "Poultry")]
 
 dum.dist <- dist(X, method = "binary")
 
-png(filename="inserts/dend.png",height=600,width=600)
+#png(filename="inserts/dend.png",height=600,width=600)
 hclust.res <- hclust(dum.dist)
 plot(cut(as.dendrogram(hclust.res), h = 0)$upper, leaflab = "none")
-dev.off()
+#dev.off()
 
 cl <- cutree(hclust.res, k = 5)
 head(cl)
 
-png(filename="inserts/zoom.png",height=600,width=600)
+#png(filename="inserts/zoom.png",height=600,width=600)
 assignColor <- function(cl.idx) {
-  col.codes <- c("#FF8000", "#0080FF", "#FFBF00", "#FF4000")
+  col.codes <- c("#FF8000", "#0080FF", "#FFBF00", "#FF4000", "#004000", "#333333", "#222222", "#111111")
   return(col.codes[cl.idx])
 }
 
@@ -72,14 +74,14 @@ dist.NM <- apply(coords, 1, FUN = segDistance)
 dist.NM <- dist.NM * ifelse(state.data[["State"]] == "New Mexico", -1, 1)
 head(dist.NM)
 
-png(filename="inserts/disc.png",height=400,width=900)
+#png(filename="inserts/disc.png",height=400,width=900)
 sel.cl <- cl < 5
 plot(dist.NM[sel.cl], cl[sel.cl], pch = 20, col = "blue",
   xlab = "Distance to New Mexico border (in degrees)",
   ylab = "Cluster category", yaxt = "n")
 abline(v = 0, lty = 3, col = "red")
 axis(2, at = 1:4)
-dev.off()
+#dev.off()
 
 library(RCurl)
 library(RJSONIO)
