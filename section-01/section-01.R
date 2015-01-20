@@ -40,7 +40,7 @@ head(mydata$mpg)
 
 
 ## ----insideFun2, echo=TRUE, eval=FALSE-----------------------------------
-## install.packages(pkgs = "foreign")
+## install.packages(pkgs = "data.table")
 
 
 ## ----dta, echo=TRUE, eval=FALSE------------------------------------------

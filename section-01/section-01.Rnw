@@ -141,7 +141,7 @@ which can be navigated using the up/down arrows. You can then
 use the \texttt{TAB} or \texttt{ENTER} key to input the variable
 name, along with the \texttt{=} sign for input:
 <<insideFun2, echo=TRUE, eval=FALSE>>=
-install.packages(pkgs = "foreign")
+install.packages(pkgs = "data.table")
 @
 Recall that the names of the arguments are not usually necessary, but
 do often aid readability.
