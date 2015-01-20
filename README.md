@@ -1,4 +1,4 @@
-ARE212
+ARE212 Spring 2015
 ======
 
 # Section notes
