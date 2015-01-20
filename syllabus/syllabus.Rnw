@@ -1,0 +1,100 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\usepackage{hyperref}
+\usepackage{parskip}
+\hypersetup{
+  colorlinks=true,
+%  citebordercolor=Blue,
+%  filebordercolor=Red,
+%  linkbordercolor=Red,
+%  urlbordercolor=Red
+}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+\newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+\newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
+\setlength{\parindent}{0in}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\begin{document}
+	\lhead{\textbf{Econometrics: Multiple Equation Estimation}}
+	\rhead{\textbf{ARE212}: Section Syllabus}
+	\vspace{10pt}
+	\begin{center}
+	\begin{tabular}{ l l l l }
+		\textbf{Professor}        & Max Auffhammer             & \textbf{Office hours} & Monday, 5:10-6:00pm,\\
+		\textbf{GSI}              & Kenny Bell                 &                       & or by appointment \\
+		\textbf{Email}            & \email{kmb56@berkeley.edu} &                       &  \\
+		\textbf{Section time}     &  Thursday, 3.10-4:00pm     & \textbf{OH location}  & 234 Giannini \\
+		\textbf{Section location} & 3111 Etcheverry            &                       & \\
+	\end{tabular}
+	\end{center}
+	%
+	The objective of section is primarily to introduce you to \texttt{R} as a tool for econometric analysis. In addition, we'll introduce some other important tools that will help you be a more effective and productive researcher. In many of the sections, we will work through coded examples that use actual econometric data in order to illustrate the use of \texttt{R} and some of the concepts that Max will cover in lecture. These are intended to be interactive so I strongly encourage you to bring your laptops to section and to interrupt me with questions and comments.
+	
+	Before we get into any of the details, I (and you) owe a great deal of thanks to \textbf{Dan Hammer}, a third-year colleague of ours in ARE who originally wrote many of these notes for the 2012 class. \textbf{Patrick Baylis} also made many excellent extensions and additions in 2013.\footnote{Dan's original notes are available at \href{https://github.com/danhammer/ARE212}{\texttt{https://github.com/danhammer/ARE212}} with Patrick Baylis's 2013 iteration at \href{https://github.com/pbaylis/ARE212}{\texttt{https://github.com/pbaylis/ARE212}}. Patrick's notes contain far more than I am able to comfortably get through in an hour, so check those out if you're interested in a bit more detail. Dan's, for the most part, are a subset of Patrick's.} My notes are likely to contribute to an ongoing 212-213 section notes project, so please point out errors and make suggestions.
+	
+	The following outline of section topics is what I expect to go through as of today.\footnote{As far as I know, we will have class every week for the semester, 
+		other than \href{https://www.youtube.com/watch?v=XgchoB5AHrQ}{spring break}. Please let me know if this is incorrect.} This outline will very likely change, but the section notes will be posted by 5pm Mondays on bCourses. The work in progress notes will also be periodically posted to my GitHub repository\footnote{\url{https://github.com/kendonB/ARE212}}.
+	%
+	
+	\begin{tabular}{ll}
+		\textbf{January 22}  &  Introduction to R/Some RStudio Tricks \\
+		\textbf{January 29}  &  Intro to Git/Github/Bitbucket \\
+		\textbf{February 5}  &  Ordinary least squares \\
+		\textbf{February 12} &  Package development \\
+		\textbf{February 19} &  Hypothesis testing \\
+		\textbf{February 26} &  Plots with ggplot2 \\
+		\textbf{March 5}     &  Standard errors \\
+		\textbf{March 12}    &  Prediction intervals \\
+		\textbf{March 19}    &  Data cleaning \\
+		\textbf{April 2}     &  Omitted variable bias  \\
+		\textbf{April 9}     &  Scraping and Browser automation \\
+		\textbf{April 16}    &  Intro to Zotero and Biblatex \\
+		\textbf{April 23}    &  Spatial data analysis \\
+		\textbf{April 30}    &  Mapping \\
+	\end{tabular}
+	%
+	\subsection*{E-mail policy}
+	You are welcome to email me questions about the course, section, or problem sets. However, if I can't answer your question in less than a paragraph, I will ask you to come to office hours or to make an appointment with me so that we can discuss it in person. If that isn't possible, you will have to come up with a shorter question.
+	\subsection*{Feedback} 
+	I will find your candid feedback on the content, pace, and presentation of section immensely valuable. You can let me know in person, via e-mail, or anonymously if you prefer. I have set up a form for anonymous feedback here: \href{http://tinyurl.com/mqgzx8c}{http://tinyurl.com/mqgzx8c} or you may simply leave a note in my mailbox in Giannini.
+	\subsection*{Laptops} 
+	As I mentioned above, I would be delighted if you brought your laptops to section in order to follow along with the examples I present. It'll help the sessions be more organic if y'all are
+	following along.
+	%
+	\subsection*{Homework}
+	See Max's syllabus for details on problem sets and their grading. I will only add a gentle plea for you to carefully comment your code. In the short term, commenting is a useful way to force you to think about what your code is doing as you write it. In the medium term, it will allow you to look over your code one or two months later (e.g. when you are working on your midterm) and understand what you did quickly. In the long term, clear and well-commented code is a valuable habit that will serve you throughout your career. And finally, though it hardly bears mentioning, it will make my grading life easier and improve my general disposition towards your problem sets. Precise code style will also help a lot now and in your collaborating future. I recommend \href{https://google-styleguide.googlecode.com/svn/trunk/Rguide.xml}{Google's R code style guide.}
+	%
+	\subsection*{Attendance}
+	Attendance at section is \emph{not} required. I hope the sections are helpful, but I don't expect that they will be useful for everyone. After all, I didn't often go to ARE212 section and I'm making
+	unremarkable but satisfactory progress towards a PhD in Agricultural and Resource Economics. 
+	%
+	\subsection*{Additional resources}
+	There are many resources available to learn \texttt{R} and basic econometrics on the web. There are even some that do both together. I've included a few of my favorites below:
+	\begin{enumerate}
+		\item Google's intro videos: \\
+		\url{https://www.youtube.com/playlist?list=PLOU2XLYxmsIK9qQfztXeybpHvru-TrqAP}
+		\item Good R-intro: \\
+		\url{http://www.statmethods.net/}
+		\item \texttt{R} reference card: \\
+		\url{http://cran.r-project.org/doc/contrib/refcard.pdf}
+		\item Search engine for \texttt{R}: \\
+		\url{http://www.rseek.org}
+		\item Econometrics in \texttt{R}: \\
+		\url{http://cran.r-project.org/doc/contrib/Farnsworth-EconometricsInR.pdf}
+		\item \texttt{R} if you already know a programming language (e.g. \texttt{C++}, \texttt{Java}, or \texttt{Perl}): \\
+		\url{http://www.johndcook.com/R_language_for_programmers.html}
+	\end{enumerate}
+	%
+	\subsection*{Special accommodations}
+	If you should require any disability-related accommodations during our sections, lecture, or exams, please see me privately. You will ultimately need to procure an accommodations letter from the Disabled Students Program (\url{dsp.berkeley.edu}), which will be sent directly to Max.
+\end{document}

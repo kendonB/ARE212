@@ -1,0 +1,178 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+\date{\today}	
+\pagestyle{fancy}
+\begin{document}
+\newcommand{\ep}{{\bf e}^\prime}
+\newcommand{\e}{{\bf e}}
+\newcommand{\I}{{\bf I}}
+\newcommand{\X}{{\bf X}}
+\newcommand{\x}{{\bf x}}
+\newcommand{\M}{{\bf M}}
+\newcommand{\A}{{\bf A}}
+\renewcommand{\P}{{\bf P}}
+\newcommand{\Xp}{{\bf X}^{\prime}}
+\newcommand{\Mp}{{\bf M}^{\prime}}
+\newcommand{\y}{{\bf y}}
+\newcommand{\yp}{{\bf y}^{\prime}}
+\newcommand{\yh}{\hat{{\bf y}}}
+\newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
+\newcommand{\In}{{\bf I}_n}
+\newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+\newcommand{\id}[1]{{\bf I}_{#1}}
+\newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
+\setlength{\parindent}{0in}
+\lhead{\textbf{Introduction to \texttt{R}}}
+\rhead{\textbf{ARE212}: Section 1}
+The objective of this section is to review the syllabus and to introduce the \texttt{R} environment. If there is remaining time, I'll work through some basic code puzzles that will require you to work in \texttt{R}, but will more likely leave them for you to play with on your own. Today may be a little slow for those of you with substantial experience in \texttt{R}, and for those who actually worked through the \href{https://www.youtube.com/playlist?list=PLOU2XLYxmsIK9qQfztXeybpHvru-TrqAP}{\email{Google R Tutorial}}, but I promise we'll speed up soon. \\
+
+\textbf{Download \texttt{R}}: The download of \texttt{R} will vary by operating system, but it will begin here in any event:
+\begin{quote}
+	\href{http://cran.r-project.org/}{\email{cran.r-project.org}}
+\end{quote}
+The online documentation and installer routines are comprehensive. The version you choose will depend on your operating system. It is unlikely that the built-in editor will suffice for anything but the simplest purposes, so I recommend against it. \href{http://www.rstudio.com/products/rstudio/download/}{\texttt{RStudio}} is a popular cross-platform integrated development environment (IDE) that provides a very user-friendly interface. \texttt{RStudio} comes with many convenient features, and I recommend it to almost anyone. For the highly tech-oriented, the Linux distribution is very flexible; and I'd use \href{http://www.gnu.org/software/emacs/}{Emacs} with the \href{http://ess.r-project.org/}{ESS} package for editing. Setting this up can be time consuming, so think about exactly which features you'd be after before going down this route.\footnote{I have personally tried Emacs-ESS and RStudio on 
+	Windows, and RStudio on Linux. Some techie people seem to like Emacs-ESS with Linux, but I haven't come across a good argument for using it personally, even when I'm using Linux. Emacs-ESS on Windows worked fine, but was awful to set up and has some basic behavior that will be unfamiliar to anyone who hasn't used it before. Many of the nice features that are available on Emacs-ESS (debugging, autocompletion, autodisplay documentation) are now available in RStudio, along with more, such as project support, package development support, packrat, environment/data summaries.}
+\subsection*{Working in \texttt{R}}
+In order to download specific packages that are not bundled with the base distribution of \texttt{R}, such as the \texttt{foreign} package, you'll enter the following commands to install and load the package:
+% eval=FALSE as install.packages sometimes returns an error 
+<<installForeign, echo=TRUE, message=FALSE, eval=FALSE>>=
+install.packages("foreign")
+library(foreign)
+@
+<<loadForeign, echo=FALSE, message=FALSE>>=
+library(foreign)
+@
+Once \texttt{foreign} is loaded, you'll have access to all of its constituent functions, such as the \texttt{read.dta} function which will convert any \texttt{.dta} file (from STATA) to a \texttt{data.frame} \footnote{Note that it is also possible to read in \texttt{xls}, comma-delimited, tab-delimited, and many other types of data using similar functions.}. We will do that now, loading into memory the \texttt{auto.dta} into a data frame called \texttt{data}.
+<<getAuto, echo=TRUE>>=
+mydata <- read.dta("auto.dta")
+@
+We can read the names from the data set; but they aren't much help.
+<<names, echo=TRUE>>=
+names(mydata)
+@
+We can replace the column headers with more descriptive variable names.
+<<names2, echo=TRUE>>=
+names(mydata) <- c("price", "mpg", "weight")
+@
+To get a sense of the data, list the first six observations:
+<<head, echo=TRUE>>=
+head(mydata)
+@
+
+With the columns appropriately named, we can refer to particular variables within the data set using the unique indexing in \texttt{R}, where data objects tend to be variants of lists and nested lists.
+
+<<headMpg, echo=TRUE>>=
+head(mydata$mpg)
+@
+\section*{RStudio}
+RStudio has many non-obvious convenient features that will help you code in \texttt{R}.
+This section requires that you have RStudio installed
+and follow along in the program. You can find binaries for your operating system at
+\begin{quote}
+	\url{http://www.rstudio.com/products/rstudio/download/}.
+\end{quote}
+There are many features of RStudio which I consider obvious as any normal user
+will come across them quickly. These include automatic close 
+bracketing/bracing/parentheses/quotes, 
+the environment summary, and the plots viewer.
+
+Here are some you may not have come across:
+\subsection*{Auto code completion}
+This is, by far, my favorite feature of RStudio. Let's say I'd like to install a
+package, but I can't quite remember how it goes. Maybe it's \texttt{installPackage},
+or \texttt{install.package} or \texttt{install.me.a.package.please?}. With
+RStudio, I can start typing:
+<<installPackage, echo=TRUE, eval=FALSE>>=
+inst
+@
+followed by the \texttt{TAB} key. Up comes  \texttt{install.packages}! Also
+in the list is \texttt{installed.packages}. Selecting your
+desired function using the arrow keys and hitting \texttt{TAB} will select
+the function you want:
+<<installPackageComplete, echo=TRUE, eval=FALSE>>=
+install.packages
+@
+This feature works for both functions and objects. Despite being told not to
+do this as a young boy learning to program, I now use very long descriptive
+variable names to save going back and forth to find definitions. For example,
+I have a variable named \\\texttt{sugarcaneStalkAverageYieldTonPerHa} in
+a current project and just need to type \texttt{sug} and \texttt{TAB} when I need
+to use it.
+
+RStudio can also see when you're inside a function call, and
+want to know the arguments you need to provide.
+
+<<insideFun, echo=TRUE, eval=FALSE>>=
+install.packages(
+@
+%)
+and hit \texttt{TAB} or \texttt{CTRL + SPACE}. Up comes all the 
+potential arguments to this function with their documentation,
+which can be navigated using the up/down arrows. You can then
+use the \texttt{TAB} or \texttt{ENTER} key to input the variable
+name, along with the \texttt{=} sign for input:
+<<insideFun2, echo=TRUE, eval=FALSE>>=
+install.packages(pkgs = "foreign")
+@
+Recall that the names of the arguments are not usually necessary, but
+do aid readability.
+
+\subsection*{File navigation}
+You want to read in a dataset and you can't exactly remember what it's called,
+or where it is, or where the current working directory is. Start typing:
+<<csv, echo=TRUE, eval=FALSE>>=
+read.csv("
+@
+%")
+and hit \texttt{TAB}. Up comes all the files and folders in the current
+working directory. You can navigate into subfolders using the \texttt{TAB}
+key, and you can even navigate upwards using "../", followed by \texttt{TAB}, as in:
+<<csv2, echo=TRUE, eval=FALSE>>=
+read.csv("../
+@
+followed by \texttt{TAB}.
+\subsection*{Debugging}
+This is a relatively new feature of RStudio and won't be better introduced than
+on the RStudio website:
+\begin{quote}
+	\url{https://support.rstudio.com/hc/en-us/articles/200713843-Debugging-with-RStudio}
+\end{quote}.
+Have a go with setting a breakpoint and messing around.
+\textbf{Linear algebra puzzles}: These notes will provide a code illustration  of the Linear Algebra review in Chapter 1 of the lecture notes.  Don't worry if you can't solve these puzzles.  Come back to them  later, once we have gone over \texttt{R} code in more detail.  There are  many correct ways to solve these puzzles.  We will go over a few  solutions in section.
+
+\begin{enumerate}
+	\item Let $\id{5}$ be a $5 \times 5$ identity matrix.  Demonstrate that $\id{5}$ is symmetric and idempotent using simple functions in \texttt{R}.
+	
+	\item Generate a $2 \times 2$ idempotent matrix $\X$, where $\X$ is not the identity matrix.  Demonstrate that $\X = \X\X$.
+	
+	\item Generate two random variables, $\x$ and $\e$, of dimension $n = 100$ such that $\x, \e \sim N(0,1)$.  Generate a random variable $\y$ according to the data generating process $y_i = x_i + e_i$.  Show that if you regress $\y$ on $\x$ using the canned linear regression routine \texttt{lm()}, then you will get an estimate of the intercept $\beta_0$ and the coefficient on $\x$, $\beta_1$, such that $\beta_0 = 0$ and $\beta_1 = 1$.
+	
+	\item Show that if $\lambda_1, \lambda_2, \ldots, \lambda_5$ are the eigenvectors of a $5 \times 5$ matrix $\A$, then $\mbox{tr}(\A) = \sum_{i=1}^5 \lambda_i$.
+	\end{enumerate}
+\end{document}

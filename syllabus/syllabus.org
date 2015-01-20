@@ -1,36 +1,32 @@
-#+AUTHOR:
-#+TITLE:
-#+OPTIONS:     toc:nil num:nil
-#+LATEX_HEADER: \usepackage{mathrsfs}
-#+LATEX_HEADER: \usepackage{graphicx}
-#+LATEX_HEADER: \usepackage{hyperref}
-#+LATEX_HEADER: \usepackage{booktabs}
-#+LATEX_HEADER: \usepackage{dcolumn}
-#+LATEX_HEADER: \usepackage{subfigure}
-#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
-#+LATEX_HEADER: \usepackage{color}
-#+LATEX_HEADER: \RequirePackage{fancyvrb}
-#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
-#+LATEX: \newcommand{\ep}{{\bf e}^\prime}
-#+LATEX: \renewcommand{\e}{{\bf e}}
-#+LATEX: \renewcommand{\I}{{\bf I}}
-#+LATEX: \renewcommand{\X}{{\bf X}}
-#+LATEX: \renewcommand{\x}{{\bf x}}
-#+LATEX: \renewcommand{\M}{{\bf M}}
-#+LATEX: \renewcommand{\A}{{\bf A}}
-#+LATEX: \renewcommand{\P}{{\bf P}}
-#+LATEX: \renewcommand{\Xp}{{\bf X}^{\prime}}
-#+LATEX: \renewcommand{\Mp}{{\bf M}^{\prime}}
-#+LATEX: \renewcommand{\y}{{\bf y}}
-#+LATEX: \renewcommand{\yp}{{\bf y}^{\prime}}
-#+LATEX: \renewcommand{\yh}{\hat{{\bf y}}}
-#+LATEX: \renewcommand{\yhp}{\hat{{\bf y}}^{\prime}}
-#+LATEX: \renewcommand{\In}{{\bf I}_n}
-#+LATEX: \renewcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
-#+LATEX: \renewcommand{\id}[1]{{\bf I}_{#1}}
-#+LATEX: \newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
-#+LATEX: \setlength{\parindent}{0in}
-#+STARTUP: fninline
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+\newcommand{\ep}{{\bf e}^\prime}
+\renewcommand{\e}{{\bf e}}
+\renewcommand{\I}{{\bf I}}
+\renewcommand{\X}{{\bf X}}
+\renewcommand{\x}{{\bf x}}
+\renewcommand{\M}{{\bf M}}
+\renewcommand{\A}{{\bf A}}
+\renewcommand{\P}{{\bf P}}
+\renewcommand{\Xp}{{\bf X}^{\prime}}
+\renewcommand{\Mp}{{\bf M}^{\prime}}
+\renewcommand{\y}{{\bf y}}
+\renewcommand{\yp}{{\bf y}^{\prime}}
+\renewcommand{\yh}{\hat{{\bf y}}}
+\renewcommand{\yhp}{\hat{{\bf y}}^{\prime}}
+\renewcommand{\In}{{\bf I}_n}
+\renewcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+\renewcommand{\id}[1]{{\bf I}_{#1}}
+\newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
+\setlength{\parindent}{0in}
 
 *Econometrics: Multiple Equation Estimation* \hfill
 *ARE212: Section Syllabus* \\
