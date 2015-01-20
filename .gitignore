@@ -25,9 +25,9 @@
 *.ps
 *.snm
 *.synctex.gz
+*.synctex
 *.toc
 *.vrb
 *.maf
 *.mtc
 *.mtc0
-.RData
