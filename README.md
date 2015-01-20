@@ -5,9 +5,9 @@ ARE212
 
 This is a repository for the latest version of the ARE212 section
 notes.  Each section has its own directory that contains at least
-three core files:
+two core files:
 
-1. An org-mode document `.org` that compiles to the `.pdf`, `.tex`,
+1. A `knitr` document `.Rnw` that compiles to the `.pdf`, `.tex`,
 and `.R` files.  In fact, the org-mode document _is_ the code; and you
 can dynamically update all downstream documents from within Emacs'
 org-mode.  You do not have to interact with the org-mode document
