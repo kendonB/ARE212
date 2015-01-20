@@ -25,5 +25,5 @@ and click "view raw".  The PDF will begin downloading immediately.
 that there is little documentation within the code.  Instead, the code is
 documented from the PDF description.
 
-Please see (https://github.com/pbaylis/ARE212) and (https://github.com/danhammer/ARE212)
+Please see https://github.com/pbaylis/ARE212 and https://github.com/danhammer/ARE212
 for the excellent previous versions of these notes.
