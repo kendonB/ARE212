@@ -43,11 +43,11 @@ head(mydata$mpg)
 ## install.packages(pkgs = "foreign")
 
 
-## ----csv, echo=TRUE, eval=FALSE------------------------------------------
-## read.csv("
+## ----dta, echo=TRUE, eval=FALSE------------------------------------------
+## read.dta("
 
 
-## ----csv2, echo=TRUE, eval=FALSE-----------------------------------------
-## read.csv("../
+## ----dta2, echo=TRUE, eval=FALSE-----------------------------------------
+## read.dta("../
 
 
