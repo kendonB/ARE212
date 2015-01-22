@@ -1,0 +1,140 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+\date{\today}	
+\pagestyle{fancy}
+\begin{document}
+\newcommand{\ep}{{\bf e}^\prime}
+\newcommand{\e}{{\bf e}}
+\newcommand{\I}{{\bf I}}
+\newcommand{\X}{{\bf X}}
+\newcommand{\x}{{\bf x}}
+\newcommand{\M}{{\bf M}}
+\newcommand{\A}{{\bf A}}
+\renewcommand{\P}{{\bf P}}
+\newcommand{\Xp}{{\bf X}^{\prime}}
+\newcommand{\Mp}{{\bf M}^{\prime}}
+\newcommand{\y}{{\bf y}}
+\newcommand{\yp}{{\bf y}^{\prime}}
+\newcommand{\yh}{\hat{{\bf y}}}
+\newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
+\newcommand{\In}{{\bf I}_n}
+\newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+\newcommand{\id}[1]{{\bf I}_{#1}}
+\newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
+
+% Remove indent for quotes
+\renewenvironment{quote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+
+\setlength{\parindent}{0in}
+\lhead{\textbf{Introduction to Git and Github}}
+\rhead{\textbf{ARE212}: Section 2}
+The objective of this section is to briefly introduce you to the version control system 
+\href{http://git-scm.com/}{Git}
+and the repository website \href{https://github.com/}{Github}. The exposition
+is very need-to-know - for a great tutorial on the many ins and outs of Git,
+check out \url{https://www.atlassian.com/git/tutorials/}. There is also an excellent
+book that's free online at \url{http://git-scm.com/book/en/v2}. Chapters 1-3,
+and 6 cover the essentials well.
+
+\subsection*{What is version control?}
+Version control refers to the management of changes to documents or programs.
+The main value of version control for us is the deliberate staging of our
+code so that we can look back at previous versions that are saved when
+we know they work. We can easily use a service like Dropbox to back things
+up, and save different versions, but we end up with far too many files
+going back for it to be very helpful if we don't remember the exact date
+we want to go back to.
+Crucially, one needs a version control system to look back at previous
+states of the \emph{entire project}. Dropbox, only allows the user to
+look back at old versions of individual files.
+
+You may end up opting not to use an explicit versioning system
+if you deem the setup costs not worth the future benefits. If so,
+I urge you to, at the very least, use an automatic online backup.
+
+You will start by downloading and installing Git for your operating system
+from the following link:
+\begin{quote}
+	\url{http://git-scm.com/downloads}
+\end{quote}
+
+There are several GUI-based clients that you may wish to use:
+\begin{quote}
+	\url{http://git-scm.com/downloads/guis}
+\end{quote}
+I won't cover any of these, as I know none of them well.\footnote{I have used
+	the built in RStudio commands a couple of times}. All Git commands
+can be accessed using the command line tool, so this is all you need
+to know. If you learn the command line tool first, it's highly likely
+that you'll easily understand a GUI based tool.
+
+\subsection*{Starting and Configuring Git}
+Once Git is installed, it should run directly from the terminal in 
+Mac or Linux, or using the Bash shell emulator that gets 
+installed with Git on Windows (named ``Git Bash'' on my installation
+-- this is just an emulator of a Linux style terminal).
+Git, as we're using it, is a command line utility, so doesn't 
+require its own window as such.
+
+All commands discussed in this section are to be typed into
+an open terminal.
+
+The first job to do when you install Git
+is to set your user name and email. To do this type:
+<<gitInit, echo=TRUE, eval=FALSE>>=
+$ git config --global user.name "Your Name"
+$ git config --global user.name are212ers@example.com
+@
+
+
+\subsection*{Starting a repository locally}
+There are two ways to get a repository started locally on your computer.
+Within a terminal (or the bash shell)
+The first begins with opening a terminal is to first navigate to a folder in which you 
+want to start tracking files. You can do this using the command:
+<<gitInit, echo=TRUE, eval=FALSE>>=
+$ git init
+@
+This will create a subfolder named ``.git'' which contains 
+absolutely everything
+Git needs for your project. What you see in your file system
+is what's referred to as the ``working directory''; this is
+the current version of the project that is being ``checked out''.
+
+\subsection*{What's my current system?}
+I currently use Dropbox as my main online backup system. I should probably use
+something more secure like \href{http://www.carbonite.com/}{Carbonite}, but
+I recently paid for a year with Dropbox. Using an automatic backup system that
+keeps versions is a good compromise if you don't want too much messing around
+with getting started. For some more complicated 
+coding projects I use Git with Github for storage and sharing. For projects I
+want to keep private, I use Git with BitBucket.
+
+\end{document}

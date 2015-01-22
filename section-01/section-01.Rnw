@@ -178,5 +178,5 @@ These notes will provide a code illustration  of the Linear Algebra review in Ch
 	\item Generate two random variables, $\x$ and $\e$, of dimension $n = 100$ such that $\x, \e \sim N(0,1)$.  Generate a random variable $\y$ according to the data generating process $y_i = x_i + e_i$.  Show that if you regress $\y$ on $\x$ using the canned linear regression routine \texttt{lm()}, then you will get an estimate of the intercept $\beta_0$ and the coefficient on $\x$, $\beta_1$, such that $\beta_0 = 0$ and $\beta_1 = 1$.
 	
 	\item Show that if $\lambda_1, \lambda_2, \ldots, \lambda_5$ are the eigenvectors of a $5 \times 5$ matrix $\A$, then $\mbox{tr}(\A) = \sum_{i=1}^5 \lambda_i$.
-	\end{enumerate}
+\end{enumerate}
 \end{document}
