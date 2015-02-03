@@ -1,0 +1,255 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\setlength{\parindent}{0in}
+\usepackage{verbatim}
+% For bold, italic letters in math
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{parskip}
+\newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+%\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.1,0.2,0.9}}}
+
+\usepackage{dcolumn}
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+
+\author{Kendon Bell}
+\title{\texttt{knitr} intro and OLS}
+\begin{document}
+\maketitle
+The objective of this section is twofold: 1) to briefly introduce you to \texttt{knitr} for producing documents,
+and 2) to produce our first OLS estimate using matrices.
+
+At the highest level, \texttt{knitr}, is an \texttt{R} package that takes a text document and produces
+code for a presentable format. The power of \texttt{knitr} is its ability to generate a dynamic document
+which will update easily with new data or small changes to specifications. You will never have to
+manually change the numbers in a table again! This is another tool which will help
+you to be a more productive researcher.
+
+In this section, we will be using \texttt{knitr} to take an \texttt{.Rnw} file and ultimately produce a \texttt{.pdf} file,
+via \LaTeX. We will be using the OLS estimator to illustrate the use of loops and some matrix operations in \texttt{R}.
+
+For a complete description of all \texttt{knitr} options, see:
+\begin{myquote}
+	\url{http://yihui.name/knitr/options/}
+\end{myquote}
+\subsection*{Getting started with \texttt{knitr} and \LaTeX}
+To begin in RStudio, we need to make sure we a distribution of \LaTeX\ installed. You can
+download one of these for your operating system from:
+\begin{myquote}
+	\url{http://latex-project.org/ftp.html}
+\end{myquote}
+In RStudio, we need to set some options. Go to Tools $\rightarrow$ Global Options $\rightarrow$ Sweave.
+Then change ``Weave Rnw files using:'' to \texttt{knitr} and ``Typeset \LaTeX
+\ into pdf using:'' to \texttt{pdfLatex}. Windows users should install 
+\texttt{Sumatra} for viewing pdfs. This can be downloaded from:
+\begin{myquote}
+	\url{http://www.sumatrapdfreader.org/free-pdf-reader.html}
+\end{myquote}
+The internal viewer should work fine for Mac users.
+\pagebreak
+Now, open a new \texttt{.Rnw} file in RStudio and copy-paste the following:
+<<knitrMinimal, echo=TRUE, eval=FALSE>>=
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\setlength{\parindent}{0in}
+\usepackage{verbatim}
+% For bold, italic letters in math
+\usepackage{bm}
+\usepackage{hyperref}
+\author{Kendon Bell}
+\title{Minimal \texttt{knitr} document} 
+\begin{document}
+\maketitle
+
+\end{document}
+@
+Now, we'll build up a knitr document using this template. This minimal document
+should compile now. You can do this in RStudio using \texttt{Ctrl + Shift + K} on Windows
+or \texttt{Command + Shift + K} on Mac.
+
+\subsection*{OLS with matrices}
+As Max has mentioned, the use of canned routines is not permitted for most of this class; 
+you'll have to write the econometric routines from first principles. 
+First, create matrices of the data, since we will be working mainly with matrix operations.  
+Let $\bm{y}$ be the dependent variable, price, and let $\bm{X}$ be a matrix of the other car 
+characteristics, along with a column of ones prepended.  
+The \texttt{cbind()} function binds the columns horizontally 
+and, here, coerces the \texttt{matrix} class.
+\begin{quote}
+	\emph{``Class'' in} \texttt{R} \emph{refers to the data type of an object. Some operations 
+		only work on some classes, and some classes make better use of memory than
+		others in some situations. Examples of classes are} \texttt{logical, character,
+			numeric, integer, matrix}, \emph{and} \texttt{data.frame}.
+\end{quote}
+ Add the following \texttt{knitr} chunk using \texttt{Ctrl + Alt + I} on Windows
+ or \texttt{Command + Option + I} on Mac:
+<<"knitr-setup", include=FALSE, cache=FALSE>>=
+knitLiteral::kast_on()
+@
+<<echo=TRUE, literal=TRUE, echo=FALSE, results='hide'>>=
+library(foreign)
+mydata <- read.dta("auto.dta")
+names(mydata) <- c("price", "mpg", "weight")
+y <- matrix(mydata$price)
+X <- cbind(1, mydata$mpg, mydata$weight)
+head(X)
+@
+Now, try compiling this again using \texttt{Ctrl + Shift + K} on Windows
+or \texttt{Command + Shift + K} on Mac. Cool huh?!
+Remember to make sure you have the \texttt{auto.dta} file in the working
+directory. In \texttt{knitr}, the working directory is the \texttt{.Rnw}
+file location by default.
+
+In \texttt{knitr}, we control the output of each chunk using the options.
+In the previous chunk, \texttt{readData} is the name I gave the chunk,
+and \texttt{echo=TRUE} makes \texttt{knitr} display the code in the chunk.
+I usually like to be able to play around with what I have in an \texttt{R}-workspace
+while I'm writing documents, so you can also run these lines through the console
+using \texttt{Ctrl + Enter} on Windows or \texttt{Command + Enter} on Mac.
+
+Note that an alternative call in the \texttt{cbind} function would be:
+<<echo=TRUE>>=
+X <- cbind(rep(1, NROW(mydata)), mydata$mpg, mydata$weight)
+@
+\texttt{rep()}, short for replicate, is an incredibly useful command. However, 
+in this setting \texttt{cbind()} 
+only needs to be passed a single 1 -- it's smart enough to do the replication itself in order 
+to ensure that the matrix is filled.
+
+Just to make sure that our matrices will be conformable when we regress \texttt{y} on \texttt{X}, 
+check that the number of observations are the same in both variables.
+<<echo=TRUE, results='hide'>>=
+dim(X)[1] == NROW(y)
+@
+
+We can quickly estimate the ordinary least squared parameter vector using \texttt{R}'s
+matrix operations.
+<<echo=TRUE, results='hide'>>=
+b <- solve(t(X) %*% X) %*% t(X) %*% y
+b
+@	
+Here, \texttt{solve()} finds the inverse, \texttt{t()} finds the transpose,
+and \texttt{\%*\%} is the matrix operation for multiplication.
+
+\subsection*{Coding}
+Hopefully you now feel sufficiently prepared (or bored) to start coding up
+some functions.
+Remember, there are many ways to calculate these values, this is just 
+one of them. We will be coding up a function that will be able
+to be reused for general left hand side and right hand side variables.
+
+We'll be using the \texttt{auto.dta} data. 
+To keep things simple, we'll define a univariate model, 
+where \texttt{y} is price, \texttt{X} contains a column of 1's 
+and \texttt{mpg}. 
+We'll also define our own \texttt{OLS()} function with the
+following chunk:
+<<echo=TRUE, literal=TRUE, echo=FALSE, results='hide'>>=
+y <- matrix(mydata$price)
+X <- cbind(1, mydata$mpg)
+n <- NROW(mydata)
+OLS <- function(y,X) {
+  b <- solve(t(X) %*% X) %*% t(X) %*% y
+  b
+}
+@
+We'll test our function by calling it with \texttt{X}, our data matrix that 
+contains an intercept, \texttt{mpg}, and \texttt{weight}. 
+We'll also confirm our results with \texttt{R}'s canned OLS function:
+\texttt{lm()}.
+<<echo=TRUE, literal=TRUE, echo=FALSE, results='hide'>>=
+resultsOLS <- OLS(y, X)
+lm(y ~ X)
+OLS(y, X)
+@
+
+\subsection*{Standard errors with Loops}
+We don't yet know how to compute standard errors properly; that'll come later. 
+But, we can cheat a little bit and simulate some 
+standard errors using bootstrapping.
+We will use this to illustrate loops in \texttt{R}. The following chunk
+will perform 10000 bootstrap replications of the OLS estimator:
+<<echo=TRUE, literal=TRUE, echo=FALSE, results='hide'>>=
+set.seed(222015)
+resultsBoot <- sapply(1:10000, function(x){
+  indices <- sample(1:length(y), size = length(y), replace = TRUE)
+  OLS(y[indices], X[indices,])
+})
+@
+What does \texttt{sapply} do? \texttt{sapply} is one of
+\texttt{R}'s many loop functions which repeats a function many times,
+and returns the results (usually) in a matrix or vector.
+The first argument of \texttt{sapply} is the vector of values
+that are passed to the \texttt{function} in the second argument of the
+function. Functions passed to functions; weird. 
+Usually, the values of the vector \texttt{1:10000} would have some
+significance; here they are just counters. Using \texttt{rep(1, 10000)}
+would have worked the same. Let's look at the \texttt{sapply} output:
+<<echo=TRUE, results='hide'>>=
+head(resultsBoot)
+@
+Oops. This looks like garbage. It seems that the \texttt{sapply} function
+takes our column vector \texttt{OLS()} results and stacks them horizontally
+in a big wide matrix. Try this:
+<<echo=TRUE, results='hide'>>=
+head(t(resultsBoot))
+@
+That's better. Now we see the 
+Now, let's turn this into a standard error function:
+<<echo=TRUE, literal=TRUE, echo=FALSE, results='hide'>>=
+seBoot <- function(y, X, nReps){
+  # Get the bootstrap results
+  resultsBoot <- sapply(1:nReps, function(x){
+    indices <- sample(1:length(y), size = length(y), replace = TRUE)
+    OLS(y[indices], X[indices,])
+  })
+  
+  # Get the standard deviations
+  myRowMeans <- rowMeans(resultsBoot)
+  sapply(1:NCOL(X), function(x){
+    sqrt(sum((resultsBoot[x,] - myRowMeans[x])^2)/(nReps - 1))
+  })
+}
+
+# These are the canned standard errors.
+resultsLm <- summary(lm(y ~ X))
+resultsLm$coefficients[,2]
+
+# These are our bootstrap standard errors.
+seBootResults <- seBoot(y, X, 1000)
+seBootResults
+@
+\subsection*{Tables in \texttt{knitr}}
+Here, we'll introduce the simple, but immensely powerful \texttt{\textbackslash Sexpr\{\}}
+function. This is what \texttt{knitr} uses for inline expressions. This allows us
+to insert dynamic numbers in our documents. This is great for tables and preventing
+errors! 
+
+Firstly,
+you should note that the \texttt{xtable} package exists; this package generates
+\LaTeX\ code for tables on the fly and can sometimes suffice when using \texttt{knitr}.
+I seldom use \texttt{xtable}, as I like more flexibility when generating tables.
+
+\pagebreak
+The following \texttt{knitr} code generates a simple table of our results:
+<<echo=TRUE, eval=FALSE>>=
+\begin{center}
+  \textsc{Table 1: OLS Results and Bootstrap Standard Errors}\\
+  \vspace{1em}
+  \begin{tabular}{lr}
+    \hline
+    Variable & Coefficient \\
+    \hline
+    Intercept & \begin{tabular}{r}
+                  \Sexpr{prettyNum(resultsOLS[1], digits = 3)} \\
+                 (\Sexpr{prettyNum(seBootResults[1], digits = 3)})
+                \end{tabular} \\
+    MPG & \begin{tabular}{r}
+             \Sexpr{prettyNum(resultsOLS[2], digits = 3)} \\
+            (\Sexpr{prettyNum(seBootResults[2], digits = 3)})\\
+          \end{tabular} \\
+    \hline
+  \end{tabular}
+\end{center}
+@
+\end{document}
