@@ -1,0 +1,10 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\setlength{\parindent}{0in}
+
+\author{Kendon Bell}
+\title{Minimal \texttt{knitr} document}
+\begin{document}
+\maketitle
+
+\end{document}

@@ -33,7 +33,7 @@ For a complete description of all \texttt{knitr} options, see:
 	\url{http://yihui.name/knitr/options/}
 \end{myquote}
 \subsection*{Getting started with \texttt{knitr} and \LaTeX}
-To begin in RStudio, we need to make sure we a distribution of \LaTeX\ installed. You can
+To begin in RStudio, we need to make sure we have a distribution of \LaTeX\ installed. You can
 download one of these for your operating system from:
 \begin{myquote}
 	\url{http://latex-project.org/ftp.html}
@@ -101,8 +101,7 @@ directory. In \texttt{knitr}, the working directory is the \texttt{.Rnw}
 file location by default.
 
 In \texttt{knitr}, we control the output of each chunk using the options.
-In the previous chunk, \texttt{readData} is the name I gave the chunk,
-and \texttt{echo=TRUE} makes \texttt{knitr} display the code in the chunk.
+In the previous chunk, \texttt{echo=TRUE} makes \texttt{knitr} display the code in the chunk.
 I usually like to be able to play around with what I have in an \texttt{R}-workspace
 while I'm writing documents, so you can also run these lines through the console
 using \texttt{Ctrl + Enter} on Windows or \texttt{Command + Enter} on Mac.
@@ -144,6 +143,7 @@ where \texttt{y} is price, \texttt{X} contains a column of 1's
 and \texttt{mpg}. 
 We'll also define our own \texttt{OLS()} function with the
 following chunk:
+\pagebreak
 <<echo=TRUE, literal=TRUE, echo=FALSE, results='hide'>>=
 y <- matrix(mydata$price)
 X <- cbind(1, mydata$mpg)
@@ -194,7 +194,7 @@ in a big wide matrix. Try this:
 <<echo=TRUE, results='hide'>>=
 head(t(resultsBoot))
 @
-That's better. Now we see the 
+That's better. Now we see the bootstrap replications nicely.
 Now, let's turn this into a standard error function:
 <<echo=TRUE, literal=TRUE, echo=FALSE, results='hide'>>=
 seBoot <- function(y, X, nReps){
@@ -226,9 +226,14 @@ to insert dynamic numbers in our documents. This is great for tables and prevent
 errors! 
 
 Firstly,
-you should note that the \texttt{xtable} package exists; this package generates
+you should note that the \texttt{xtable} and \texttt{stargazer} packages exist; 
+these packages generate
 \LaTeX\ code for tables on the fly and can sometimes suffice when using \texttt{knitr}.
-I seldom use \texttt{xtable}, as I like more flexibility when generating tables.
+I seldom use \texttt{xtable} and haven't tried \texttt{stargazer} yet. 
+I like using \LaTeX,\ which I know well and it gives me 
+flexibility when generating tables.
+Also, check out the \texttt{dcolumn} package in \LaTeX,\ 
+which allows you to align columns by decimal points.
 
 \pagebreak
 The following \texttt{knitr} code generates a simple table of our results:
