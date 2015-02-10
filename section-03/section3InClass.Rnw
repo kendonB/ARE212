@@ -1,0 +1,95 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\setlength{\parindent}{0in}
+
+\author{Kendon Bell}
+\title{Minimal \texttt{knitr} document}
+\begin{document}
+
+\maketitle
+
+<<echo=TRUE>>=
+library(foreign)
+mydata <- read.dta("auto.dta")
+names(mydata) <- c("price", "mpg", "weight")
+
+y <- matrix(mydata$price)
+X <- cbind(rep(1, NROW(mydata)), mydata$mpg, mydata$weight)
+
+head(X)
+
+b <- solve(t(X) %*% X) %*% t(X) %*% y
+b
+@
+
+Coding up OLS:
+
+<<echo=TRUE>>=
+y <- matrix(mydata$price)
+X <- cbind(1, mydata$mpg)
+
+OLS <- function(y,X) {
+  b <- solve(t(X) %*% X) %*% t(X) %*% y
+  return(b)
+}
+
+@
+
+<<echo=TRUE>>=
+resultsOLS <- OLS(y, X)
+lm(y ~ X - 1)
+OLS(y, X)
+@
+
+<<echo=TRUE>>=
+set.seed(222015)
+
+resultsBoot <- sapply(1:10000, function(x){
+indices <- sample(1:length(y), size = length(y), replace = TRUE)
+OLS(y[indices], X[indices,])
+})
+head(t(resultsBoot))
+@
+
+<<echo=TRUE>>=
+seBoot <- function(y, X, nReps){
+# Get the bootstrap results
+resultsBoot <- sapply(1:nReps, function(x){
+indices <- sample(1:length(y), size = length(y), replace = TRUE)
+OLS(y[indices], X[indices,])
+})
+# Get the standard deviations
+myRowMeans <- rowMeans(resultsBoot)
+sapply(1:NCOL(X), function(x){
+sqrt(sum((resultsBoot[x,] - myRowMeans[x])^2)/(nReps - 1))
+})
+}
+# These are the canned standard errors.
+resultsLm <- summary(lm(y ~ X))
+resultsLm$coefficients[,2]
+# These are our bootstrap standard errors.
+seBootResults <- seBoot(y, X, 1000)
+seBootResults
+
+@
+
+\begin{center}
+\textsc{Table 1: OLS Results and Bootstrap Standard Errors}\\
+\vspace{1em}
+\begin{tabular}{lr}
+\hline
+Variable & Coefficient \\
+\hline
+Intercept & \begin{tabular}{r}
+              \Sexpr{prettyNum(resultsOLS[1], digits = 3)} \\
+             (\Sexpr{prettyNum(seBootResults[1], digits = 3)})
+            \end{tabular} \\
+MPG & \begin{tabular}{r}
+        \Sexpr{prettyNum(resultsOLS[2], digits = 3)} \\
+        (\Sexpr{prettyNum(seBootResults[2], digits = 3)})\\
+      \end{tabular} \\
+\hline
+\end{tabular}
+\end{center}
+
+\end{document}

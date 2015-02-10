@@ -1,0 +1,16 @@
+Package: misc212
+Type: Package
+Title: Misc functions
+Version: 0.1
+Date: 2015-02-09
+Authors@R: person("Kendon", "Bell", email = "kmb56@berkeley.edu",
+  role = c("aut", "cre"))
+Description: This package contains
+  miscellaneous functions for use in
+  ARE212 Multiple Equation Estimation.
+License: "GPL-3.0""
+LazyData: TRUE
+Depends: R (>= 3.1.2)
+Imports:
+  dplyr (>= 0.3.0.1),
+  ggplot2 (>= 1.0.0)

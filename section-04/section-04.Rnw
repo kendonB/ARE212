@@ -1,0 +1,427 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.png}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\usepackage{verbatim}
+\date{\today}	
+\pagestyle{fancy}
+
+\usepackage{bm}
+\begin{document}
+	
+	% Remove indent for quotes
+	\newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+	
+	\setlength{\parindent}{0in}
+	\lhead{\textbf{Introduction to Package Development \\in RStudio and calculating $R^2$.}}
+	\rhead{\textbf{ARE212}: Section 4}
+	The purpose of this section is to introduce you to writing your own packages in
+	\texttt{R}, and to get you started on calculating $R^2$ values.
+	
+	\subsection*{Last Section}
+	I'm looking forward to seeing your problem sets nicely typed up using \texttt{knitr}.
+	While it isn't explicitly required, I strongly urge you to do so. 
+	
+	I usually write \texttt{R} code using RStudio but edit \texttt{.Rnw} files using
+	TexStudio.
+	Instructions for using TexStudio to compile from \texttt{.Rnw} to \texttt{.pdf} 
+	can be found at:
+	\begin{myquote}
+		\url{http://yihui.name/knitr/demo/editors/}
+	\end{myquote}
+	My build command (which is discussed in the link) is, for example:
+	\begin{verbatim}
+    "C:/Program Files/R/R-3.1.2/bin/x64/Rscript.exe" -e "library(knitr); knit('
+    %.Rnw')"|"C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/pdflatex.exe" -inter
+    action=nonstopmode %.tex|txs:///view-pdf-internal
+	\end{verbatim}
+	The user defined build command can be accessed using \texttt{Alt + Shift + F1}. What the
+	above commands do is 1) open an \texttt{R} instance on the fly and run the \texttt{knit()}
+	function on the open \texttt{.Rnw} file, creating a \texttt{.tex} file in the same folder.
+	Then 2) run \texttt{pdflatex} on the created \texttt{.tex} file, creating/updating the 
+	\texttt{.pdf} file, then 3) opening the internal pdf viewer to see the new/updated \texttt{.pdf}.
+	
+	As with \texttt{Git}, a section hour is not enough time to really know how 
+	to use \texttt{knitr}, so you should read up/Google a bit more on what it can do. 
+	\subsection*{Packages}
+	It's likely that most of you will not develop packages in \texttt{R} for the purposes
+	of sharing code with others. However, you will almost certainly end up writing utility functions
+	along the way that you want to keep for yourself, and packages are a great way to nicely
+	collate and store this code.
+	
+	For a good exposition on the basics of writing packages, see:
+	\begin{myquote}
+		\url{http://r-pkgs.had.co.nz/}
+	\end{myquote}
+	
+	I was extremely surprised at how simple package development is using RStudio. Let's see
+	how it works!
+	\subsection*{Getting Started}
+	First things first, install the \texttt{devtools} and \texttt{roxygen2} packages:
+	<<echo=TRUE, eval=FALSE>>=
+	install.packages("devtools")
+	install.packages("roxygen2")
+	@
+	Next, in RStudio, go to \texttt{File $\rightarrow$ New Project} and choose
+	``New Directory'', then ``R Package''. Name your package, uncheck
+	``Create a git repository'' (you can do this yourself later) 
+	and click ``Create Project''.
+	
+	My version of RStudio creates a folder named whatever-I-chose-for-the-package-name 
+	that contains
+	1) \texttt{DESCRIPTION, NAMESPACE,} and \texttt{.Rbuildignore} files, and 2)
+	\texttt{man,} and \texttt{R} folders. The absolute essentials are a folder
+	named \texttt{R} that contains some \texttt{R} code, 
+	a \texttt{DESCRIPTION} file, and a \texttt{NAMESPACE} file.\footnote{See 
+		\url{http://r-pkgs.had.co.nz/description.html\#description} for a detailed discussion
+		of the DESCRIPTION file, and \url{http://r-pkgs.had.co.nz/namespace.html}
+		for a detailed description of the NAMESPACE file.}
+	\subsection*{The DESCRIPTION file}
+	Open your \texttt{DESCRIPTION} file in RStudio by clicking on it in the Files view in
+	the bottom right corner. Fill in \texttt{Title} and \texttt{Description} with something
+	appropriate.
+	\begin{quote}
+		The DESCRIPTION file contains important metadata about your package. Who wrote it,
+		what it's for, who can use it, etc.
+	\end{quote}
+	\subsubsection*{Authors@R}
+	I like to remove the \texttt{Author} and \texttt{Maintainer} fields and replace
+	them with the \texttt{Authors@R} field which handles both. You can do something
+	like:
+	<<echo=TRUE, eval=FALSE>>=
+	Authors@R:person("Kendon", "Bell", email = "kmb56@berkeley.edu", 
+	  role = c("aut", "cre"))
+	@
+	This says I am both the author (\texttt{aut}) and the maintainer (\texttt{cre})
+	of the package.
+	\subsubsection*{License}
+	If you ever want to share your code, you should read up 
+	on the different licenses at:
+	\begin{myquote}
+	\url{http://r-pkgs.had.co.nz/description.html\#license}
+	\end{myquote}
+	Otherwise it doesn't matter.
+	
+	Important fields that are not included by default in the RStudio default are
+	\texttt{Depends,} and \texttt{Imports}.
+	\subsubsection*{Depends}
+	You should only use \texttt{Depends} to specify a version of \texttt{R}
+	that is required for your package to work.\footnote{See Wickham's 
+		website for the few exceptions to this rule.} For example:
+	<<eval=FALSE>>=
+	Depends: R (>= 3.1.2)
+	@
+	\subsubsection*{Imports}
+	Imports is used to load packages that functions in your package will use. For example:
+	<<echo=TRUE, eval=FALSE>>=
+	Imports:
+	  dplyr (>= 0.3.0.1),
+	  ggplot2 (>= 1.0.0)
+	@
+	We won't worry about the \texttt{NAMESPACE} file for now.
+	\subsection*{R Code}
+	Now, let's add an R-function to the package. Create a \texttt{.R} file
+	containing just the OLS function that
+	you created last week and save it in the \texttt{/R} folder in your package
+	directory.
+	
+	Now, in RStudio, hit the \texttt{Build \& Reload} button in the \texttt{Build}
+	tab in the top right corner. Ask me questions if you get a error - especially
+	sensitive is the \texttt{DESCRIPTION} file. The syntax needs to be perfect. 
+	Make sure that, if you have fields that go for more than one line, 
+	you indent them with 2 spaces. 
+	
+	Go to the console, type \texttt{OLS} (without the `\texttt{()}'), and 
+	hit \texttt{ENTER}. You should
+	now see the function definition as it was written last week. What
+	\texttt{R} is doing when it `builds' your function is simply sourcing
+	(or running) all
+	the \texttt{.R} files in the \texttt{/R} folder.
+	
+	Now, open the \texttt{NAMESPACE} file. It should read something like 
+	\texttt{exportPattern("\textasciicircum[[:alpha:]]+")}
+	by default. Remove that line, save the \texttt{NAMESPACE} file, and \texttt{Build \& Reload}
+	again.
+	
+	Now, you shouldn't see the \texttt{OLS} function. What happened?? 
+	
+	The export line
+	in the \texttt{NAMESPACE} file is telling \texttt{R} which functions to load, and
+	you're no longer telling it to load everything using 
+	\texttt{exportPattern("\textasciicircum[[:alpha:]]+")}.\footnote{We will cover
+		regular expressions near the end probably.} So, it's not
+	really running \emph{all} the \texttt{R} code, just what is specified in the 
+	\texttt{NAMESPACE} file.
+	
+	\subsection*{Help File Documentation}
+	Package documentation is very simple using the package \texttt{roxygen2}.
+	\texttt{roxygen2} allows you to ignore most of the dirty details of how 
+	documentation works, which is great.
+	\begin{quote}
+		\emph{Note that ``documentation'' in coding can refer to both the comments
+		a coder makes throughout her functions, and the	help files that are
+		produced for users. We're talking about the latter here.}
+	\end{quote}
+	\pagebreak
+	Now, lets document our OLS function:
+	<<eval=FALSE>>=
+	#' @title OLS Coefficients
+	#' @description Calculates OLS coefficients using matrix methods.
+	#' @param y \code{numeric} or \code{matrix}. The left hand 
+	#'            side variable of the model to be estimated.
+	#' @param X \code{matrix}. Contains the right hand side variables of the
+	#'          model to be estimated. Must include a column of 1's if you
+	#'          wish to include an intercept.
+	#' @return A vector of linear regression coefficients.
+	OLS <- function(y, X) {
+		b <- solve(t(X) %*% X) %*% t(X) %*% y
+		b
+	}
+	@
+	Above, we can see the basic structure of \texttt{roxygen2} documentation
+	where each line begins with `\texttt{\#\textquotesingle}', 
+	and fields are all prefixed by an `\texttt{@}' symbol.
+	The only essential field in the above is \texttt{@title}. There are
+	also several other fields you may use which you can explore in the \texttt{roxygen2}
+	documentation online.
+	
+	\texttt{@title, @description,} and \texttt{@details} (omitted here) are differing levels
+	of description of what the function does. These are simply used by typing
+	the field name followed by a space and the content (all 3 can go onto multiple lines).
+	\texttt{@details} is usually only used for more complicated functions and
+	will typically contain more than one paragraph.
+	
+	\texttt{@param} documents the function arguments. This is used by typing the 
+	field name, followed by a space and the
+	argument name, followed by a space and a description of the argument.
+	
+	\texttt{@return} documents the return value.
+	
+	It is good practice for both \texttt{@param} and \texttt{@return} to include
+	the expected classes of the variables involved.
+	
+	There is a bunch of syntax you can use to style the documentation, such as
+	\texttt{\textbackslash code} above. A full list
+	is available at:
+	\begin{myquote}
+		\url{http://cran.r-project.org/doc/manuals/r-release/R-exts.html#Marking-text}
+	\end{myquote}
+	 
+	Let's now get \texttt{roxygen2} doing its thing!
+	Make sure the package is installed and call:
+	<<eval=FALSE>>=
+	roxygen2::roxygenize()
+	@
+	\begin{quote}
+		\emph{The syntax:} \texttt{packageName::functionName()} \emph{allows you to
+			call a function from a package without explicitly loading the function
+			using} \texttt{library()}\emph{. Using }\texttt{:::}\emph{ allows you to access functions
+		    that are only available internally to the package.}
+	\end{quote}
+	Now, build/reload the package again using \texttt{Ctrl/Cmd + Shift + B} or clicking the
+	button.
+	
+	You should be able to see your documentation now by typing:
+	<<eval=FALSE>>=
+	?OLS
+	@
+	in the console. You've just made your first \texttt{R} package! You
+	can now read in your package in any \texttt{R} session using \texttt{library(yourPackage)}.
+	
+	As a last note, \texttt{roxygen2} can also automatically generate
+	a \texttt{NAMESPACE} file for you if you have some functions
+	you want to keep invisible. You can do this by deleting
+	the \texttt{NAMESPACE} file and adding the tag \texttt{@export}
+	to the functions you want to be visible to the user.
+
+	\subsection*{Calculating $R^2$}
+	First, we'll go over how to calculate the $R^2$ values. We're going to 
+	write the code so that we can retrieve
+	the centered $R^2$, with \emph{or}
+	without an intercept in our model. Computing $R^2$ values 
+	can be trickier than it seems, particularly since many statistical
+	packages (including \texttt{R}) are not fully transparent about 
+	which $R^2$ they are displaying. To ground ourselves before we start 
+	coding, we'll first go through the intuition behind the $R^2$ measures, 
+	then the math, and finally the code.
+	
+	Remember, the centered $R^2$ is a measure of how much of the variance 
+	in our model we can explain relative to a hyperplane where 
+	$y = \bar{y}$.\footnote{When you see "hyperplane," think "line."}
+	
+	Now the math. First, the uncentered $R^2_{uc}$:
+	\begin{equation}
+		R^2_{uc} \equiv \frac{\hat{{\bm{y}}}' \hat{{\bm{y}}}}{\bm{y}'\bm{y}} = 
+		1 - \frac{\bm{e}'\bm{e}}{\bm{y}'\bm{y}} = 1 - \frac{\sum_i (y_i - \hat{y}_i)^2}
+		{\sum_i (y_i - 0 )^2} = 1 - \frac{\text{SSR}}{\text{SST}_0}
+	\end{equation}
+	The above is perfectly general. The first equality comes from $\bm{y}' 
+	\bm{y} = \hat{{\bm{y}}} ' \hat{{\bm{y}}} + \bm{e} ' \bm{e}$, the second 
+	is matrix decomposition, and the third is just my favorite way to think 
+	about this measure. SSR is the sum of squared residuals, and $\text{SST}_0$ 
+	is the total sum of squares \emph{relative to zero}. The latter is new notation 
+	to you, so be careful: it is NOT the SST that Max refers to in his notes --- 
+	we'll use that soon, when we define the centered $R^2$. Which we'll do now.
+	
+	The centered $R^2$ looks very similar to the uncentered $R^2_{uc}$. 
+	The only difference is the denominator:
+	\begin{equation}
+		R^2 \equiv 1 - \frac{\bm{e}'\bm{e}}{\bm{y}^{*'}\bm{y}^*} = 1 - 
+		\frac{\sum_i (y_i - \hat{y}_i)^2}{\sum_i (y_i - \bar{y} )^2} 
+		= 1 - \frac{\text{SSR}}{\text{SST}}
+	\end{equation}
+	Remember that $\bm{y}^* = \bm{A} \bm{y}$, the demeaned version of 
+	$\bm{y}$. I diverge a bit from the lecture notes here. My definition 
+	is a bit more general, since it will allow us to calculate the $R^2$ 
+	for models without an intercept\footnote{If you're interested in 
+	  exploring why the definition in the lecture notes won't work for 
+	  models without an intercept, see Greene 3.5.2.}. Here, the SST 
+	is as it was in the lecture notes --- it is sum of the squared 
+	differences between all of the values of $y$ and the mean of $y$.
+	
+	The adjusted $\bar{R}^2$ is just the $R^2$ with a penalty applied for additional covariates:
+	
+	\begin{equation}
+		\bar{R}^2 \equiv 1 - \frac{n-1}{n-k} (1 - R^2)
+	\end{equation}
+	
+	What happens when $k=1$?
+	
+	<<>>=
+	demeanMat <- function(n) {
+		ones <- rep(1, n)
+		diag(n) - (1/n) * ones %*% t(ones)
+	}
+	@
+	
+	Now, the main event! We'll define a function that runs OLS, 
+	computes all of our $R^2$ values, and returns them in a matrix. 
+	There is a lot of code here to process, but if you refer to the 
+	math above you'll see that it all matches up.
+	
+    <<>>=
+	R.squared <- function(y,X) {
+		n <- nrow(X)
+		k <- ncol(X)
+		b <- OLS(y,X)
+		yh <- X %*% b
+		e <- y - yh # yh is y hat, the predicted value for y
+		
+		SSR <- t(e) %*% e
+		SST.0 <- t(y) %*% y # == sum(y^2)
+		R2.unc <- 1 - SSR / SST.0
+		
+		A <- demeanMat(n)
+		ys <- A %*% y # this is ystar
+		SST.yb <- t(ys) %*% ys # ==  sum((y - mean(y)^2))
+		R2.cen <- 1 - SSR / SST.yb
+		
+		R2.adj <- 1 - ((n-1)/(n-k))*(1-R2.cen)
+		
+		return(cbind(R2.unc,R2.cen,R2.adj))
+	}
+    @	
+	We'll test our function by calling it with \texttt{X}, our data matrix 
+	that contains an intercept and \texttt{mpg}. 
+	We'll also confirm our results with \texttt{lm()}.
+	
+	<<>>=
+	(Rsq.X2 <- R.squared(y,X))
+	summary(lm(y ~ X))$r.squared
+	summary(lm(y ~ X))$adj.r.squared
+	@
+		
+	\texttt{lm()} does not, as far as I know, have a method for 
+	returning the uncentered $R^2$ for this model. Now let's try 
+	with \texttt{X2}, the data matrix with \texttt{mpg} but \emph{no intercept}.
+	
+	<<>>=
+	(Rsq.X2 <- R.squared(y,X2))
+	summary(lm(y ~ 0 + X2))$r.squared
+	summary(lm(y ~ 0 + X2))$adj.r.squared
+	@
+	Our results for $R^2$ and $\bar{R}^2$ are totally insane, 
+	but for some reason our $R^2_{uc}$ matches the output from 
+	\texttt{lm()}. Does this make any sense? Actually, yes! 
+	Remember that the centered $R^2$ compares our model, 
+	$\bm{y} = \bm{X} \bf \beta + \bf \varepsilon$ (with no intercept) 
+	to $\bm{y} = \bf \bar{y}$. Since $\bm{y} = \bar{\bm{y}}$ is 
+	actually a much better predictor of $\bm{y}$ than $\bm{X} \bm{b}$, 
+	we get that $\text{SSR} > \text{SST}$. Using that 
+	$R^2 = 1 - \frac{\text{SST}}{\text{SST}}$, we can see 
+	why we get a negative $R^2$ and $\bar{R}^2$.
+	
+	But, our results don't match the results from 
+	\texttt{lm()}. This is because \texttt{lm()} is actually pulling 
+	a bait-and-switch here: since we aren't passing it an intercept, 
+	it computes the uncentered $R^2_{uc}$ instead of the centered 
+	$R^2$.\footnote{For more information, see here: http://bit.ly/1c0nA6N.}
+	So rather than comparing our model $\bm{y} = \bm{X} \bm{b} + \bf{\varepsilon}$ 
+	to $\bm{y} = \bf \bar{y} + \bf{\varepsilon}$, it compares it to 
+	$\bm{y} = \bf 0 + \bf{\varepsilon}$. If this doesn't make any 
+	sense to you, don't worry about it too much. Just remember to 
+	include an intercept in your model and everything will be fine.
+	
+	
+	
+	
+	\subsection*{Linear algebra puzzles}
+	
+
+	\begin{enumerate}
+		\item Define vectors $\bm{x} = [1 \hspace{6pt} 2 \hspace{6pt} 3]'$, $\bm{y} = [2 \hspace{6pt} 3 \hspace{6pt} 4]'$, 
+		and $\bm{z} = [3 \hspace{6pt} 5 \hspace{6pt} 7]$. Define $\bm{W} = [\bm{x} \hspace{6pt} \bm{y} \hspace{6pt} \bm{z}]$.  
+		Calculate $\bm{W}^{-1}$.  If you cannot take the inverse, explain why not and adjust $\bm{W}$ so that 
+		you /can/ take the inverse. \emph{Hint}: the \texttt{solve()} function will return the inverse of the supplied matrices.
+		
+		\item Show, somehow, that $(\bm{X}p)^{-1} = (\bm{X}^{-1})^{\prime}$.
+		
+		\item Generate a $3 \times 3$ matrix $\bm{X}$, where each element is drawn from a 
+		standard normal distribution.  Let $\bm{A} = \bm{I}_3 - \frac{1}{3}\bm{B}$ be a demeaning 
+		matrix, with $\bm{i}$ a $3 \times 3$ matrix of ones.  First show that $\bm{A}$ 
+		is idempotent and symmetric. Next show that each row of the matrix $\bm{X}\bm{A}$ 
+		is the deviation of each row in $\bm{X}$ from its mean.  Finally, show that
+		$(\bm{X}\bm{A})(\bm{X}\bm{A})^{\prime} = \bm{X}\bm{A}\bm{X}p$, first through algebra and then \texttt{R} code.
+		
+		\item Demonstrate from random matrices that $(\bm{X}\bm{Y}\bm{Z})^{-1} = \bm{Z}^{-1}\bm{Y}^{-1}\bm{X}^{-1}$.
+		
+		\item Let $\bm{X}$ and $\bm{Y}$ be square $20 \times 20$ matrices.  Show that $tr(\bm{X} + \bm{Y}) = tr(\bm{X}) + tr(\bm{Y})$.
+		
+		\item Generate a diagonal matrix $\bm{X}$, where each element on the diagnonal is drawn from $U[10,20]$. 
+		Now generate a matrix $\bm{B}$ s.t. $\bm{X} = \bm{B}\bm{B}p$. 
+		\emph{Hint}: There is a method in \texttt{R} that makes this easy. 
+		Does the fact that you can generate $\bm{B}$ tell you anything about $\bm{X}$?
+		
+		\item Demonstrate that for any scalar $c$ and any square matrix $\bm{X}$ of dimension $n$ that $\det(c\bm{X}) = c^n \det(\bm{X})$.
+		
+		\item Demonstrate that for an $m \times m$ matrix $\bm{A}$ and a $p \times p$ matrix $\bm{B}$ that $\det(\bm{A} \otimes \bm{B}) = \det(\bm{A})^p \det(\bm{B})^m$. /Hint/: Note that $\otimes$ indicates the Kronecker product\footnote{The Kronecker product is a useful mathemagical tool for econometricians, allowing us to more easily describe block-diagonal matricees for use in panel data settings. I wouldn't lose sleep over it, though.}.  Google the appropriate =R= function.
+	\end{enumerate}
+	Here's a nice problem set hint for those of you who actually read these! Check out the
+	\texttt{WDI} package in \texttt{R}; it should make downloading the World Bank data
+	much simpler. This is a canned package which is definitely OK to use for the problem set.
+\end{document}

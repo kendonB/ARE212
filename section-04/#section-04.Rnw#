@@ -1,0 +1,196 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.png}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\usepackage{verbatim}
+\date{\today}	
+\pagestyle{fancy}
+
+\begin{document}
+	\newcommand{\ep}{{\bf e}^\prime}
+	\newcommand{\e}{{\bf e}}
+	\newcommand{\I}{{\bf I}}
+	\newcommand{\X}{{\bf X}}
+	\newcommand{\x}{{\bf x}}
+	\newcommand{\M}{{\bf M}}
+	\newcommand{\A}{{\bf A}}
+	\renewcommand{\P}{{\bf P}}
+	\newcommand{\Xp}{{\bf X}^{\prime}}
+	\newcommand{\Mp}{{\bf M}^{\prime}}
+	\newcommand{\y}{{\bf y}}
+	\newcommand{\yp}{{\bf y}^{\prime}}
+	\newcommand{\yh}{\hat{{\bf y}}}
+	\newcommand{\yhp}{\hat{{\bf y}}^{\prime}}
+	\newcommand{\In}{{\bf I}_n}
+	\newcommand{\email}[1]{\textcolor{blue}{\texttt{#1}}}
+	\newcommand{\id}[1]{{\bf I}_{#1}}
+	\newcommand{\myheader}[1]{\textcolor{black}{\textbf{#1}}}
+	
+	% Remove indent for quotes
+	\newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+	
+	\setlength{\parindent}{0in}
+	\lhead{\textbf{Introduction to Package Development \\in RStudio and calculating $R^2$.}}
+	\rhead{\textbf{ARE212}: Section 4}
+	The purpose of this section is to introduce you to writing your own packages in
+	\texttt{R}
+	
+	\subsection*{Last Section}
+	I'm looking forward to seeing your problem sets nicely typed up using \texttt{knitr}.
+	I strongly urge you to write up your problem sets using \texttt{knitr}. You can edit
+	\texttt{.Rnw} files using TexStudio and compile to \texttt{.pdf} by following the instructions
+	at:
+	\begin{myquote}
+		\url{http://yihui.name/knitr/demo/editors/}
+	\end{myquote}
+	My build command (which is discussed in the link) is, for example:
+	\begin{verbatim}
+    "C:/Program Files/R/R-3.1.2/bin/x64/Rscript.exe" -e "library(knitr); knit('
+    %.Rnw')"|"C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/pdflatex.exe" -inter
+    action=nonstopmode %.tex|txs:///view-pdf-internal
+	\end{verbatim}
+	The user defined build command can be accessed using \texttt{Alt + Shift + F1}. What the
+	above commands do is 1) open an \texttt{R} instance on the fly and run the \texttt{knit()}
+	function on the open \texttt{.Rnw} file, creating a \texttt{.tex} file in the same folder.
+	Then 2) run \texttt{pdflatex} on the created \texttt{.tex} file, creating/updating the 
+	\texttt{.pdf} file, then 3) opening the internal pdf viewer.
+	
+	As with \texttt{Git}, a section hour is not enough time to really know how 
+	to use \texttt{knitr}, so you should read up a bit more on what it can do. 
+	\subsection*{Packages}
+	It's likely that most of you will not develop packages in \texttt{R} for the purposes
+	of sharing code with others. However, you will almost certainly end up writing utility functions
+	along the way that you want to keep for yourself and packages are a great way to nicely
+	collate and store this code.
+	
+	I was extremely surprised at how simple package development is using RStudio. Let's see
+	how it works!
+	
+	For a good exposition on the basics of writing packages, see
+	\begin{myquote}
+		\url{http://r-pkgs.had.co.nz/}
+	\end{myquote}
+	
+	\subsection*{Getting Started}
+	First things first, install the \texttt{devtools} package using \texttt{install.packages()}.
+	
+	Next, in RStudio, go to \texttt{File $\rightarrow$ New Project} and choose
+	``New Directory'', then ``R Package''. Name your package and check ``Create a git
+	repository''.\footnote{This is our first use of a GUI for Git.}
+	
+	My version of RStudio creates a folder named whatever I chose for the package name containing
+	1) \texttt{DESCRIPTION, NAMESPACE, .gitignore,} and \texttt{.Rbuildignore} files, 2)
+	\texttt{.git, man,} and \texttt{R} folders. The absolute essentials are a folder
+	named \texttt{R} that contains some \texttt{R} code, 
+	a DESCRIPTION file, and a NAMESPACE file.\footnote{See 
+		\url{http://r-pkgs.had.co.nz/description.html\#description} for a detailed discussion
+		of the DESCRIPTION file, and \url{http://r-pkgs.had.co.nz/namespace.html}
+		for a detailed description of the NAMESPACE file.}
+	\subsection*{The \texttt{DESCRIPTION} file}
+	Open your \texttt{DESCRIPTION} file in RStudio by clicking on it in the Files view in
+	the bottom right corner. Fill in \texttt{Title} and \texttt{Description} with something
+	appropriate.
+	\begin{quote}
+		The DESCRIPTION file contains important metadata about your package. Who wrote it,
+		what it's for, who can use it, etc.
+	\end{quote}
+	\subsubsection*{Authors@R}
+	I like to remove the \texttt{Author} and \texttt{Maintainer} fields and replace
+	them with the \texttt{Authors@R} field which handles both. You can do something
+	like:
+	<<echo=TRUE, eval=FALSE>>=
+	Authors@R:person("Kendon", "Bell", email = "kmb56@berkeley.edu", 
+	  role = c("aut", "cre"))
+	@
+	
+	Important fields that are not included by default in the RStudio default are
+	\texttt{Depends,} and \texttt{Imports}.
+	\subsubsection*{Depends}
+	You should only use \texttt{Depends} to specify a version of \texttt{R}
+	that is required for your package to work.\footnote{See Wickham's 
+		website for the few exceptions to this rule.} For example:
+	<<eval=FALSE>>=
+	Depends: R (>= 3.0.1)
+	@
+	\subsubsection*{Imports}
+	Imports is used to load packages that functions in your package will use. For example:
+	<<echo=TRUE, eval=FALSE>>=
+	Imports:
+	  dplyr (>= 0.3.0.1),
+	  ggplot2 (>= 1.0.0)
+	@
+	We won't worry about the \texttt{NAMESPACE} file for now.
+	\subsection*{R Code}
+	Now, let's add an R-function to the package. Create a \texttt{.R} file
+	containing just the OLS function that
+	you created last week and save it in the \texttt{/R} folder in the package
+	directory.
+	
+	Now, in RStudio, hit the \texttt{Build \& Reload} button in the \texttt{Build}
+	tab in the top right corner. Ask me questions if you get a error. Especially
+	sensitive is the DESCRIPTION file. The syntax needs to be perfect.
+	
+	Go to the console, type \texttt{OLS}, and hit \texttt{enter}. You should
+	now see the function definition as it was written last week. What
+	\texttt{R} is doing when it builds your function is simply sourcing all
+	the \texttt{.R} files in the \texttt{/R} folder.
+	
+	Now, open the \texttt{NAMESPACE} file. It should read something like 
+	\texttt{exportPattern("\textasciicircum[[:alpha:]]+")}
+	by default. Remove that line, save the \texttt{NAMESPACE} file, and \texttt{Build \& Reload}
+	again.
+	
+	Now, you shouldn't see the \texttt{OLS} function. What happened?? The export line
+	in the \texttt{NAMESPACE} is telling \texttt{R} which functions to load, and
+	you're no longer telling it to load everything using 
+	\texttt{exportPattern("\textasciicircum[[:alpha:]]+")}.\footnote{We will cover
+		regular expressions near the end probably.}
+	
+	d\texttt{hello
+
+	dsfsf
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	Here's a nice problem set hint for those of you who actually read these! Check out the
+	\texttt{WDI} package in \texttt{R}; it should make downloading the World Bank data
+	much simpler. This is a canned package which is definitely OK to use for the problem set.
+\end{document}
