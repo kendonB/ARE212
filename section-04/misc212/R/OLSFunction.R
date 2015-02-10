@@ -15,3 +15,22 @@ demeanMat <- function(n) {
   ones <- rep(1, n)
   diag(n) - (1/n) * ones %*% t(ones)
 }
+
+
+olsRSq <- function(y, X) {
+  n <- nrow(X)
+  k <- ncol(X)
+  b <- OLS(y,X)
+  yh <- X %*% b
+  e <- y - yh # yh is y hat, the predicted value for y
+
+  SSR <- t(e) %*% e
+
+  A <- demeanMat(n)
+  ys <- A %*% y # this is ystar
+  SST.yb <- t(ys) %*% ys # ==  sum((y - mean(y)^2))
+  R2.cen <- 1 - SSR / SST.yb
+
+  return(list(rsquared.cen=R2.cen, coefficients=b))
+}
+
