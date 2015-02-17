@@ -106,8 +106,8 @@ Open your \texttt{DESCRIPTION} file in RStudio by clicking on it in the Files vi
 the bottom right corner. Fill in \texttt{Title} and \texttt{Description} with something
 appropriate.
 \begin{quote}
-	The DESCRIPTION file contains important metadata about your package. Who wrote it,
-	what it's for, who can use it, etc.
+	\emph{The DESCRIPTION file contains important metadata about your package. Who wrote it,
+	what it's for, who can use it, etc.}
 \end{quote}
 \subsubsection*{Authors@R}
 I like to remove the \texttt{Author} and \texttt{Maintainer} fields and replace
@@ -144,7 +144,7 @@ Imports:
 Again, make sure you have the spaces at the start of the second and third lines.
 We won't worry about the \texttt{NAMESPACE} file for now.
 \subsection*{R Code}
-Now, let's add an R-function to the package. Create a \texttt{.R} file
+Now, let's add an \texttt{R} function to the package. Create a \texttt{.R} file
 containing just the OLS function that
 you created last week and save it in the \texttt{/R} folder in your package
 directory.
@@ -264,7 +264,7 @@ the \texttt{NAMESPACE} file and adding the tag \texttt{@export}
 to the functions you want to be visible to the user.
 
 \subsection*{Calculating $R^2$}
-Now, we'll go over how to calculate the $R^2$ values. We're going to 
+Now, we'll go over how to calculate the $R^2$ value. We're going to 
 write the code so that we can retrieve
 the centered $R^2$, with \emph{or}
 without an intercept in our model. Computing $R^2$ values 

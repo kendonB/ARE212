@@ -1,0 +1,277 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.png}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\usepackage{verbatim}
+\date{\today}	
+\pagestyle{fancy}
+
+\usepackage{bm}
+\begin{document}
+	
+% Remove indent for quotes
+\newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+
+\setlength{\parindent}{0in}
+\lhead{\textbf{Hypothesis Testing}}
+\rhead{\textbf{ARE212}: Section 5}
+In this section we'll explore basic hypothesis testing in \texttt{R},
+along with learning a bit about some elements that make a well-coded function. 
+After adding our trusty \texttt{auto.dta} dataset to the package we made last
+week, we'll work through calculating $t$ and $F$-statistics.
+\subsection*{Last section}
+Hopefully you're now comfortable using a package to store your functions nicely.
+One thing I think I got wrong last week was what the \texttt{LazyData} field
+in the \texttt{DESCRIPTION} file does. If we specify \texttt{LazyData: TRUE},
+\texttt{R} will load any datasets when the \texttt{library()} function is called.
+If we specify \texttt{LazyData: FALSE}, we would have to manually load any datasets
+using the \texttt{data()} function.
+
+Because we're going to use it again, let's add the \texttt{auto.dta} dataset to our
+respective packages. To start, open your package project in RStudio and add a
+folder called \texttt{data} to the package folder. Next, call the following
+from the package directory.
+<<echo=TRUE, eval=FALSE>>=
+library(foreign)
+auto <- read.dta("<path to>/auto.dta")
+names(auto) <- c("price", "mpg", "weight")
+save(auto, file = "data/auto.rda")
+@
+Now, make sure you have the \texttt{LazyData: TRUE} field specified in your
+\texttt{DESCRIPTION} file, and rebuild your package. You've now added the
+\texttt{auto} dataset to your package! It will be loaded each time you
+call your package with \texttt{library()}.
+\subsection*{Calculating $t$-tests and $F$-tests}
+First, a basic overview in conducting $t$ and $F$-tests. 
+We've got a lot of what we need already in our package. Let's start
+by calling it into the \texttt{R}-environment.
+<<>>=
+library(misc212)
+@
+Remember, this contains our \texttt{OLS()} function
+and the \texttt{auto data.frame},
+which we'll use soon. For reference, consider the 
+regression output from \texttt{lm()}:
+<<>>=
+results <- lm(price ~ 1 + mpg + weight, data = auto)
+coef(summary(results))
+summary(results)$fstatistic
+@
+Now we'll run OLS and define some useful elements for hypothesis testing using the definitions in lecture notes:
+<<tidy=TRUE>>=
+X <- cbind(1, auto$mpg, auto$weight)
+y <- auto$price
+n <- nrow(X)
+k <- ncol(X)
+b <- OLS(y, X)
+e <- y - X %*% b
+s2 <- t(e) %*% e / (n - k)
+XpXinv <- solve(t(X) %*% X)
+se <- sqrt(s2 * diag(XpXinv))
+@
+By the way, it's good practice to define intermediate variables like 
+\texttt{XpXinv}, and \texttt{s2}. This can be useful for 
+debugging and making your code more readable. For example, I could 
+have defined \texttt{se} as
+<<eval=FALSE>>=
+sqrt((t(y - X %*% b) %*% (y - X %*% b) / (n-k)) * diag(solve(t(X) %*% X))) 
+@
+(or worse!), which would have been a nightmare to debug or understand.
+
+There's a cool trick I recently learned in RStudio to turn
+code like this into functions. Ultimately,
+we'd like to turn this into a function of \texttt{y} and \texttt{X},
+just like the \texttt{OLS()} function. Let's highlight the rows from \texttt{n <- ...}
+to \texttt{se <- ...} and hit \texttt{Ctrl/Command + Alt + X}.
+Name the function something appropriate. I named mine \texttt{se}.
+Cool huh?! The only modification I had to make was to add a return line.
+<<echo=FALSE>>=
+se <- function (y, X) {
+  n <- nrow(X)
+  k <- ncol(X)
+  b <- OLS(y, X)
+  e <- y - X %*% b
+  s2 <- t(e) %*% e / (n - k)
+  XpXinv <- solve(t(X) %*% X)
+  se <- sqrt(s2 * diag(XpXinv))
+  se
+}
+@
+We can now use the vector of standard errors to calculate our \texttt{t} 
+and \texttt{p} values for the individual $t$-tests:
+<<>>=
+seResults <- se(y, X)
+b <- OLS(y, X)
+n <- NROW(X)
+k <- NCOL(X)
+t <- (b - 0) / seResults
+p <- apply(t, 1, function(t) {2 * pt(-abs(t), df = (n - k))})
+@
+Great! We have replicated the \texttt{t value} and \texttt{Pr(>|t|)} 
+columns of the canned output. 
+Now let's try to replicate the full regression $F$-statistic. 
+
+This is a 
+joint test of coefficient significance; are the coefficients jointly 
+different from a zero vector? Note well that the ``regression $F$-statistic'' 
+almost always refers to a test of joint significance of the coefficients
+on everything but the intercept. Max has a great description as to why 
+the $F$ test is different from two separate tests of significance.  
+Going from the notation in the notes, we are testing joint significance by setting:
+\begin{equation}
+	\label{eq:fmats}
+	\bm{R} = \left[ \begin{array}{ccc}
+		0 & 1 & 0 \\
+		0 & 0 & 1
+	\end{array} \right]
+	\hspace{10pt} \mbox{and} \hspace{10pt}
+	\bm{r} = \left[ \begin{array}{c}
+		0 \\
+		0
+	\end{array} \right]
+\end{equation}
+We will work from equation (2.81), which is fairly daunting, but, because
+$\bm{r} = 0$, we can omit it:
+\begin{equation}
+	\label{eq:F}
+	F = \frac{(\bm{R}\bm{b})'[\bm{R}(\bm{X}'\bm{X})^{-1}\bm{R}']^{-1}(\bm{R}\bm{b})/J}{s^2}
+\end{equation}
+Let's start calculating:
+<<>>=
+R <- rbind(c(0, 1, 0), c(0, 0, 1))
+J <- 2
+RXXInvR <- solve(R %*% solve(t(X) %*% X) %*% t(R))
+F <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
+@
+It worked! This is, of course, one of the simplest possible $F$-tests we could 
+conduct, but you can see how it would be easy to construct your own $F$-tests 
+using this framework. 
+
+Let's turn this into a function. A good start might be:
+<<>>=
+FCalc <- function(R, J, b, s2, X) {
+  RXXInvR <- solve(R %*% solve(t(X) %*% X) %*% t(R))
+  F <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
+  F
+}
+@
+which we could call with:
+<<>>=
+R <- rbind(c(0, 1, 0), c(0, 0, 1))
+J <- 2
+FCalc(R, J, b, s2, X)
+@
+This gets the job done. But, it seems like it could be better. For a moment,
+let's just think about what I got right here.
+The first line has the right spacing between all the elements; 
+I start the first piece of calculation on a new
+line and the last line is a lone `\}'. The body of the function is indented with 2 spaces.
+All of this is consistent with normal \texttt{R} 
+style.\footnote{See \href{https://google-styleguide.googlecode.com/svn/trunk/Rguide.xml}{Google's style guide}
+	for more.} The only functions that don't need to conform
+to this style are short one line functions where the function body can also
+be put on the first line:
+<<>>=
+xSq <- function(x) x^2
+xSq(3)
+@
+
+Good practice is to use the minimum inputs to a function,
+to make its use easier. Let's do this with the \texttt{FCalc()}
+function:
+\pagebreak
+<<>>=
+FCalc <- function(R, y, X) {
+  n <- nrow(X)
+  k <- ncol(X)
+  b <- OLS(y, X)
+  e <- y - X %*% b
+  s2 <- t(e) %*% e / (n - k)
+  J <- NROW(R)
+  RXXInvR <- solve(R %*% solve(t(X) %*% X) %*% t(R))
+  F <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
+  F
+}
+@
+We could also add a $p$-value and return the results
+as a \texttt{list} or \texttt{data.frame}. One thing we should add
+is a check that our $R$ matrix is the correct size:
+<<>>=
+FCalc <- function(R, y, X) {
+  if (NCOL(R) != NCOL(X)) {
+    stop("Dimensions of R and X do not match")
+  }
+  n <- NROW(X)
+  k <- NCOL(X)
+  b <- OLS(y, X)
+  e <- y - X %*% b
+  s2 <- t(e) %*% e / (n - k)
+  J <- NROW(R)
+  RXXInvR <- solve(R %*% solve(t(X) %*% X) %*% t(R))
+  F <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
+  F
+}
+@
+This still isn't perfect, especially if we're worried about
+computational time.\footnote{This can be an issue if you are
+	performing many simulations, or using very large data sets.}
+We would likely use these functions something like this:
+<<>>=
+OLSResults <- OLS(y, X)
+seResults <- se(y, X)
+FResults <- FCalc(R, y, X)
+@
+Here, the \texttt{OLS()} function is called three times,
+which is inefficient. A simple modification could be to 
+give the results of the \texttt{OLS()} function as argument to
+the other functions. Nonetheless, many other lines of code are repeated
+in the \texttt{se()} and \texttt{FCalc()} functions.
+I'll leave it to you to work out a nice solution to this.
+As another exercise, you can extend the function to include the case
+where $\bm{r} \neq \bm{0}$.
+
+\subsection*{Puzzle}
+\begin{itemize}
+	\item \textbf{Partitioned regression:} Generate a $100 \times 4$ matrix $\bm{X}$
+	\emph{including} a column of ones for the intercept. Additionally,
+	generate a vector $\bm{y}$ according to the generating process: 
+	\begin{equation*}
+		y_i = 1 + x_{1i} + 2x_{2i} + 3x_{3i}  + \varepsilon_i,
+	\end{equation*} 
+	where $\varepsilon_i \sim N(0,1)$.  Let $\bm{Q}$ be the first three columns of $\bm{X}$
+	and let $\bm{N}$ be the final column. In addition, let
+	\begin{align*}
+		\hat{\gamma}_1 & = (\bm{Q}'\bm{Q})^{-1}\bm{Q}'\bm{y} \quad \textrm{and} \quad \bm{f} = \bm{y} - \bm{Q}\hat{\gamma}_1   \\
+		\hat{\gamma}_2 & = (\bm{Q}'\bm{Q})^{-1}\bm{Q}'\bm N \quad \textrm{and} \quad \bm g = \bm N - \bm{Q}\hat{\gamma}_2      \\
+		\hat{\gamma}_3 & = \bm{f} \cdot \bm{g} / ||\bm{g}||^2 \quad \textrm{and} \quad \bm{e} = \bm{f} - \bm{g} \hat{\gamma}_3
+	\end{align*}
+	Show that $\hat{\beta} = [(\hat{\gamma}_1 - \hat{\gamma}_2\hat{\gamma}_3) \hspace{10pt}
+	\hat{\gamma}_3]$. Note that the total dimension of $\hat{\beta}$ is 4.
+\end{itemize}
+
+\end{document}
