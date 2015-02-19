@@ -19,8 +19,8 @@ summary(results)$fstatistic
 ## ----tidy=TRUE-----------------------------------------------------------
 X <- cbind(1, auto$mpg, auto$weight)
 y <- auto$price
-n <- nrow(X)
-k <- ncol(X)
+n <- NROW(X)
+k <- NCOL(X)
 b <- OLS(y, X)
 e <- y - X %*% b
 s2 <- t(e) %*% e / (n - k)
@@ -34,8 +34,8 @@ se <- sqrt(s2 * diag(XpXinv))
 
 ## ----echo=FALSE----------------------------------------------------------
 se <- function (y, X) {
-  n <- nrow(X)
-  k <- ncol(X)
+  n <- NROW(X)
+  k <- NCOL(X)
   b <- OLS(y, X)
   e <- y - X %*% b
   s2 <- t(e) %*% e / (n - k)
@@ -82,8 +82,8 @@ xSq(3)
 
 ## ------------------------------------------------------------------------
 FCalc <- function(R, y, X) {
-  n <- nrow(X)
-  k <- ncol(X)
+  n <- NROW(X)
+  k <- NCOL(X)
   b <- OLS(y, X)
   e <- y - X %*% b
   s2 <- t(e) %*% e / (n - k)

@@ -48,7 +48,7 @@ week, we'll work through calculating $t$ and $F$-statistics.
 Hopefully you're now comfortable using a package to store your functions nicely.
 One thing I think I got wrong last week was what the \texttt{LazyData} field
 in the \texttt{DESCRIPTION} file does. If we specify \texttt{LazyData: TRUE},
-\texttt{R} will load any datasets when the \texttt{library()} function is called.
+\texttt{R} will load any package specific datasets when the \texttt{library()} function is called.
 If we specify \texttt{LazyData: FALSE}, we would have to manually load any datasets
 using the \texttt{data()} function.
 
@@ -86,8 +86,8 @@ Now we'll run OLS and define some useful elements for hypothesis testing using t
 <<tidy=TRUE>>=
 X <- cbind(1, auto$mpg, auto$weight)
 y <- auto$price
-n <- nrow(X)
-k <- ncol(X)
+n <- NROW(X)
+k <- NCOL(X)
 b <- OLS(y, X)
 e <- y - X %*% b
 s2 <- t(e) %*% e / (n - k)
@@ -112,8 +112,8 @@ Name the function something appropriate. I named mine \texttt{se}.
 Cool huh?! The only modification I had to make was to add a return line.
 <<echo=FALSE>>=
 se <- function (y, X) {
-  n <- nrow(X)
-  k <- ncol(X)
+  n <- NROW(X)
+  k <- NCOL(X)
   b <- OLS(y, X)
   e <- y - X %*% b
   s2 <- t(e) %*% e / (n - k)
@@ -207,8 +207,8 @@ function:
 \pagebreak
 <<>>=
 FCalc <- function(R, y, X) {
-  n <- nrow(X)
-  k <- ncol(X)
+  n <- NROW(X)
+  k <- NCOL(X)
   b <- OLS(y, X)
   e <- y - X %*% b
   s2 <- t(e) %*% e / (n - k)
@@ -246,7 +246,7 @@ OLSResults <- OLS(y, X)
 seResults <- se(y, X)
 FResults <- FCalc(R, y, X)
 @
-Here, the \texttt{OLS()} function is called three times,
+Here, \texttt{OLS()} is called three times, once in each function,
 which is inefficient. A simple modification could be to 
 give the results of the \texttt{OLS()} function as argument to
 the other functions. Nonetheless, many other lines of code are repeated
