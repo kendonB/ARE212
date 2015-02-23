@@ -166,18 +166,28 @@ Let's start calculating:
 R <- rbind(c(0, 1, 0), c(0, 0, 1))
 J <- 2
 RXXInvR <- solve(R %*% solve(t(X) %*% X) %*% t(R))
-F <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
+FStat <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
 @
 It worked! This is, of course, one of the simplest possible $F$-tests we could 
 conduct, but you can see how it would be easy to construct your own $F$-tests 
-using this framework. 
+using this framework.
+\begin{quote}
+	\emph{Note that I didn't name }\texttt{FStat F}. \texttt{F}\emph{, in} \texttt{R}\emph{, 
+		is defined by default to be} \texttt{FALSE}\emph{. In the background, this is actually done
+	using }\texttt{F <- FALSE}\emph{, so, if we wanted to, we could have redefined it. This,
+	however would be bad practice, as at some point you might think }\texttt{F}\emph{ means}\texttt{ FALSE}.
+    \emph{Or, someone else might read your code and think you mean }\texttt{F}.
+    \emph{Best to just avoid using }\texttt{F} \emph{and }\texttt{T}\emph{ as object names}. For that matter,
+    \texttt{c, q, t, C, D, }\emph{or }\texttt{I} \emph{should all be avoided as object names as they
+    	are defined as functions by default.}
+\end{quote}
 
 Let's turn this into a function. A good start might be:
 <<>>=
 FCalc <- function(R, J, b, s2, X) {
   RXXInvR <- solve(R %*% solve(t(X) %*% X) %*% t(R))
-  F <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
-  F
+  FStat <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
+  FStat
 }
 @
 which we could call with:

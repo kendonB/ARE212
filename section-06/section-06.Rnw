@@ -1,0 +1,185 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\usepackage{verbatim}
+\date{\today}	
+\pagestyle{fancy}
+
+\usepackage{bm}
+\begin{document}
+	
+% Remove indent for quotes
+\newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+
+\setlength{\parindent}{0in}
+\lhead{\textbf{WLS}}
+\rhead{\textbf{ARE212}: Section 6}
+In today's section, we'll look at the efficiency gains from a specialized case of generalized least squares using simulated data.
+To visualize our results, we'll introduce and start using the powerful graphics package, 
+\texttt{ggplot2}. Note well that the \texttt{ggvis} package
+will soon supersede \texttt{ggplot2} - both have been developed by RStudio's Chief Scientist and fellow Kiwi, 
+Hadley Wickham. \texttt{ggvis} introduces interactive plots that work in RStudio or browsers; however,
+it's still very new, potentially buggy. and doesn't yet integrate nicely into \texttt{knitr}. 
+\texttt{ggvis} has similar syntax, so should be easy to learn 
+once you know \texttt{ggplot2} well.
+\subsection*{Efficiency gains from GLS}
+We will specifically look at
+the efficiency gains from a special case of GLS, weighted least squares (WLS). 
+We will then create graphs similar to Figures 2.6 and 2.7 in the notes 
+using \texttt{ggplot2}. \\
+
+Let $x \sim U(0,2000)$ and $\varepsilon \sim N(0,400 \cdot \frac{1}{100} x_i^2)$, 
+where $\sigma^2$ = 400 and $w_i(x_i) = \frac{1}{100} x^2_i$.\footnote{Careful readers 
+	will note that putting some constants into $\sigma^2$ and other constants in 
+	$w_i(x_i)$ is totally arbitrary, since different choices in this regard will 
+	result in weighting matrices \texttt{C} that differ only by a constant multiple. 
+	Since these are weighting matrices, this will not change our result.}  The 
+underlying data generating process in (2.102) is 
+$y_i = \alpha + x_i \beta + \varepsilon_i$, where $\alpha = 0.5$ and $\beta = 1.5$.  
+The objective is to plot the simulated sampling distribution of the OLS 
+estimator applied to $B = 1000$ draws, each of size $n = 1000$.
+<<echo=FALSE>>=
+opts_chunk$set(tidy = TRUE)
+@
+<<>>=
+library(misc212)
+@
+<<cache=TRUE>>=
+set.seed(2222015)
+pop.n <- 1000000
+sigma <- 400
+pop.x <- runif(pop.n, min = 0, max = 2000)
+pop.w <- (1/100) * pop.x^2
+pop.eps <- rnorm(pop.n, mean = 0, sd = sqrt(sigma * pop.w))
+pop.y <- 0.5 + pop.x*1.5 + pop.eps
+@
+
+Note that since \texttt{rnorm()} takes the standard deviation as its third argument, 
+so we pass it the square root of the variance we want to generate. Now we'll 
+pull 1000 observations at random from our population --- this is our sample. 
+With these, we can calculate the standard OLS parameter vector 
+$[\hat{\alpha} \hspace{6pt} \hat{\beta}]^{\prime}$ by noting that $\bm{X}$ is 
+just the $x$ vector bound to a column of ones.  We will only examine 
+$\hat{\beta}$ for this section, rather than both parameters.
+<<>>=
+n <- 1000
+indices <- sample(1:pop.n,n,replace=F)
+x <- pop.x[indices]
+y <- pop.y[indices]
+X <- cbind(1, x) # add an intercept
+
+b <- OLS(y,X)
+b[2]
+@
+The \texttt{sample()} function samples randomly from a vector, here without replacement. 
+We create \texttt{x} by requesting a randomly sampled set of indices from 
+\texttt{pop.x}. Let's package this into a function, called \texttt{rnd.beta}, so 
+that we can collect the OLS parameter for an arbitrary number of random samples.
+<<>>=
+rnd.beta <- function(i) {
+	indices <- sample(1:pop.n,n,replace=F)
+	x <- pop.x[indices];  y <- pop.y[indices]
+	X <- cbind(1, x) # add an intercept
+	b <- OLS(y,X)
+	return(b[2])
+}
+@
+Since there aren't any supplied arguments, the function will 
+return an estimated $\hat{\beta}$ from a different random sample for each call:
+<<>>=
+rnd.beta()
+rnd.beta()
+@
+We'll use \texttt{sapply} to apply the function to a list of effective indices. 
+Now replicating the process for $B$ draws is straightforward:
+<<cache=TRUE>>=
+B <- 1000
+beta.vec <- sapply(1:B, rnd.beta)
+head(beta.vec)
+mean(beta.vec)
+@
+All right. Looking good. The average of the simulated sample is much closer 
+to $\beta$ than almost any individual call of \texttt{rnd.beta}, suggesting that 
+the distribution of the simulated parameters will be unbiased. 
+Now, let's create another, similar function that returns the WLS estimates. 
+Note that we follow the notes exactly in creating \texttt{C}, which is a 
+diagonal matrix with $\frac{1}{\sqrt(w_i(x_i))} = \frac{1}{\sqrt(\frac{1}{100} x_i^2)} = \frac{10}{x_i}$ 
+on the diagonals.
+<<cache=TRUE>>=
+rnd.wls.beta <- function(i) {
+	indices <- sample(1:pop.n,n,replace=F)
+	x <- pop.x[indices]
+	y <- pop.y[indices]
+	w <- pop.w[indices]
+	C <- diag(1 / sqrt(w)) # equivalent to: C <- diag(10 / x)
+	y.wt <- C %*% y
+	X.wt <- C %*% cbind(1, x)
+	b.wt <- OLS(y.wt,X.wt)
+	return(b.wt[2])
+}
+wls.beta.vec <- sapply(1:B, rnd.wls.beta)
+head(wls.beta.vec)
+@
+Now, quickly, let's look at how to do WLS using canned packages.
+<<>>=
+indices <- sample(1:pop.n,n,replace=FALSE)
+x <- pop.x[indices]
+y <- pop.y[indices]
+w <- pop.w[indices]
+C <- diag(1 / sqrt(w)) # equivalent to: C <- diag(10 / x)
+y.wt <- C %*% y
+X.wt <- C %*% cbind(1, x)
+b.wt <- OLS(y.wt,X.wt)
+b.wt[2]
+
+# Now use lm()
+tmp <- lm(y ~ x, weights=1/w)
+tmp$coefficients[2]
+
+# Also can use the more flexible gls() function from the nlme package
+library(nlme)
+tmp2 <- gls(y ~ x, weights = ~w)
+tmp2$coefficients[2]
+@
+You can see that the weights specification is different for \texttt{lm()}
+and \texttt{gls()}. Make sure you know what you're doing if you're going
+to use these in real life!
+\newpage
+We now have two collections of parameter estimates, one based on OLS and another based on WLS.  
+It is straightforward to plot two separate histograms using \texttt{R}'s core histogram 
+plotting function \texttt{hist()}. However, we can use this to introduce a more 
+flexible, powerful graphing package called \texttt{ggplot2}.
+<<histPlot, tidy=TRUE, cache=TRUE, fig.pos='ht', size='normalsize', fig.align="center", fig.width=7, fig.height=4, message=FALSE>>=
+library(ggplot2)
+labels <- c(rep("OLS", B), rep("WLS", B))
+graphData <- data.frame(beta=c(beta.vec, wls.beta.vec), method=labels)
+myplot <- ggplot(graphData, aes(x=beta, fill=method)) +
+geom_density(alpha=0.2) + theme_bw()
+myplot
+@
+As in the notes, WLS is clearly the more efficient estimator.
+
+\end{document}

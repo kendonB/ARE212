@@ -1,0 +1,139 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\usepackage{verbatim}
+\date{\today}	
+\pagestyle{fancy}
+
+\usepackage{bm}
+\begin{document}
+	
+% Remove indent for quotes
+\newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+
+\setlength{\parindent}{0in}
+\lhead{\textbf{\texttt{ggplot2}}}
+\rhead{\textbf{ARE212}: Section 7}
+
+\subsection*{The grammar of \texttt{ggplot2}}
+Now let's dig a little deeper into how \texttt{ggplot2} works.
+
+\texttt{ggplot2} is an implementation of the ``grammar of graphics,'' 
+described in a book of the same title by Leland Wilkensen. The idea 
+is that graphical representations of data, like language, have a 
+logical grammatical structure. Most graphing packages ignore this 
+structure and create one-off solutions for every different kind of 
+graph that we might want to display. This is inefficient, 
+and therefore displeasing to economists. \texttt{ggplot2} allows 
+users to control the composition of statistical graphs by 
+directly controlling the grammar of the graphical components.
+
+Plots in \texttt{ggplot2} are built by putting together 
+separate component parts. The three crucial components 
+that we'll think about for now are:
+\begin{enumerate}
+	\item data
+	\item aesthetics
+	\item layers/geometric shapes
+	\item themes
+\end{enumerate}
+There are more, but these are the important ones. We'll tackle each separately.
+\subsubsection*{Data}
+The \emph{data} for \texttt{ggplot2} should always be packaged 
+into a \texttt{data frame}. After loading the \texttt{ggplot2} library, 
+we'll load the \texttt{R} iris dataset to demonstrate:
+<<echo=TRUE, eval=1:2, message=FALSE>>=
+library(ggplot2)
+data(iris)
+ggplot(data = iris, ... )
+@
+The first argument we pass to \texttt{ggplot()} will be 
+the data frame that we intend represent graphically. This isn't the
+only way to get data into your \texttt{ggplot2} graphs, but is probably
+the best if you are graphing from a single \texttt{data.frame}.
+\subsection*{Aesthetics}
+The second required argument for \texttt{ggplot()} is the 
+aesthetic mapping/ of the plot. Aesthetics are used to map data
+to ``things that you can see'', such as the position of the 
+data on the axes, the color, the shape, et cetera. 
+Now we can create and display the \texttt{ggplot2} object \texttt{g} 
+using our data an aesthetics.
+<<>>=
+g <- ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width))
+@
+Or not. Why are we getting an error? Because we haven't specified any layers.
+So, in \texttt{ggplot2}, aesthetics are not the \emph{only} thing that you see.
+Layers specify the class of graph that will be used to display the data.
+\subsection*{Layers/geometric shapes}
+We've specified our data, and our 
+data aesthetics, but not our \emph{graphical layers} 
+(i.e. geometric shapes, or \texttt{geoms}). 
+Here, we'll add a layer of points:
+<<>>=
+g + geom_point()
+@
+We can also specify additional aesthetic options for each layer. 
+Below, we'll tell \texttt{ggplot2} to graph the points again, 
+this time specifying that each species should have a different color. 
+Aesthetic options specified in the \texttt{ggplot()} function are 
+the default for all layers, but aesthetics specified within layers 
+can override the defaults for that layer only.
+<<>>=
+g + geom_point(aes(color=Species))
+@
+Now, for a last plot, let's look at where \texttt{ggvis} is going
+to take us. For this, we'll revisit the kernel density of the
+OLS estimates from earlier.
+\newpage
+<<echo=TRUE, eval = FALSE, tidy=FALSE>>=
+library(ggvis)
+graphData[1:B,] %>% ggvis(x = ~beta) %>%
+  layer_densities(
+    adjust = input_slider(.1, 2, value = 1, 
+                          step = .1, 
+                          label = "Bandwidth adjustment"),
+    kernel = input_select(
+    c("Gaussian" = "gaussian",
+      "Epanechnikov" = "epanechnikov",
+      "Rectangular" = "rectangular",
+      "Triangular" = "triangular",
+      "Biweight" = "biweight",
+      "Cosine" = "cosine",
+      "Optcosine" = "optcosine"),
+    label = "Kernel")
+)
+@
+You will have to run this in RStudio for it to work (or a browser based document).
+
+Initially, putting together the grammar of \texttt{ggplot2} may seem cumbersome. 
+In fact, the code to construct simple scatterplots or histograms in \texttt{ggplot2} 
+is almost certainly going to be more complex than a simple \texttt{plot()} or \texttt{hist()} 
+from the base graphics package.\footnote{In fact, \texttt{ggplot2} provides a function 
+	called \texttt{qplot()} that replicates the simpler syntax from the base graphing 
+	package, if you prefer.}. But as your graphics needs become more complex, 
+you will almost certainly find that \texttt{ggplot2} scales much better 
+and is far more powerful than the base functions provided by \texttt{R}.
+\end{document}

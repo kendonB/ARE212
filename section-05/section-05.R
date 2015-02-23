@@ -58,14 +58,14 @@ p <- apply(t, 1, function(t) {2 * pt(-abs(t), df = (n - k))})
 R <- rbind(c(0, 1, 0), c(0, 0, 1))
 J <- 2
 RXXInvR <- solve(R %*% solve(t(X) %*% X) %*% t(R))
-F <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
+FStat <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
 
 
 ## ------------------------------------------------------------------------
 FCalc <- function(R, J, b, s2, X) {
   RXXInvR <- solve(R %*% solve(t(X) %*% X) %*% t(R))
-  F <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
-  F
+  FStat <- t(R %*% b) %*% RXXInvR %*% (R %*% b) / (s2 * J)
+  FStat
 }
 
 

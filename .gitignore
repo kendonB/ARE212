@@ -1,3 +1,6 @@
+section-06/cache/*
+section-06/figure/*
+*.tikz
 *.sty
 *.pyg
 *.DS_Store
