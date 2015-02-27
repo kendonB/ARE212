@@ -86,7 +86,7 @@ just the $x$ vector bound to a column of ones.  We will only examine
 $\hat{\beta}$ for this section, rather than both parameters.
 <<>>=
 n <- 1000
-indices <- sample(1:pop.n,n,replace=F)
+indices <- sample(1:pop.n,n,replace=FALSE)
 x <- pop.x[indices]
 y <- pop.y[indices]
 X <- cbind(1, x) # add an intercept
@@ -100,7 +100,7 @@ We create \texttt{x} by requesting a randomly sampled set of indices from
 that we can collect the OLS parameter for an arbitrary number of random samples.
 <<>>=
 rnd.beta <- function(i) {
-	indices <- sample(1:pop.n,n,replace=F)
+	indices <- sample(1:pop.n,n,replace=FALSE)
 	x <- pop.x[indices];  y <- pop.y[indices]
 	X <- cbind(1, x) # add an intercept
 	b <- OLS(y,X)
@@ -125,18 +125,18 @@ All right. Looking good. The average of the simulated sample is much closer
 to $\beta$ than almost any individual call of \texttt{rnd.beta}, suggesting that 
 the distribution of the simulated parameters will be unbiased. 
 Now, let's create another, similar function that returns the WLS estimates. 
-Note that we follow the notes exactly in creating \texttt{C}, which is a 
+Note that we follow the notes exactly in creating \texttt{C.Mat}, which is a 
 diagonal matrix with $\frac{1}{\sqrt(w_i(x_i))} = \frac{1}{\sqrt(\frac{1}{100} x_i^2)} = \frac{10}{x_i}$ 
 on the diagonals.
 <<cache=TRUE>>=
 rnd.wls.beta <- function(i) {
-	indices <- sample(1:pop.n,n,replace=F)
+	indices <- sample(1:pop.n,n,replace=FALSE)
 	x <- pop.x[indices]
 	y <- pop.y[indices]
 	w <- pop.w[indices]
-	C <- diag(1 / sqrt(w)) # equivalent to: C <- diag(10 / x)
-	y.wt <- C %*% y
-	X.wt <- C %*% cbind(1, x)
+	C.Mat <- diag(1 / sqrt(w)) # equivalent to: C.Mat <- diag(10 / x)
+	y.wt <- C.Mat %*% y
+	X.wt <- C.Mat %*% cbind(1, x)
 	b.wt <- OLS(y.wt,X.wt)
 	return(b.wt[2])
 }
@@ -149,9 +149,9 @@ indices <- sample(1:pop.n,n,replace=FALSE)
 x <- pop.x[indices]
 y <- pop.y[indices]
 w <- pop.w[indices]
-C <- diag(1 / sqrt(w)) # equivalent to: C <- diag(10 / x)
-y.wt <- C %*% y
-X.wt <- C %*% cbind(1, x)
+C.Mat <- diag(1 / sqrt(w)) # equivalent to: C.Mat <- diag(10 / x)
+y.wt <- C.Mat %*% y
+X.wt <- C.Mat %*% cbind(1, x)
 b.wt <- OLS(y.wt,X.wt)
 b.wt[2]
 

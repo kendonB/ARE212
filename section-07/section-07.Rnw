@@ -37,6 +37,30 @@
 \setlength{\parindent}{0in}
 \lhead{\textbf{\texttt{ggplot2}}}
 \rhead{\textbf{ARE212}: Section 7}
+\subsection*{Problem Set Debrief}
+Most of you did fantastically on the problem set. Mostly very well
+presented as well! Some common issues were:
+\begin{itemize}
+	\item Presenting numbers in awkward units. Humans don't like
+	to look at too many digits, so consider scaling/rounding.
+	\item In general in tables, you should left align text, and right align numbers.
+	These rules are not hard and fast.
+	\item Titles on graphs.
+	\item Don't repeat yourself (DRY). In programming, if you end up 
+	wanting to repeat code,
+	you should almost always put that code into a function. It makes your 
+	work much more readable.
+	\item In \texttt{knitr} chunks, you 
+	can use \texttt{message=FALSE} to suppress \texttt{R} messages.
+	\item Words in your proofs will improve their presentation.
+	\item Differing colors should only be used in figures if they convey
+	extra information, like representing a third dimension in the data.
+	\item Always put your final results in tables for presentation.
+	\item You can use \texttt{\textbackslash usepackage[margin=1in]\{geometry\}} in your
+	preambles to get nicer margins.
+	
+\end{itemize}
+
 
 \subsection*{The grammar of \texttt{ggplot2}}
 Now let's dig a little deeper into how \texttt{ggplot2} works.

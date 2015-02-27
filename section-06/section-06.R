@@ -17,7 +17,7 @@ pop.y <- 0.5 + pop.x*1.5 + pop.eps
 
 ## ------------------------------------------------------------------------
 n <- 1000
-indices <- sample(1:pop.n,n,replace=F)
+indices <- sample(1:pop.n,n,replace=FALSE)
 x <- pop.x[indices]
 y <- pop.y[indices]
 X <- cbind(1, x) # add an intercept
@@ -28,7 +28,7 @@ b[2]
 
 ## ------------------------------------------------------------------------
 rnd.beta <- function(i) {
-	indices <- sample(1:pop.n,n,replace=F)
+	indices <- sample(1:pop.n,n,replace=FALSE)
 	x <- pop.x[indices];  y <- pop.y[indices]
 	X <- cbind(1, x) # add an intercept
 	b <- OLS(y,X)
@@ -50,13 +50,13 @@ mean(beta.vec)
 
 ## ----cache=TRUE----------------------------------------------------------
 rnd.wls.beta <- function(i) {
-	indices <- sample(1:pop.n,n,replace=F)
+	indices <- sample(1:pop.n,n,replace=FALSE)
 	x <- pop.x[indices]
 	y <- pop.y[indices]
 	w <- pop.w[indices]
-	C <- diag(1 / sqrt(w)) # equivalent to: C <- diag(10 / x)
-	y.wt <- C %*% y
-	X.wt <- C %*% cbind(1, x)
+	C.Mat <- diag(1 / sqrt(w)) # equivalent to: C.Mat <- diag(10 / x)
+	y.wt <- C.Mat %*% y
+	X.wt <- C.Mat %*% cbind(1, x)
 	b.wt <- OLS(y.wt,X.wt)
 	return(b.wt[2])
 }
@@ -69,9 +69,9 @@ indices <- sample(1:pop.n,n,replace=FALSE)
 x <- pop.x[indices]
 y <- pop.y[indices]
 w <- pop.w[indices]
-C <- diag(1 / sqrt(w)) # equivalent to: C <- diag(10 / x)
-y.wt <- C %*% y
-X.wt <- C %*% cbind(1, x)
+C.Mat <- diag(1 / sqrt(w)) # equivalent to: C.Mat <- diag(10 / x)
+y.wt <- C.Mat %*% y
+X.wt <- C.Mat %*% cbind(1, x)
 b.wt <- OLS(y.wt,X.wt)
 b.wt[2]
 
