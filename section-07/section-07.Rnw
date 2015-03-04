@@ -35,14 +35,25 @@
 \newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
 
 \setlength{\parindent}{0in}
-\lhead{\textbf{\texttt{ggplot2}}}
+\lhead{\textbf{\texttt{ggplot2} and using APIs for data collection}}
 \rhead{\textbf{ARE212}: Section 7}
 \subsection*{Problem Set Debrief}
 Most of you did fantastically on the problem set. Mostly very well
-presented as well! Some common issues were:
+presented as well! I didn't closely grade the practice problems but commented if I saw something was 
+obviously wrong. This time, I only gave zeroes to people who did not hand the problem set in,
+so please see me privately if you received a zero and thought you handed your problem set in.
+Some common issues were:
 \begin{itemize}
+	\item Work in groups - there is certainly a correlation between group work
+	and quality of assignments.
+	\item Make sure you actually practice the proofs for the midterm. It'll help.
+	\item Optional arguments to R functions don't need to be included. 
+	You can tell they're optional in the documentation if they're given a default value
+	in the Usage section of the documentation.
+	\item Make sure you know what is meant by measure of fit - review the notes if you're not clear.
 	\item Presenting numbers in awkward units. Humans don't like
-	to look at too many digits, so consider scaling/rounding.
+	to look at too many digits, so always consider scaling/rounding when presenting in tables
+	and plots.
 	\item In general in tables, you should left align text, and right align numbers.
 	These rules are not hard and fast.
 	\item Titles on graphs.
@@ -58,7 +69,6 @@ presented as well! Some common issues were:
 	\item Always put your final results in tables for presentation.
 	\item You can use \texttt{\textbackslash usepackage[margin=1in]\{geometry\}} in your
 	preambles to get nicer margins.
-	
 \end{itemize}
 
 
@@ -76,7 +86,7 @@ users to control the composition of statistical graphs by
 directly controlling the grammar of the graphical components.
 
 Plots in \texttt{ggplot2} are built by putting together 
-separate component parts. The three crucial components 
+separate component parts. The four crucial components 
 that we'll think about for now are:
 \begin{enumerate}
 	\item data
@@ -87,8 +97,8 @@ that we'll think about for now are:
 There are more, but these are the important ones. We'll tackle each separately.
 \subsubsection*{Data}
 The \emph{data} for \texttt{ggplot2} should always be packaged 
-into a \texttt{data frame}. After loading the \texttt{ggplot2} library, 
-we'll load the \texttt{R} iris dataset to demonstrate:
+into a \texttt{data.frame}. After loading the \texttt{ggplot2} library, 
+we'll load the classic Fisher's Iris data set to demonstrate:
 <<echo=TRUE, eval=1:2, message=FALSE>>=
 library(ggplot2)
 data(iris)
@@ -100,7 +110,7 @@ only way to get data into your \texttt{ggplot2} graphs, but is probably
 the best if you are graphing from a single \texttt{data.frame}.
 \subsection*{Aesthetics}
 The second required argument for \texttt{ggplot()} is the 
-aesthetic mapping/ of the plot. Aesthetics are used to map data
+aesthetic mapping of the plot. Aesthetics are used to map data
 to ``things that you can see'', such as the position of the 
 data on the axes, the color, the shape, et cetera. 
 Now we can create and display the \texttt{ggplot2} object \texttt{g} 
@@ -110,7 +120,7 @@ g <- ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width))
 @
 Or not. Why are we getting an error? Because we haven't specified any layers.
 So, in \texttt{ggplot2}, aesthetics are not the \emph{only} thing that you see.
-Layers specify the class of graph that will be used to display the data.
+We will also use layers to specify the class of graph that will be used to display the data.
 \subsection*{Layers/geometric shapes}
 We've specified our data, and our 
 data aesthetics, but not our \emph{graphical layers} 
@@ -128,31 +138,7 @@ can override the defaults for that layer only.
 <<>>=
 g + geom_point(aes(color=Species))
 @
-Now, for a last plot, let's look at where \texttt{ggvis} is going
-to take us. For this, we'll revisit the kernel density of the
-OLS estimates from earlier.
-\newpage
-<<echo=TRUE, eval = FALSE, tidy=FALSE>>=
-library(ggvis)
-graphData[1:B,] %>% ggvis(x = ~beta) %>%
-  layer_densities(
-    adjust = input_slider(.1, 2, value = 1, 
-                          step = .1, 
-                          label = "Bandwidth adjustment"),
-    kernel = input_select(
-    c("Gaussian" = "gaussian",
-      "Epanechnikov" = "epanechnikov",
-      "Rectangular" = "rectangular",
-      "Triangular" = "triangular",
-      "Biweight" = "biweight",
-      "Cosine" = "cosine",
-      "Optcosine" = "optcosine"),
-    label = "Kernel")
-)
-@
-You will have to run this in RStudio for it to work (or a browser based document).
-
-Initially, putting together the grammar of \texttt{ggplot2} may seem cumbersome. 
+Initially, putting together the grammar of \texttt{ggplot2} may seem cumbersome, because it is. 
 In fact, the code to construct simple scatterplots or histograms in \texttt{ggplot2} 
 is almost certainly going to be more complex than a simple \texttt{plot()} or \texttt{hist()} 
 from the base graphics package.\footnote{In fact, \texttt{ggplot2} provides a function 
@@ -160,4 +146,125 @@ from the base graphics package.\footnote{In fact, \texttt{ggplot2} provides a fu
 	package, if you prefer.}. But as your graphics needs become more complex, 
 you will almost certainly find that \texttt{ggplot2} scales much better 
 and is far more powerful than the base functions provided by \texttt{R}.
+
+My personal solution is usually to write a plot wrapper function for each individual project, 
+if I'm going to be using similarly styled graphs. Remember to apply DRY (Do not repeat yourself),
+even to \texttt{ggplot2}.
+
+\subsection*{Intro to API usage (simplest version of web scraping) in R}
+Since Max is away this week and the material has stalled, for this part of the section, we will look
+at the simplest version of web scraping using the \texttt{download.file()}
+function. We will see how far we get, and conclude at the start of next section if we have
+to. The context for this I will use is the popular weather dataset
+from Oregon State, PRISM. PRISM provides a daily gridded
+dataset for the contiguous United States that includes maximum temperature, minimum
+temperature, mean temperature, and precipitation at the 2.5 arc-minute by 2.5 arc-minute
+level. This corresponds to grid cells with dimensions of approximately 4.5km by 3-4km in
+the USA.
+
+An API (application program interface) is a system for interacting with a website or
+application which is intended to simplify the process of getting data or something to happen.
+For us, we almost always will be using APIs to download data from an online repository.
+The basic principle is fairly simple; we provide a URL with correctly specified options,
+and receive the data in return.
+
+We will go through a simplified version of the \texttt{getPRISMGrid} in my (incomplete)
+\href{github.com/kendonB/prismUtils}{\texttt{prismUtils}} package.
+
+\textbf{Please do not use the below function after today.} 
+
+Oregon State has been really
+cool to allow this dataset to be accessed publicly and so easily. As such, we
+really don't want to do anything to make them not want to do this. Using more bandwidth 
+than necessary by continually re-downloading the same file is one of these things which
+could make them not want to host these data. Please use the \texttt{downloadMany*} functions
+in the package, 
+which permanently download the files so you only request them once.}
+
+<<message=FALSE, eval=FALSE, tidy=TRUE, cache=TRUE, tidy.opts=list(width.cutoff=55)>>=
+library(rgdal)
+getPRISMGrid <- function(date, type, range = "daily") {
+  # get a temporary .zip file name
+  tmpFile <- tempfile(pattern = paste(date, type, sep = ""))
+  fileName <- paste(tmpFile, ".zip", sep = "")
+  
+  # The url with type, date, and range
+  url <- paste0("http://www.prism.oregonstate.edu/fetchData.php?type", 
+               "=bil&kind=recent&elem=", type, "&range=", range, "&temporal=", 
+               date)
+  
+  # Download the file to fileName
+  download.file(url = url, mode = "wb", destfile = fileName)
+  
+  # if a SpatialGridDataFrame is to be returned:
+  # unzip the file to the working directory.
+  tmpFile <- unzip(zipfile = fileName, overwrite = TRUE)
+      
+  # read into R
+  spGrid <- readGDAL(fname = tmpFile[1])
+      
+  # delete the zip file
+  file.remove(tmpFile)
+      
+  return(spGrid)
+}
+mygrid <- getPRISMGrid(date = "20140503", type = "tmax", range = "daily")
+@
+<<echo=FALSE, message=FALSE>>=
+library(Hmisc)
+date <- "20140503"
+type <- "tmax"
+range <- "daily"
+tmpFile <- tempfile(pattern = paste(date, type, sep = ""))
+fileName <- paste(tmpFile, ".zip", sep = "")
+  
+# The url with type, date, and range
+url <- paste0("http://www.prism.oregonstate.edu/fetchData.php?type", 
+               "=bil&kind=recent&elem=", type, "&range=", range, "&temporal=", 
+               date)
+@
+Calling \texttt{image(mygrid)} would then bring up an image of the data.
+The function has several steps; firstly, we come up with a file name to store
+the downloaded \texttt{.zip} file. The \texttt{tempfile()} function nicely
+finds an appropriate spot on our file system that we can download to. Next we
+provide the correct URL, which we talk about in more detail below. Finally,
+we read the spatial grid file into \texttt{R} using the \texttt{readGDAL()}
+from the \texttt{rgdal} package. We'll talk more about spatial data analysis in
+a future section.
+
+Now, to work out what URL we're supposed to use. Sometimes, APIs have
+great documentation and it's really easy to work out what to put. PRISM
+is certainly one of these APIs 
+(see \url{http://www.prism.oregonstate.edu/documents/PRISM_downloads_web_service.pdf}).
+
+For now, let's do it the hard way. What we're going to do is replicate
+what your browser does when it goes through the website and you click the download button.
+Let's go to \url{http://www.prism.oregonstate.edu},
+click ``Recent Years''. Choose ``Daily Data'', and enter a date. \emph{Right} click 
+on ``Download Data (.bil)''. Sometimes, you might get lucky and see a
+``Copy link address'' option here. Usually this isn't the case for these sort of websites.
+
+Now, open your developer tools. In Chrome, I have to go to Options (the three horizontal
+line sandwich thing), More tools, Developer Tools, and click Network. 
+In Firefox, click the sandwich button,
+Developer Tools, and Network. I don't use Safari, and it looks like you might have to
+download a separate Safari for Developers program. Someone correct me if I'm wrong.
+
+Now left click the ``Download Data (.bil)'' button. You should see things happening.
+Click on the POST request that comes up.
+After a bit of fishing you should see the pieces that go into the URL that gets created in the function:
+<<echo=FALSE>>=
+url1 <- substr(url, 1, 51)
+url2 <- substr(url, 52, nchar(url))
+cat(url1)
+cat(url2)
+@
+You should see that the first part is labeled with ``Request URL:''. The rest should be
+labeled with ``Form Data'' or ``Params''. The basic structure, you can see, is then:
+<<echo=FALSE>>=
+cat("<request url>?<param1Name>=<param1Value>&<param2Name>=<param2Value>&...")
+@
+It will be up to you to follow your nose with working this stuff out usually. Firstly,
+try and find readable documentation for the API, next go through this method we just
+went through, and as a last resort, email the managers of the API for help.
 \end{document}
