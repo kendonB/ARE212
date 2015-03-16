@@ -138,6 +138,13 @@ can override the defaults for that layer only.
 <<>>=
 g + geom_point(aes(color=Species))
 @
+\subsection*{Themes}
+Themes cover the appearance of the graph that has nothing to do with
+the data itself. The background color, for example.
+<<>>=
+g + geom_point(aes(color=Species)) + theme(panel.background = element_blank())
+@
+
 Initially, putting together the grammar of \texttt{ggplot2} may seem cumbersome, because it is. 
 In fact, the code to construct simple scatterplots or histograms in \texttt{ggplot2} 
 is almost certainly going to be more complex than a simple \texttt{plot()} or \texttt{hist()} 
@@ -146,6 +153,8 @@ from the base graphics package.\footnote{In fact, \texttt{ggplot2} provides a fu
 	package, if you prefer.}. But as your graphics needs become more complex, 
 you will almost certainly find that \texttt{ggplot2} scales much better 
 and is far more powerful than the base functions provided by \texttt{R}.
+The documentation (\url{http://docs.ggplot2.org/current/}) is pretty good and
+most questions have been asked out there in the ether. 
 
 My personal solution is usually to write a plot wrapper function for each individual project, 
 if I'm going to be using similarly styled graphs. Remember to apply DRY (Do not repeat yourself),
@@ -171,7 +180,7 @@ and receive the data in return.
 We will go through a simplified version of the \texttt{getPRISMGrid} in my (incomplete)
 \href{github.com/kendonB/prismUtils}{\texttt{prismUtils}} package.
 
-\textbf{Please do not use the below function after today.} 
+\textbf{Please do not use the below function after today.}
 
 Oregon State has been really
 cool to allow this dataset to be accessed publicly and so easily. As such, we
@@ -179,7 +188,7 @@ really don't want to do anything to make them not want to do this. Using more ba
 than necessary by continually re-downloading the same file is one of these things which
 could make them not want to host these data. Please use the \texttt{downloadMany*} functions
 in the package, 
-which permanently download the files so you only request them once.}
+which permanently download the files so you only request them online once.
 
 <<message=FALSE, eval=FALSE, tidy=TRUE, cache=TRUE, tidy.opts=list(width.cutoff=55)>>=
 library(rgdal)

@@ -17,6 +17,10 @@ g + geom_point()
 g + geom_point(aes(color=Species))
 
 
+## ------------------------------------------------------------------------
+g + geom_point(aes(color=Species)) + theme(panel.background = element_blank())
+
+
 ## ----message=FALSE, eval=FALSE, tidy=TRUE, cache=TRUE, tidy.opts=list(width.cutoff=55)----
 ## library(rgdal)
 ## getPRISMGrid <- function(date, type, range = "daily") {
