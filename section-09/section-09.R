@@ -63,7 +63,7 @@ c(mean(popEps0), mean(popEps1), mean(popEps2), mean(popEps3))
 
 
 ## ------------------------------------------------------------------------
-popEps<- c(popEps0, popEps1, popEps2, popEps3)
+popEps <- c(popEps0, popEps1, popEps2, popEps3)
 popEpsType <- c(rep("Normal",popN), rep("Uniform", popN),
   rep("Poisson", popN), rep("Bimodal Gamma", popN))
 class(popEpsType)
@@ -98,7 +98,7 @@ getb <- function(popY) {
 }
 
 
-## ------------------------------------------------------------------------
+## ----cache=TRUE----------------------------------------------------------
 library(foreach)
 bListDf <- data.frame(foreach(type = unique(popEpsType), .combine = rbind) %do% {
   popY <- popYDf[popYDf$type == type,]
@@ -127,7 +127,7 @@ g2 <- makePlots(bListDf[bListDf$type == "Poisson",]) + ggtitle("Poisson errors")
 g3 <- makePlots(bListDf[bListDf$type == "Bimodal Gamma",]) + ggtitle("Bimodal gamma errors")
 
 
-## ----fig.width=7, fig.height=5.5, message=FALSE--------------------------
+## ----fig.width=7, fig.height=5.5, message=FALSE, warning=FALSE-----------
 library(gridExtra)
 grid.arrange(g0, g1, g2, g3, ncol = 2)
 

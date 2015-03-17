@@ -39,6 +39,7 @@
 \lhead{\textbf{Dummy Variables}}
 \rhead{\textbf{ARE212}: Section 9}
 Because we didn't get to it last week, we'll begin by generating dummy variables in \texttt{R}.
+Then, we'll go on to demonstrating an asymptotics result using simulation.
 \subsection*{Generating dummy variables in R}
 This is easy. Let's go back to the \texttt{iris} dataset and turn the \texttt{Species}
 variable into dummies. First we'll do this manually using conditional statements 
@@ -66,8 +67,7 @@ The canned version is a tiny bit simpler. The tricky part is getting what the
 and spits out a matrix (intended for use in OLS) corresponding to the right hand side of
 the formula (what we've been calling the \texttt{X} matrix usually). Note that we 
 have to tell the formula to remove the intercept by adding \texttt{- 1}.
-While this was not the original motivation for writing this function,
-this gives us the ability to nicely generate dummy variables of categorical 
+This gives us the ability to nicely generate dummy variables of categorical 
 \texttt{factor} or \texttt{character}
 variables. This method will not work for \texttt{numeric} variables. 
 
@@ -109,17 +109,19 @@ Note that we also have access to the \texttt{dummies} package on CRAN,
 but it seems to have a coding
 error for individual variables, so I'd avoid using it.
 
+A last word on what you'll actually do in real life. Most estimation functions will
+work with categorical values on the fly, so it's unlikely that you will actually have
+to compute any dummy variables yourself anyway. For example, 
+\texttt{lm(data = iris, formula = Sepal.Length \textasciitilde\ Species)} will give you a dummy variables
+regression without any pain. For models with a large number of dummy variables 
+(like fixed effects models) you should use the \texttt{lfe} package.
 \subsection*{Asymptopia is the best -topia}
-In this part we'll build up a simulation in \texttt{R} to show why living in asymptopia is great. 
-With any remaining time we'll look into what happens when your errors have finite mean 
-but infinite variance. First though, some brief notes on the problem set you all turned in Monday.
-
-\subsubsection*{Abnormal errors, asymptotically}
+In this part we'll build up a simulation in \texttt{R} to show why living in asymptopia is great.
 We'll verify in code 
 what was showed in section 4.2 in lecture. We're going to demonstrate that, 
 given linearity, population orthogonality, and our asymptotic full 
 rank condition, no matter what distribution on the disturbances, 
-the estimated $\bm{b}$ will be distributed normal as $N \rightarrow \infty$.
+the estimated $\bm{b}$ will be distributed normal for large $N$.
 
 Let's get started. First, we'll define our true population of interest, the size of sample for each draw, and the number of draws.
 
@@ -164,7 +166,7 @@ a factor variable for the type of error they are. Recall that factor variables a
 categorical variables in \texttt{R}.
 
 <<>>=
-popEps<- c(popEps0, popEps1, popEps2, popEps3)
+popEps <- c(popEps0, popEps1, popEps2, popEps3)
 popEpsType <- c(rep("Normal",popN), rep("Uniform", popN),
   rep("Poisson", popN), rep("Bimodal Gamma", popN))
 class(popEpsType)
@@ -193,7 +195,7 @@ popYDf <- data.frame(type= popEpsType, y =rep(popX %*% beta, 4) + popEpsDf$popEp
 @
 We also need to build a function that returns OLS estimates for a given set 
 of population variables. \texttt{getb} will be that function, and the code 
-it in should be familiar from section 6. As we did then, we'll randomly sample indices 
+it in should be familiar from previous sections. We'll randomly sample indices 
 (without replacement) and then pull the corresponding 
 data from \texttt{popX} and \texttt{popY}.
 
@@ -209,7 +211,7 @@ getb <- function(popY) {
 Note that the above function depends on both the variable that is passed to it and variables
 that are defined in the global environment. Functions can access both, and if there are conflicts,
 the function will choose the one that is passed to the function. 
-<<>>=
+<<cache=TRUE>>=
 library(foreach)
 bListDf <- data.frame(foreach(type = unique(popEpsType), .combine = rbind) %do% {
   popY <- popYDf[popYDf$type == type,]
@@ -219,12 +221,12 @@ bListDf <- data.frame(foreach(type = unique(popEpsType), .combine = rbind) %do% 
   }
 })
 @
-This looks pretty good so far. The odd columns are our point estimates for $\alpha$, 
-the intercept, and the even columns are our estimates for $\beta_1$, the coefficient estimate. 
+The above stacks the results in a really tall \texttt{data.frame}. This is
+good practice as it makes using \texttt{facets} in \texttt{ggplot2} a lot easier.
+
 From now on we'll focus on $\beta_1$. We've generated a huge amount of these point estimates, 
 but now we'd like to see if they're truly distributed normally. To do 
 this, we'll create a function that graphs each of them.
-
 <<>>=
 makePlots <- function(blist) {
   estmean <- mean(blist$beta1)
@@ -243,15 +245,16 @@ g2 <- makePlots(bListDf[bListDf$type == "Poisson",]) + ggtitle("Poisson errors")
 g3 <- makePlots(bListDf[bListDf$type == "Bimodal Gamma",]) + ggtitle("Bimodal gamma errors")
 @
 
-Our function \texttt{makePlots} returns a graph a histogram, smoothed 
+Our function \texttt{makePlots} returns a histogram, smoothed 
 density, and a normal curve with the same mean and standard 
 deviation as the data, so we just run it 4 times to get our 
 4 graphs (one for each list of our estimated $b$ values). 
 Next, we'll use the \texttt{gridExtra} package (which you may need to install) 
 to display the graphs together, just as we did with our errors. 
 Note that we could also use \texttt{facets} here to grid up the plots, 
-but using \texttt{gridExtra} can sometimes be more user friendly.
-<<fig.width=7, fig.height=5.5, message=FALSE>>=
+but using \texttt{gridExtra} can be more flexible. We need it
+here as the \texttt{stat\_function} part can't be used without a lot of pain.
+<<fig.width=7, fig.height=5.5, message=FALSE, warning=FALSE>>=
 library(gridExtra)
 grid.arrange(g0, g1, g2, g3, ncol = 2)
 @
