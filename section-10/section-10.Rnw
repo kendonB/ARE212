@@ -37,7 +37,7 @@
 
 \setlength{\parindent}{0in}
 \lhead{\textbf{Asymptopia and White SEs}}
-\rhead{\textbf{ARE212}: Section 9}
+\rhead{\textbf{ARE212}: Section 10}
 Because we didn't get to it last time, we'll begin by demonstrating an asymptotics 
 result using simulation. Then, we'll briefly go through calculating White's estimator
 of the variance covariance matrix of coefficients that is robust to arbitrary forms of
@@ -48,7 +48,7 @@ opts_knit$set(message = FALSE)
 \subsection*{Asymptopia is the best -topia}
 In this part we'll build up a simulation in \texttt{R} to show why living in asymptopia is great.
 We'll verify in code 
-what was showed in section 4.2 in lecture. We're going to demonstrate that, 
+what was shown in section 4.2 in lecture. We're going to demonstrate that, 
 given linearity, population orthogonality, and our asymptotic full 
 rank condition, no matter what distribution on the disturbances, 
 the estimated $\bm{b}$ will be distributed normal for large $N$.
@@ -228,9 +228,9 @@ Let's first make some data and run OLS.
 X <- cbind(1, rnorm(1000))
 
 # Generate errors that scale with the size of X
-e <- rnorm(1000)*abs(X)
+e <- rnorm(1000)*X[,2]^2
 
-y <- X %*% matrix(c(1, 2), nrow=2) + rnorm(1000)
+y <- X %*% matrix(c(1, 2), nrow=2) + e
 XXInv <- solve(t(X) %*% X)
 b <- XXInv %*% t(X) %*% y
 @
