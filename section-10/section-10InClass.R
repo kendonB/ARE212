@@ -26,13 +26,11 @@ popEps <- c(popEps0, popEps1, popEps2, popEps3)
 popEpsType <- c(rep("Normal",popN), rep("Uniform", popN),
                 rep("Poisson", popN), rep("Bimodal Gamma", popN))
 class(popEpsType)
-## [1] "character"
+
 popEpsType <- factor(popEpsType, levels = c("Normal", "Uniform",
                                             "Poisson", "Bimodal Gamma"))
 levels(popEpsType)
-## [1] "Normal" "Uniform" "Poisson" "Bimodal Gamma"
-class(popEpsType)
-## [1] "factor"
+
 popEpsDf <- data.frame(popEps, popEpsType)
 
 
@@ -55,13 +53,21 @@ getb <- function(popY) {
 }
 
 library(foreach)
-bListDf <- data.frame(foreach(type = unique(popEpsType), .combine = rbind) %do% {
-  popY <- popYDf[popYDf$type == type,]
-  foreach(draw = rep(NA, draws), .combine = rbind) %do% {
-    b <- getb(popY$y)
-    data.frame(alpha = b[1], beta1 = b[2], type = type)
-  }
-})
+library(doParallel)
+library(parallel)
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+bListDf <- data.frame(foreach(type = unique(popEpsType), .combine = rbind,
+                              .packages = "foreach") %dopar% {
+                                popY <- popYDf[popYDf$type == type,]
+                                foreach(draw = rep(NA, draws), .combine = rbind) %do% {
+                                  b <- getb(popY$y)
+                                  data.frame(alpha = b[1], beta1 = b[2], type = type)
+                                }
+                              })
+stopCluster(cl)
+
+system("taskkill /F /IM Rscript.exe") # Different for Mac.
 
 makePlots <- function(blist) {
   estmean <- mean(blist$beta1)
@@ -91,12 +97,15 @@ cbind(
 X <- cbind(1, rnorm(1000))
 # Generate errors that scale with the size of X
 e <- rnorm(1000)*X[,2]^2
+
 y <- X %*% matrix(c(1, 2), nrow=2) + e
+
 XXInv <- solve(t(X) %*% X)
 b <- XXInv %*% t(X) %*% y
 
 library(Matrix)
 meat <- t(X) %*% Diagonal(length(y), (y - X %*% b)^2) %*% X
+
 bread <- XXInv
 vcov <- t(bread) %*% (meat) %*% bread
 se <- sqrt(diag(vcov))
@@ -106,3 +115,23 @@ summary(lm(y ~ X))$coefficients
 # This is what STATA returns
 seDfCorr <- se * sqrt(NROW(X) / (NROW(X) - NCOL(X)))
 seDfCorr
+
+library(sandwich)
+model <- lm(y ~ X - 1)
+# lm.fit() for just b
+library(lfe)
+# felm() - same as reghdfe2 in STATA
+vcovCanned <- vcovHC(x = model, type = "HC0")
+seCanned <- sqrt(diag(vcovCanned))
+seCanned
+
+vcovCannedDfCorr <- vcovHC(x = model, type = "HC1")
+seCannedDfCorr <- sqrt(diag(vcovCannedDfCorr))
+seCannedDfCorr
+
+summary(model)
+library("lmtest")
+coeftest(model, vcovCanned)
+
+# t stats, for example
+coeftest(model, vcovCanned)[,3]

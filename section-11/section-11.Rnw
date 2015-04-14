@@ -1,0 +1,207 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\usepackage{verbatim}
+\date{\today}	
+\pagestyle{fancy}
+\usepackage{mathrsfs}
+
+\usepackage{bm}
+\begin{document}
+	
+% Remove indent for quotes
+\newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+
+\setlength{\parindent}{0in}
+\lhead{\textbf{Spatial Data Analysis in R}}
+\rhead{\textbf{ARE212}: Section 11}
+Today's section will quickly debrief Problem Set 2 and introduce spatial data analysis in \texttt{R}.
+\subsection*{Problem Set Debrief}
+\begin{itemize}
+  \item Many people didn't realize that the correlation coefficient between $\ln(Q)$ and the residuals
+  is zero by construction in OLS. 
+  \item J = 8 in the F-test as each extra group coefficient must be set to zero individually in the restricted model. 4 more groups than
+  in Q2 so 4 slopes + 4 intercepts = 8.
+  \item Some people calculated the F-test the hard way. See the solutions.
+  \item You can restrict the number of digits and add commas to numbers in knitr using the \texttt{prettyNum()} function.
+  \item Lack of comments on your submissions indicates that things look mostly correct.
+\end{itemize}
+\subsection*{Spatial Data Analysis}
+\texttt{R} is the first (and mostly only) language with which I have performed 
+spatial data analysis. It's not a nice, coherent, well formed, piece of software
+for this purpose. Of the packages in my package install script (which you should all have for
+when you need to install/reinstall \texttt{R}), 
+I counted 18 items with functions related to spatial analysis or mapping. It's a mess. 
+Before the \texttt{sp}
+package, apparently it used to be worse!
+When I'm a tenured professor who has run out of ideas, or an unemployed bum living at my mother's house, 
+I plan to start a project that collects the best of all these functions into a single package with
+a text book. In the meantime, the status quo will have to do. A decent 
+resource is Applied Spatial Data Analysis with \texttt{R} (second edition) by Bivand, Pebesma, and Gómez-Rubio.
+
+Why should I use \texttt{R} for spatial analysis then? Two reasons: 1) the value of keeping your
+work in one program for ease of reproducibility and 2) active development and voluntary
+support. People are keenly working on developing \texttt{R}'s spatial capabilities and
+people answer questions. The R-sig-geo mailing list is a good resource, as is stackoverflow.
+
+\subsection*{Spatial Data Types}
+The first step in understanding spatial analysis in \texttt{R} is understanding the various
+data types. This is going to be quick. For each of these classes, there is a corresponding
+class that adds a \texttt{data.frame} with a row for each element of the class, so that data
+on each element can be nicely kept with the spatial object. For \texttt{SpatialPoints},
+for example, the corresponding object that also contains a \texttt{data.frame} is the
+\texttt{SpatialPointsDataFrame}.
+\subsubsection*{SpatialPoints}
+A \texttt{SpatialPoints} object is a collection of points represented by coordinates, 
+usually latitude/longitude pairs. Each element is a single point.
+\subsubsection*{SpatialLines}
+A \texttt{SpatialLines} object is a collection of lines represented by collections of coordinates in an order.
+Each element is a collection of points, ordered to represent the line.
+\subsubsection*{SpatialPolygons}
+A \texttt{SpatialPolygons} object is simply a collection of closed lines. 
+Individual ``polygons'' can have holes, and comprise more than one actual \texttt{Polygon} object.
+Mostly, you won't have to concern yourself with the fine details of how these objects work.
+\subsubsection*{SpatialGrid/SpatialPixels}
+\texttt{SpatialGrid/SpatialPixels} are basically the same object and represent a something close to a rectangular grid.
+These are used to represent, for example, satellite imagery and gridded weather.
+
+\subsection*{Reading spatial data}
+There are many different file types that represent spatial data and I have not yet come
+across a file type that can't be read, though finding a method that works is not always
+easy. The GDAL driver is pretty flexible and can handle a lot of formats.
+We'll look at a couple:
+\subsubsection*{ESRI Shapefiles}
+Being a popular format, this one is particularly easy to get into \texttt{R}.
+Let's download a USA states shapefile and read it in. You will need to install the
+\texttt{sp} and \texttt{rgdal} packages if you haven't already.
+
+<<>>=
+library(sp)
+library(rgdal)
+@
+<<cache=TRUE, warning=FALSE, message=FALSE>>=
+# Download a USA shapefile
+tmpFile <- tempfile()
+download.file("http://www2.census.gov/geo/tiger/GENZ2013/cb_2013_us_state_20m.zip", 
+              destfile = tmpFile)
+unzipped <- unzip(zipfile = tmpFile, exdir = getwd())
+
+# This is the actual reading stage
+states <- readOGR(dsn = getwd(), layer = "cb_2013_us_state_20m")
+
+# Remove all the files on disk
+file.remove(tmpFile)
+file.remove(unzipped)
+@
+Now let's take a quick look at what we've downloaded!
+<<fig.height = 4>>=
+plot(states)
+@
+Could look better - but we'll worry about that more next time.
+We can certainly confirm that we've downloaded a \texttt{SpatialPolygons} 
+object for the USA.
+
+To look closer at what we have, lets check out the slots\footnote{Think of slots
+as attributes for a given class that are defined for all objects that belong
+to that class.} that belong to the \texttt{SpatialPolygonsDataFrame} class.
+<<>>=
+slotNames(states)
+@
+The \texttt{data} slot simply contains a \texttt{data.frame} with a row for each
+\texttt{Polygons} object, here one for each state. The \texttt{polygons} slot contains
+a list of \texttt{Polygons} objects. You may interact with the rest at some stage,
+but I wouldn't worry about them for now. Let's look at the \texttt{data.frame}
+part.
+<<>>=
+head(states@data)
+@
+\subsubsection*{.bil pixel files}
+Now, let's download some temperature data as a \texttt{SpatialGridDataFrame}. 
+I'll download the 
+maximum temperature for the contiguous USA for my birthday last year.
+You can see that now we use the \texttt{readGDAL()} function,
+rather than the \texttt{readOGR()} function. Google is your friend
+for working out when to use which reading function to use to get the data in.
+Always favor solutions that use the \texttt{rgdal} package, as these functions
+are able to read the map projections, while others do not (for example, the 
+\texttt{maptools} package).
+<<cache=TRUE>>=
+tmpFile <- tempfile()
+
+url <- paste0("http://www.prism.oregonstate.edu/fetchData.php?type", 
+              "=bil&kind=recent&elem=tmax&range=daily&temporal=", 
+              "20140125")
+
+# Download the file to fileName
+download.file(url = url, mode = "wb", destfile = tmpFile)
+
+# unzip the file to the working directory.
+unzippedFiles <- unzip(zipfile = tmpFile, overwrite = TRUE)
+
+# read into R
+tMaxGrid <- readGDAL(fname = unzippedFiles[1])
+
+# delete the file
+file.remove(tmpFile)
+file.remove(unzippedFiles)
+@
+<<fig.height=5, fig.width=6>>=
+image(tMaxGrid)
+@
+Great! This seems to have worked.
+\subsection*{Google maps distances}
+Now, let's use \texttt{R}'s interface with Google maps to get some distances.
+<<cache=TRUE, message=FALSE>>=
+library(ggmap)
+distances <- mapdist(from = "Giannini Hall, UC Berkeley, CA 94720",
+                     to = as.character(states@data$NAME),
+                     mode = "driving") #$
+states$distanceToGiannini <- distances$km
+@
+
+\subsection*{Spatial Data Analysis, finally}
+Now, let's quickly do something silly and see if there is a significant correlation between
+driving distance to Giannini and the temperature grid you downloaded.
+<<>>=
+# This gets the simple average of the grid cells whose centres
+# are in each state. NOT a good solution for smaller polygons
+# like ZIPs. Stored in a SpatialPolygonsDataFrame.
+tMax <- aggregate(tMaxGrid, by = states, FUN = mean, na.rm=TRUE)
+
+# Access the temperature and store it in the states object.
+states$tMax <- tMax@data$band1
+@
+Now, we're ready to run a regression!
+<<>>=
+summary(lm(distanceToGiannini ~ tMax, data = states@data))
+@ %$
+Obviously, there is a lot more to spatial analysis in \texttt{R} than
+calculating attribute values and running regressions. We can calculate 
+spatial correllograms, calculate network statistics, all sorts. 
+Mostly you will discover these things along the
+way - I'm always available for conversations about these things to get
+you on the right track.
+\end{document}
