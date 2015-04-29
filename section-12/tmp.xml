@@ -1,0 +1,158 @@
+<?xml version='1.0'?>
+<report type='Basic'>
+  <food ndbno='17178' name='Game meat, rabbit, domesticated, composite of cuts, cooked, roasted'>
+    <nutrients>
+      <nutrient nutrient_id='255' name='Water' unit='g' value='60.61' group='Proximates'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='51.52' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='189.71' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='208' name='Energy' unit='kcal' value='197' group='Proximates'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='167' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='617' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='203' name='Protein' unit='g' value='29.06' group='Proximates'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='24.70' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='90.96' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='204' name='Total lipid (fat)' unit='g' value='8.05' group='Proximates'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='6.84' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='25.20' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='205' name='Carbohydrate, by difference' unit='g' value='0.00' group='Proximates'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='0.00' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='0.00' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='291' name='Fiber, total dietary' unit='g' value='0.0' group='Proximates'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='0.0' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='0.0' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='301' name='Calcium, Ca' unit='mg' value='19' group='Minerals'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='16' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='59' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='303' name='Iron, Fe' unit='mg' value='2.27' group='Minerals'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='1.93' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='7.11' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='304' name='Magnesium, Mg' unit='mg' value='21' group='Minerals'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='18' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='66' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='305' name='Phosphorus, P' unit='mg' value='263' group='Minerals'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='224' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='823' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='306' name='Potassium, K' unit='mg' value='383' group='Minerals'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='326' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='1199' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='307' name='Sodium, Na' unit='mg' value='47' group='Minerals'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='40' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='147' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='309' name='Zinc, Zn' unit='mg' value='2.27' group='Minerals'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='1.93' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='7.11' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='401' name='Vitamin C, total ascorbic acid' unit='mg' value='0.0' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='0.0' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='0.0' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='404' name='Thiamin' unit='mg' value='0.090' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='0.076' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='0.282' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='405' name='Riboflavin' unit='mg' value='0.210' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='0.178' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='0.657' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='406' name='Niacin' unit='mg' value='8.430' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='7.166' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='26.386' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='415' name='Vitamin B-6' unit='mg' value='0.470' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='0.399' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='1.471' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='435' name='Folate, DFE' unit='µg' value='11' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='9' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='34' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='418' name='Vitamin B-12' unit='µg' value='8.30' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='7.06' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='25.98' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='320' name='Vitamin A, RAE' unit='µg' value='0' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='0' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='0' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='318' name='Vitamin A, IU' unit='IU' value='0' group='Vitamins'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='0' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='0' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='606' name='Fatty acids, total saturated' unit='g' value='2.400' group='Lipids'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='2.040' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='7.512' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='645' name='Fatty acids, total monounsaturated' unit='g' value='2.170' group='Lipids'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='1.844' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='6.792' />
+        </measures>
+      </nutrient>
+      <nutrient nutrient_id='646' name='Fatty acids, total polyunsaturated' unit='g' value='1.560' group='Lipids'>
+        <measures>
+          <measure label='oz' eqv='85.0' qty='3.0' value='1.326' />
+          <measure label='piece, cooked (yield from 1 lb raw meat, boneless)' eqv='313.0' qty='1.0' value='4.883' />
+        </measures>
+      </nutrient>
+    </nutrients>
+  </food>
+  <footnotes />
+</report>

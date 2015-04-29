@@ -1,0 +1,270 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\tolerance=1000
+\usepackage{mathrsfs}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{dcolumn}
+\usepackage{subfigure}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{color}
+\RequirePackage{fancyvrb}
+\usepackage{verbatim}
+\date{\today}	
+\pagestyle{fancy}
+\usepackage{mathrsfs}
+
+\usepackage{bm}
+\begin{document}
+% Remove indent for quotes
+\newenvironment{myquote}{\list{}{\leftmargin=0in\rightmargin=0.3in}\item[]}{\endlist}
+<<echo=FALSE>>=
+opts_chunk$set(message=FALSE)
+@
+\setlength{\parindent}{0in}
+\lhead{\textbf{Web Scraping}}
+\rhead{\textbf{ARE212}: Section 13}
+The purpose of this section is to showcase the ability to scrape and process web data using \texttt{R}.
+We'll also talk a tiny bit about error handling along the way.
+
+\subsection*{Web scraping}
+So far, we've used \texttt{R} to download PRISM weather data, a couple of polygon shapefiles, and data
+on population by ZIP code tabulation area. I do not really consider what we've done so far web scraping, as
+it is simply downloading data \emph{that was intended to be downloaded as data.} I think web scraping
+becomes web scraping when the primary purpose of the ``data'' that is obtained by loading a URL,
+is to be viewed in a browser, or sampled for web pages, rather than downloaded and 
+analyzed in statistical programs.
+
+The first part of the section notes draw heavily from an old 
+post\footnote{\url{https://github.com/sckott/sckott.github.com/blob/master/_drafts/2012-08-30-get-ecoevo-journal-titles.md}} 
+on a great blog by Pascal Mickelson and Scott Chamberlain, 
+two biologists and experienced \texttt{R} users.
+
+Note that the code below actually takes quite a while to run, 
+since we need to download multiple large files from the server. 
+If you are reading this in section while I'm demonstrating it, 
+I do not recommend you run it! We don't want to crash their server.
+
+\subsection*{XML}
+The simplest web information out there will find it's way to you in
+XML form. XML is a data format that's used a lot for storing data which
+is used on webpages, and many websites have public XML code. Our first example
+will look at downloading some of this and turning it into something useful.
+
+Suppose we want to find the number of available economics journals. 
+There are too many. Definitely. But suppose we want to find out just how many. 
+To do this, we can visit \url{www.crossref.org}, which is a citation-linking 
+network with a list of all journals and their Digital Object Identifiers 
+(DOIs). We will query the list from within \texttt{R} and
+then parse the returned content to list journals with certain 
+attributes. For this, we'll need to load(/install) the following libraries:
+
+<<>>=
+library(XML)
+library(RCurl)
+library(stringr)
+library(ggplot2)
+
+options(show.error.messages = FALSE)
+@
+Note the useful option for code with loops, especially loops over 
+remote queries, to globally suppress error messages. The next step 
+is to repeatedly query crossref.org for journal titles. Try to 
+copy and paste the base URL address (\texttt{baseurl}) into your browser:
+
+\url{http://oai.crossref.org/OAIHandler?verb=ListSets}.
+    
+The result is a long XML form. The idea behind scraping data is to take 
+web data like this and turn it into a dataset we can analyze. The function
+\texttt{getURL} from \texttt{RCurl} in the following code 
+pulls this response into \texttt{R} as a \texttt{character} string, and 
+the outer functions \texttt{xmlParse} and \texttt{xmlToList} convert 
+the output into a \texttt{list}. There are too many entries to 
+fit into a single query, so the \texttt{while} loop continues to 
+query until there are no more results. The final results are stored in \texttt{nameslist}.
+
+<<cache=TRUE>>=
+token <- "characters"
+nameslist <- list()
+
+while (is.character(token) == TRUE) {
+  baseurl <- "http://oai.crossref.org/OAIHandler?verb=ListSets"
+  if (token == "characters") {
+    tok.follow <- NULL
+  } else {
+    tok.follow <- paste("&resumptionToken=", token, sep = "")
+  }
+
+  query <- paste(baseurl, tok.follow, sep = "")
+
+  xml.query <- xmlParse(getURL(query))
+  set.res <- xmlToList(xml.query)
+  names <- as.character(sapply(set.res[["ListSets"]], function(x) x[["setName"]]))
+  nameslist[[token]] <- names
+
+  tryCatch(token <- set.res[["request"]][[".attrs"]][["resumptionToken"]], error = function(e){
+    message("no more data")
+    token <<- NULL
+  })
+}
+@
+
+This looks confusing. Don't panic, though. A \texttt{while} loop runs 
+repeatedly as long as the condition in parentheses is satisfied. Here's what it does:
+\begin{enumerate}
+\item The \texttt{while} loop creates a url, \texttt{query} to pull from the URL above.
+\item Gets the results, \texttt{xml.query}, and runs \texttt{xmlToList()} to turn 
+      those XML results into a list of journals, \texttt{set.res}.
+\item Passes the names of the journals, \texttt{names}, to the list of 
+      names, \texttt{nameslist}. The list identifier for each set of names is \texttt{token}.
+\item Tries to set the \texttt{token} variable equal to the \texttt{"resumptionToken"} 
+      field passed in the XML.
+  \begin{enumerate}
+    \item If successful, restarts the loop using the new \texttt{token}.
+    \item If unsuccessful, ends the loop.
+  \end{enumerate}
+\end{enumerate}
+How many journal titles are collected by this query? We first concatenate 
+the results into a single list, and then find the total length:
+\newpage
+<<>>=
+allnames <- unlist(nameslist)
+length(allnames)
+head(allnames)
+@
+Now, suppose that we are looking for just those journals with \emph{economic} in the title. 
+We rely on regular expressions, a common way to parse strings, from within \texttt{R}. 
+The following code snippet detects strings with some variant of \emph{economic}, 
+both lower- and upper-case, and selects those elements from within the \texttt{allnames} list.
+
+The \textasciicircum\ symbol says "the string must start here". The \textbackslash\textbackslash s means whitespace. The [] 
+lets you specify a set of letters you are looking for, e.g., [Ee] means capital E OR lowercase e.
+
+<<>>=
+econtitles <- as.character(allnames[str_detect(allnames, "^[Ee]conomic|\\s[Ee]conomic")])
+length(econtitles)
+@
+I can't take credit for the following joke. But it's great nonetheless:
+\begin{quote}
+\emph{What in the hell? So many! I suppose that this is a good thing: at 
+least one of the \Sexpr{length(econtitles)} journals should accept my crappy papers. 
+If I blindly throw a dart in a bar, it may not hit the dartboard, 
+but it will almost certainly hit one of the  \Sexpr{length(econtitles)} patrons.} - Patrick Baylis
+\end{quote}
+
+Here is a random sample of ten journals:
+
+<<>>=
+sample(econtitles, 10)
+@
+
+\subsection*{HTML}
+Now to HTML, which is what most webpages display their contents in. Google is
+definitely your friend for each situation where you're trying to work with
+actual webpages. We'll quickly go through an example of downloading oil
+futures prices from a webpage.
+<<>>=
+url <- "http://www.cmegroup.com/trading/energy/crude-oil/brent-crude-oil.html"
+tables <- tryCatch(readHTMLTable(url), error = function(e){
+  message("Please check internet connection")
+})
+n.rows <- unlist(lapply(tables, function(t) dim(t)[1]))
+oilPrices <- tables[[which.max(n.rows)]]
+head(oilPrices)
+@
+Easy! This time. The above code relies on the oil price table being the largest 
+on the page. Sometimes the data you want isn't sitting on the page in
+a table at all! In these cases, you might have to use complicated regular expressions
+and string parsing methods. Yuck. Like I said, Google is your friend; failing
+that, ask on stackoverflow.
+
+\subsection*{Selenium}
+Now the craziest tool of all, Selenium. Selenium is a browser
+automation tool, so it allows you to act (almost) exactly like a human
+would, clicking and typing in boxes. There are seldom cases where something like
+this is really necessary. The only time I have used it is to try and automate
+arbitrage trading on a prediction website. I succeeded in automating the trading,
+but found that the opportunities amounted to a few cents a day, which wouldn't
+have got me up to the \$5 trading fee threshold.
+
+On my machine, the \texttt{RSelenium} package automatically downloads the 
+Selenium driver when you first use it. Hopefully this happens for you too.
+The example in the \texttt{collectAvailableCategories.R} file is something I cooked 
+up for fun last Friday night instead of going
+out, because I'm trying to drink less. It looks on the USDA NASS online interface
+and determines what level of aggregation is available for each data type.
+Like I said, it's usually not necessary to use Selenium to achieve
+any particular goal, and this example is no exception - you can just download
+the full data set and go from there.
+
+%What are other things we can do with the data? Suppose we wanted 
+%to compare the relative frequencies of different subjects within 
+%journal titles. This offers a decent example for section, since we 
+%can refactor some of the code we already developed -- a useful skill 
+%for writing clean code. We have already figured out how to count the
+%number of journals for a particular regular expression. We can refactor 
+%the code into the following function, which accepts a regular 
+%expression and returns the length of the collection containing 
+%matching strings:
+%
+%<<>>=
+%countJournals <- function(regex) {
+%  titles <- as.character(allnames[str_detect(allnames, regex)])
+%  return(length(titles))
+%}
+%@
+%
+%Now the tedious process of converting a list of subjects into the 
+%appropriate regular expressions\footnote{Unfortunately, we don't 
+%have time to do a detailed introduction to regular expressions, 
+%but they \emph{are} incredibly useful. You can find a 
+%gentle introduction here: \url{http://www.zytrax.com/tech/web/regex.htm}}. 
+%If we have time, we'll write a function to do this conversion for us:
+%
+%<<>>=
+%subj = c("economic", "business", "politic", "environment", "engineer", "history")
+%regx = c("^[Ee]conomic|\\s[Ee]conomic", "^[Bb]usiness|\\s[Bb]usiness",
+%  "^[Pp]olitic|\\s[Pp]olitic", "^[Ee]nvironment|\\s[Ee]nvironment",
+%  "^[Ee]ngineer|\\s[Ee]ngineer", "^[Hh]istory|\\s[Hh]istory")
+%
+%subj.df <- data.frame(subject = subj, regex = regx)
+%@
+%
+%Finally, we simply apply our refactored function to the regular expressions, and graph the result:
+%
+%<<>>=
+%subj.df$count <- sapply(as.character(subj.df$regex), countJournals)
+%g <- ggplot(data = subj.df, aes(x = subject, y = count)) + geom_bar(stat = "identity")
+%g
+%@
+%
+%\subsection*{Web scraping in the real world}
+%Practically, every web scraping task requires a different set of tools. 
+%The example presented here is one of the most straightforward 
+%possible settings, since we're scraping an XML file. The only 
+%slight complication was using the \texttt{token} to get the next set of results. \\
+%
+%Second, web scraping is a neat trick, but I recommend only using it 
+%as a last resort. If you can get the data you want just by asking, 
+%that's \emph{much} easier. Moreover, some website owners may not 
+%appreciate you hammering their site with requests. Finally, web 
+%scraping is fragile and heavily dependent on the site not changing 
+%over time. This is particularly true when scraping HTML, perhaps 
+%somewhat less so with XML, since the latter tends to have a 
+%fairly well-defined structure to it. Still, nothing is set in stone.
+
+\end{document}

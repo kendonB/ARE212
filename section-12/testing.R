@@ -1,4 +1,4 @@
-setwd("../ARE212GSI/Github/ARE212/section-12/")
+setwd("Dropbox/PhD/ARE212GSI/Problem Set 3/")
 farmersMarkets <- read.csv("farmers-mkts.csv")
 bayZips <- c("94706", "94707", "94708", "94710",
              "94702", "94720", "94703", "94709",
@@ -15,7 +15,7 @@ bayZips <- c("94706", "94707", "94708", "94710",
 
 bayFMs <- farmersMarkets[farmersMarkets$Zip %in% bayZips,]
 
-bayFMs$varietyScore <- apply(bayFMs, 1, function(row) {
+bayFMs$qualityScore <- apply(bayFMs, 1, function(row) {
   sum(row == "Y")
 })
 
@@ -53,10 +53,10 @@ points(bayFMs$x, bayFMs$y, cex = 1, pch = 20)
 plot(bayPoly)
 library(plotrix)
 points(bayFMs$x, bayFMs$y, cex = 2, pch = 20, 
-       col = color.scale(bayFMs$varietyScore, extremes=c("yellow","red")))
+       col = color.scale(bayFMs$qualityScore, extremes=c("yellow","red")))
 
 plot(bayPoly)
-symbols(bayFMs$x, bayFMs$y, cex = 2, pch = 20, circles = bayFMs$varietyScore,
+symbols(bayFMs$x, bayFMs$y, cex = 2, pch = 20, circles = bayFMs$qualityScore,
         inches=1/10, ann=F, bg="steelblue2", fg=NULL, add=TRUE)
 
 library(ggplot2)
@@ -74,23 +74,23 @@ library(RColorBrewer)
 mapPlot <- ggplot(bayPolyDf, aes(long, lat)) + 
   geom_path(aes(group=group)) + theme_minimal()
 mapPlot <- mapPlot + geom_polygon(aes(fill = popDens, group=group)) + 
-  scale_fill_gradientn(colours = brewer.pal(5, "Blues")) + geom_path(aes(group=group))
+  scale_fill_gradientn(colours = brewer.pal(5, "Reds")) + geom_path(aes(group=group))
 
 mapPlot + geom_point(data = bayFMs, aes(x = x, y = y, group = NULL, 
-                                        color = varietyScore), size = 4) +
+                                        color = qualityScore), size = 4) +
   scale_colour_gradient(low = "white", high = "red")
 
 mapPlot + geom_point(data = bayFMs, aes(x = x, y = y, group = NULL, 
-                                        size = varietyScore))
+                                        size = qualityScore))
 
 library(ggmap)
 ggMap <- ggmap(get_map(location = c(-122.363028, 37.822109), 
                        zoom = 11, scale = 4, maptype = "roadmap"))
 ggMap <- ggMap + 
   geom_polygon(data = bayPolyDf, aes(long, lat, fill = popDens, group=group), alpha = 0.5) + 
-  scale_fill_gradientn(colours = brewer.pal(5, "Blues")) +
+  scale_fill_gradientn(colours = brewer.pal(5, "Reds")) +
   geom_path(data = bayPolyDf, aes(long, lat, group=group)) 
 
 ggMap + geom_point(data = bayFMs, aes(x = x, y = y, group = NULL, 
-                                        color = varietyScore), size = 4) +
+                                        color = qualityScore), size = 4) +
   scale_colour_gradient(low = "white", high = "red")
