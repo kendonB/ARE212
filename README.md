@@ -32,13 +32,12 @@ for the excellent previous versions of these notes.
 
 1. Make sure the restrictions are really clear in the intros to exams. For example,
 make sure the Professor explicitly mentions you are allowed to use all of:
-
-loop functions (the apply family, for example)
-logical operators/functions
-basic arithmetic functions
-distribution functions
-random number generators
-data manipulation functions
+  * loop functions (the apply family, for example)
+  * logical operators/functions
+  * basic arithmetic functions
+  * distribution functions
+  * random number generators
+  * data manipulation functions
 
 2. Use online submissions for problem sets and exams.
 
