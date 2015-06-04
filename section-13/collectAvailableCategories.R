@@ -1,9 +1,10 @@
 library(dplyr)
 library(RSelenium)
-appURL <- ("http://quickstats.nass.usda.gov/")
+appURL <- "http://quickstats.nass.usda.gov/"
 RSelenium::checkForServer()
 RSelenium::startServer()
 remDr <- RSelenium::remoteDriver()
+Sys.sleep(5)
 remDr$open()
 remDr$navigate(appURL)
 
@@ -22,11 +23,12 @@ optionsDf <- data.frame(program=character(),
                         statNum=numeric(),
                         dataItemNum=numeric(),
                         domNum=numeric())
+
 clickOptionOn <- function(num, thisCategory){
   optElem <- remDr$findElement(using = 'xpath', paste0("//*[@id='", thisCategory, "']/option[",num,"]"))
   tries <- 0
   while (!optElem$isElementSelected()[[1]] & tries <= 10) {
-    optElem$clickElement()
+    optElem$clickElement() # sendKeys 
     # There's a bug where the optElem disappears
     # while this is in a loop and it gets unselected.
     Sys.sleep(1)

@@ -10,7 +10,7 @@ library(stringr)
 library(ggplot2)
 
 
-options(show.error.messages = FALSE)
+options(show.error.messages = TRUE)
 
 
 ## ----cache=TRUE----------------------------------------------------------
@@ -34,6 +34,8 @@ while (is.character(token) == TRUE) {
 
   tryCatch(token <- set.res[["request"]][[".attrs"]][["resumptionToken"]], 
            error = function(e){
+             message(e) # Original error message here
+             # cat() # You should never use cat()
              message("no more data")
              token <<- NULL
            })
@@ -47,8 +49,10 @@ head(allnames)
 
 
 ## ------------------------------------------------------------------------
-econtitles <- as.character(allnames[str_detect(allnames, "^[Ee]conomic|\\s[Ee]conomic")])
+econtitles <- as.character(allnames[str_detect(allnames, 
+                                               "^[Ee]con|\\s[Ee]con")])
 length(econtitles)
+head(econtitles)
 
 
 ## ------------------------------------------------------------------------
@@ -63,5 +67,7 @@ tables <- tryCatch(readHTMLTable(url), error = function(e){
 n.rows <- unlist(lapply(tables, function(t) dim(t)[1]))
 oilPrices <- tables[[which.max(n.rows)]]
 head(oilPrices)
+# Could be better ways to do this - maybe try Quandl package?
+
 
 

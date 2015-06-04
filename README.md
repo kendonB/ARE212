@@ -27,3 +27,21 @@ documented from the PDF description.
 
 Please see https://github.com/pbaylis/ARE212 and https://github.com/danhammer/ARE212
 for the excellent previous versions of these notes.
+
+# Tips for the next instructor
+
+1. Make sure the restrictions are really clear in the intros to exams. For example,
+make sure the Professor explicitly mentions you are allowed to use all of:
+
+loop functions (the apply family, for example)
+logical operators/functions
+basic arithmetic functions
+distribution functions
+random number generators
+data manipulation functions
+
+2. Use online submissions for problem sets and exams.
+
+It's better.
+
+3. 
